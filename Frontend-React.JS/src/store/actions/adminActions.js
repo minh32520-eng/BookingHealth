@@ -206,10 +206,10 @@ export const fetchTopDoctor = () => {
         try {
             let res = await getTopDoctorHomeService("");
 
-            if (res && res.data && res.data.errCode === 0) {
+            if (res && res.errCode === 0) {
                 dispatch({
                     type: actionTypes.FETCH_TOP_DOCTORS_SUCCESS,
-                    dataDoctors: res.data.data
+                    dataDoctors: res.data
                 });
             } else {
                 dispatch({
@@ -228,12 +228,12 @@ export const fetchTopDoctor = () => {
 export const fetchAllDoctors = () => {
     return async (dispatch, getState) => {
         try {
-            let res = await getAllDoctors("");
+            let res = await getAllDoctors();
 
-            if (res && res.data && res.data.errCode === 0) {
+            if (res && res.errCode === 0) {
                 dispatch({
                     type: actionTypes.FETCH_ALL_DOCTORS_SUCCESS,
-                    dataDr: res.data.data
+                    dataDr: res.data
                 });
             } else {
                 dispatch({
@@ -255,7 +255,7 @@ export const saveDetailDoctor = (data) => {
 
             let res = await saveDetailDoctorService(data);
 
-            if (res && res.data && res.data.errCode === 0) {
+            if (res && res.errCode === 0) {
                 toast.success("Save infor succeed")
                 dispatch({
                     type: actionTypes.SAVE_DETAIL_DOCTOR_SUCCESS

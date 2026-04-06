@@ -25,6 +25,7 @@
     },
     "menu": {
         "admin": {
+            "dashboard": "Dashboard",
             "manage-user": "Quan ly nguoi dung ",
             "manage-doctor": "Quan ly bac sy",
             "manage-admin": "Quan ly admin",

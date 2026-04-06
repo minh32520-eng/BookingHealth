@@ -25,6 +25,7 @@
     },
     "menu": {
         "admin": {
+            "dashboard": "Dashboard",
             "manage-user": "Users System",
             "manage-doctor": "Manage doctors",
             "manage-admin": "Manage admins",

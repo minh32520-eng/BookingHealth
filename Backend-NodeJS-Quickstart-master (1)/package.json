@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "moment": "^2.29.1",
-    "nodemailer": "6.6.3",
-    "uuid": "^13.0.0"
-  }
-}

@@ -47,8 +47,36 @@ const toLabelMap = (rows) => {
 };
 
 const getHomePage = async (req, res) => {
-    let data = await db.User.findAll({ raw: true });
-    return res.render('homepage.ejs', { data });
+    try {
+        const [totalUsers, totalDoctors, totalSpecialties, totalClinics, totalHandbooks, latestUsers] =
+            await Promise.all([
+                db.User.count(),
+                db.User.count({ where: { roleId: 'R2' } }),
+                db.Specialty.count(),
+                db.clininc ? db.clininc.count() : Promise.resolve(0),
+                db.Handbook ? db.Handbook.count() : Promise.resolve(0),
+                db.User.findAll({
+                    raw: true,
+                    attributes: ['email', 'firstName', 'lastName', 'roleId', 'createdAt'],
+                    order: [['id', 'DESC']],
+                    limit: 8,
+                }),
+            ]);
+
+        return res.render('homepage.ejs', {
+            stats: {
+                totalUsers,
+                totalDoctors,
+                totalSpecialties,
+                totalClinics,
+                totalHandbooks,
+            },
+            latestUsers,
+        });
+    } catch (e) {
+        console.error('getHomePage:', e);
+        return res.status(500).send('Không tải được dashboard backend.');
+    }
 };
 
 const getAboutPage = (req, res) => {
