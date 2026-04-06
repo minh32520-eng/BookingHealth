@@ -1,0 +1,29 @@
+.manage-clinic-container {
+    padding: 20px;
+
+    .mc-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    .btn-save-clinic {
+        padding: 8px 18px;
+        border: none;
+        border-radius: 6px;
+        background: #49bce2;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .mc-preview {
+        margin-top: 10px;
+        img {
+            max-width: 220px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+    }
+}
+

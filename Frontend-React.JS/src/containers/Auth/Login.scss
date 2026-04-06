@@ -1,0 +1,138 @@
+.login-background {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg,
+            rgba(34, 193, 195, 1) 0%,
+            rgba(253, 187, 45, 1) 100%);
+}
+
+.login-container {
+    width: 300px;
+    border-radius: 10px;
+    background-color: white;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    min-height: 480px;
+    height: auto;
+    max-height: 95vh;
+    overflow-y: auto;
+}
+
+.login-content {
+    padding: 20px;
+    margin: 0;
+
+    .text-login {
+        text-align: center;
+        font-weight: 600;
+        font-size: 24px;
+        padding-top: 10px;
+    }
+
+    .login-input {
+        margin: 7px 0;
+
+        .custom-input-password {
+            position: relative;
+
+            i {
+                position: absolute;
+                right: 5px;
+                top: 10px;
+                cursor: pointer;
+            }
+        }
+    }
+
+    .btn-login {
+        width: 100%;
+        margin: 10px 0;
+        height: 35px;
+        border-radius: 20px;
+        border: none;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        background: linear-gradient(135deg,
+                rgba(34, 193, 195, 1) 0%,
+                rgba(253, 187, 45, 1) 100%);
+    }
+
+    .forgot-pass {
+        font-size: 12px;
+        cursor: pointer;
+    }
+}
+
+.col-12-social-login {
+    display: flex;
+    justify-content: center;
+    align-items: center; // 🔥 quan trọng
+    gap: 20px;
+    margin-top: 15px;
+}
+
+a.social-icon {
+    text-decoration: none;
+    color: inherit;
+}
+
+.social-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* Facebook */
+.facebook {
+    background: #1877f2;
+    color: white;
+    font-size: 22px;
+}
+
+/* Google */
+.google {
+    background: white;
+    border: 1px solid #ddd;
+}
+
+.instagram {
+    background: linear-gradient(45deg,
+            #feda75,
+            #fa7e1e,
+            #d62976,
+            #962fbf,
+            #4f5bd5);
+    color: white;
+    font-size: 22px;
+}
+
+.github {
+    background: linear-gradient(45deg,
+            rgb(2, 12, 12),
+            black,
+            white);
+    color: white;
+    font-size: 22px;
+}
+
+/* Fix icon Google bị lệch */
+.google svg {
+    font-size: 22px;
+}
+
+/* Hover */
+.social-icon:hover {
+    transform: scale(1.1);
+}

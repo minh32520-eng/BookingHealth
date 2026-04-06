@@ -1,0 +1,137 @@
+.detail-specialty-page {
+    min-height: calc(100vh - 80px);
+    background: #fff;
+    padding-bottom: 48px;
+}
+
+.detail-specialty-breadcrumb {
+    margin: 16px 100px 0;
+    font-size: 14px;
+    color: #666;
+
+    .breadcrumb-loading {
+        color: #999;
+        font-style: italic;
+    }
+
+    a {
+        color: #45c3d2;
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+.detail-specialty-error {
+    margin: 40px 100px;
+    padding: 20px;
+    background: #fff3f3;
+    border-radius: 8px;
+    color: #c0392b;
+}
+
+.detail-specialty-body {
+    margin: 24px 100px 0;
+    max-width: 900px;
+}
+
+.detail-specialty-cover {
+    width: 100%;
+    height: 280px;
+    border-radius: 12px;
+    background-size: cover;
+    background-position: center;
+    background-color: #e8e8e8;
+    margin-bottom: 24px;
+}
+
+.detail-specialty-title {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.detail-specialty-content {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #444;
+
+    p {
+        margin-bottom: 14px;
+    }
+
+    strong {
+        color: #222;
+    }
+}
+
+.detail-specialty-section {
+    margin-bottom: 8px;
+}
+
+.detail-specialty-section-content {
+    margin-top: 8px;
+}
+
+.detail-specialty-loading {
+    pointer-events: none;
+}
+
+@keyframes specialty-skeleton-pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.45;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #eee 0%, #f5f5f5 50%, #eee 100%);
+    background-size: 200% 100%;
+    animation: specialty-skeleton-pulse 1.2s ease-in-out infinite;
+    border-radius: 8px;
+}
+
+.skeleton-cover {
+    width: 100%;
+    height: 280px;
+    margin-bottom: 24px;
+}
+
+.skeleton-title {
+    height: 36px;
+    width: 70%;
+    max-width: 420px;
+    margin-bottom: 20px;
+}
+
+.skeleton-line {
+    height: 16px;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.skeleton-line-short {
+    width: 55%;
+}
+
+@media (max-width: 768px) {
+    .detail-specialty-breadcrumb,
+    .detail-specialty-body,
+    .detail-specialty-error {
+        margin-left: 16px;
+        margin-right: 16px;
+    }
+
+    .detail-specialty-cover,
+    .skeleton-cover {
+        height: 200px;
+    }
+}

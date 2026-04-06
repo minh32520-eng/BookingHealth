@@ -1,0 +1,20 @@
+.manage-handbook-container {
+    padding: 20px;
+
+    .mh-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    .btn-save-handbook {
+        padding: 8px 18px;
+        border: none;
+        border-radius: 6px;
+        background: #2a8fbd;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+    }
+}
+
