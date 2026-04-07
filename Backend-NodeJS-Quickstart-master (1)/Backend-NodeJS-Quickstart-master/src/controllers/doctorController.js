@@ -1,5 +1,6 @@
 import doctorService from '../services/doctorServices'
 
+// get top doctor
 let getTopDoctorHome = async (req, res) => {
     let limit = req.query.limit;
     if (!limit) limit = 10;
@@ -15,19 +16,27 @@ let getTopDoctorHome = async (req, res) => {
         });
     }
 };
+
+// get all doctor
 let getAllDoctors = async (req, res) => {
     try {
         let doctors = await doctorService.getAllDoctors();
         return res.status(200).json(doctors)
     } catch (error) {
+        console.log(error); // log lỗi
         return res.status(200).json({
             errCode: -1,
             errMessage: 'Error from server'
         })
     }
 }
+
+// save doctor (QUAN TRỌNG)
 let postInforDoctor = async (req, res) => {
     try {
+        // debug data từ frontend
+        console.log("REQ BODY:", req.body);
+
         let response = await doctorService.saveDetailInforDoctor(req.body);
 
         return res.status(200).json(response);
@@ -41,12 +50,12 @@ let postInforDoctor = async (req, res) => {
         });
     }
 };
+
+// get detail doctor
 let getDetailDoctorById = async (req, res) => {
     try {
         let infor = await doctorService.getDetailDoctorById(req.query.id);
-        return res.status(200).json(
-            infor
-        );
+        return res.status(200).json(infor);
     } catch (e) {
         console.log(e);
         return res.status(200).json({
@@ -56,12 +65,11 @@ let getDetailDoctorById = async (req, res) => {
     }
 }
 
+// create schedule
 let bulkCreateSchedule = async (req, res) => {
     try {
         let infor = await doctorService.bulkCreateSchedule(req.body);
-        return res.status(200).json(
-            infor
-        )
+        return res.status(200).json(infor)
     } catch (e) {
         console.log(e);
         return res.status(200).json({
@@ -70,6 +78,8 @@ let bulkCreateSchedule = async (req, res) => {
         })
     }
 }
+
+// get schedule
 let getScheduleByDate = async (req, res) => {
     try {
         let infor = await doctorService.getScheduleByDate(
@@ -77,9 +87,7 @@ let getScheduleByDate = async (req, res) => {
             req.query.date
         );
 
-        return res.status(200).json(
-            infor
-        );
+        return res.status(200).json(infor);
 
     } catch (e) {
         console.log(e);
@@ -89,12 +97,12 @@ let getScheduleByDate = async (req, res) => {
         });
     }
 }
+
+// extra info doctor
 let getExraInforDoctorById = async (req, res) => {
     try {
         let infor = await doctorService.getExraInforDoctorById(req.query.doctorId);
-        return res.status(200).json(
-            infor
-        )
+        return res.status(200).json(infor)
     } catch (e) {
         console.log(e);
         return res.status(200).json({
@@ -103,12 +111,15 @@ let getExraInforDoctorById = async (req, res) => {
         })
     }
 }
+
+// profile doctor
 let getProfileDoctorById = async (req, res) => {
     try {
-        let infor = await doctorService.getProfileInforDoctorById(req.query.doctorId);
-        return res.status(200).json(
-            infor
-        )
+        // fix: đúng tên function trong service
+        let infor = await doctorService.getProfileDoctorById(req.query.doctorId);
+
+        return res.status(200).json(infor)
+
     } catch (e) {
         console.log(e);
         return res.status(200).json({
@@ -117,13 +128,14 @@ let getProfileDoctorById = async (req, res) => {
         })
     }
 }
+
 module.exports = {
-    getTopDoctorHome: getTopDoctorHome,
-    getAllDoctors: getAllDoctors,
-    postInforDoctor: postInforDoctor,
-    getDetailDoctorById: getDetailDoctorById,
-    bulkCreateSchedule: bulkCreateSchedule,
-    getScheduleByDate: getScheduleByDate,
-    getExraInforDoctorById: getExraInforDoctorById,
-    getProfileDoctorById: getProfileDoctorById
+    getTopDoctorHome,
+    getAllDoctors,
+    postInforDoctor,
+    getDetailDoctorById,
+    bulkCreateSchedule,
+    getScheduleByDate,
+    getExraInforDoctorById,
+    getProfileDoctorById
 };

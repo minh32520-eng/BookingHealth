@@ -69,7 +69,7 @@ module.exports = {
     // - Nếu bảng đang rỗng thì chèn vài chuyên khoa demo
     // - Tránh chèn trùng nếu bạn đã chạy seeder chuyên khoa trước đó
     const specialtiesCount = await db.Specialty.count();
-    if (specialtiesCount === 0) {
+    if (specialtiesCount   0) {
       await db.Specialty.bulkCreate([
         {
           name: 'Tim mạch',

@@ -5,6 +5,10 @@ import Slider from "react-slick";
 import * as actions from '../../../store/actions';
 import { LANGUAGES } from '../../../utils/constant';
 import { withRouter } from 'react-router';
+import './OutStandingDoctor.scss';
+
+
+
 class OutStandingDoctor extends Component {
 
     constructor(props) {
@@ -14,34 +18,33 @@ class OutStandingDoctor extends Component {
         };
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
+    componentDidUpdate(prevProps) {
         if (prevProps.topDoctorsRedux !== this.props.topDoctorsRedux) {
             this.setState({
                 arrDoctors: this.props.topDoctorsRedux
             });
         }
     }
+
     componentDidMount() {
         this.props.loadTopDoctors();
     }
+
     handleViewDetailDoctor = (doctor) => {
         if (this.props.history) {
-            this.props.history.push(`/detail-doctor/${doctor.id}`)
+            this.props.history.push(`/detail-doctor/${doctor.id}`);
         }
-
     }
-    handleViewDetailDoctor = (doctor) => {
 
-    }
     render() {
         let arrDoctors = this.state.arrDoctors;
         let { language } = this.props;
 
-        arrDoctors = arrDoctors.concat(arrDoctors).concat(arrDoctors);
         return (
             <div>
-                <div className=" section-share section-outstanding-doctor">
+                <div className="section-share section-outstanding-doctor">
                     <div className="section-container">
+
                         <div className="section-header">
                             <span className="title-section">
                                 <FormattedMessage id="homepage.outstanding-doctor" />
@@ -51,25 +54,39 @@ class OutStandingDoctor extends Component {
                                 <FormattedMessage id="homepage.more-infor" />
                             </button>
                         </div>
+
                         <div className="section-body">
                             <Slider {...this.props.settings}>
+
                                 {arrDoctors && arrDoctors.length > 0 &&
                                     arrDoctors.map((item, index) => {
+
+                                        // ✅ FIX CHUẨN IMAGE
                                         let imageBase64 = '';
+
+                                        console.log("IMAGE:", item.image);
+
                                         if (item.image) {
-                                            imageBase64 = new Buffer(item.image, 'base64').toString('binary');
+                                            imageBase64 = `data:image/jpeg;base64,${item.image}`;
                                         }
 
-                                        let nameVi = `${item.positionData.valueVi}, ${item.lastName} ${item.firstName}`;
-                                        let nameEn = `${item.positionData.valueEn}, ${item.firstName} ${item.lastName}`;
+                                        let nameVi = `${item.positionData?.valueVi || ''}, ${item.lastName} ${item.firstName}`;
+                                        let nameEn = `${item.positionData?.valueEn || ''}, ${item.firstName} ${item.lastName}`;
 
                                         return (
-                                            <div className="section-customize" key={index} onClick={() => this.handleViewDetailDoctor(item)}>
+                                            <div
+                                                className="section-customize"
+                                                key={index}
+                                                onClick={() => this.handleViewDetailDoctor(item)}
+                                            >
                                                 <div className="customize-border">
+
                                                     <div className="outer-bg">
                                                         <div
                                                             className="bg-image section-outstanding"
-                                                            style={{ backgroundImage: `url(${imageBase64})` }}
+                                                            style={{
+                                                                backgroundImage: `url(${imageBase64})`
+                                                            }}
                                                         />
                                                     </div>
 
@@ -79,19 +96,16 @@ class OutStandingDoctor extends Component {
                                                         </div>
                                                         <div>Cơ Xương Khớp</div>
                                                     </div>
+
                                                 </div>
                                             </div>
-
                                         );
                                     })
                                 }
 
-
-
-
-
                             </Slider>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -99,10 +113,9 @@ class OutStandingDoctor extends Component {
     }
 }
 
-
 const mapStateToProps = state => {
     return {
-        language: state.admin.language,
+        language: state.app.language,
         isLoggedIn: state.user.isLoggedIn,
         topDoctorsRedux: state.admin.topDoctors
     };

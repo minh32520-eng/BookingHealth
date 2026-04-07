@@ -6,6 +6,7 @@ import { getDetailInforDoctor } from '../../../services/userService';
 import { LANGUAGES } from '../../../utils';
 import DoctorSchedule from './DoctorSchedule';
 import DoctorExtrainfor from './DoctorExtrainfor';
+
 class DetailDoctor extends Component {
     constructor(props) {
         super(props);
@@ -33,13 +34,17 @@ class DetailDoctor extends Component {
             }
         }
     }
-    componentDidUpdate(prevProps, prevState, snapshot) {
 
-    }
     render() {
         let { language } = this.props;
-
         let { detailDoctor } = this.state;
+
+        // fix: convert base64 ảnh bác sĩ
+        let imageBase64 = '';
+        if (detailDoctor && detailDoctor.image) {
+            imageBase64 = `data:image/jpeg;base64,${detailDoctor.image}`;
+        }
+
         let nameVi = '', nameEn = '';
         if (detailDoctor && detailDoctor.positionData) {
             nameVi = `${detailDoctor.positionData.valueVi}, ${detailDoctor.lastName} ${detailDoctor.firstName}`;
@@ -48,36 +53,38 @@ class DetailDoctor extends Component {
 
         return (
             <>
-                <HomeHeader
-                    isShowBanner={false}
-                />
+                <HomeHeader isShowBanner={false} />
 
                 <div className="doctor-detail-container">
+
                     <div className="intro-doctor">
+
                         <div
                             className="content-left"
                             style={{
-                                backgroundImage: `url(${detailDoctor && detailDoctor.image ? detailDoctor.image : ''})`
+                                backgroundImage: `url(${imageBase64})`
                             }}
                         >
                         </div>
 
                         <div className="content-right">
+
                             <div className="up">
                                 {language === LANGUAGES.VI ? nameVi : nameEn}
                             </div>
 
                             <div className="down">
                                 {detailDoctor && detailDoctor.Markdown
-                                    && detailDoctor.Markdown.description
-                                    &&
+                                    && detailDoctor.Markdown.description &&
                                     <span>
                                         {detailDoctor.Markdown.description}
                                     </span>
                                 }
                             </div>
+
                         </div>
                     </div>
+
                     <div className="schedule-doctor">
 
                         <div className="content-left">
@@ -85,20 +92,20 @@ class DetailDoctor extends Component {
                                 doctorIdFromParent={this.state.currentDoctorId}
                             />
                         </div>
+
                         <div className="content-right">
                             <DoctorExtrainfor
                                 doctorIdFromParent={this.state.currentDoctorId}
                             />
                         </div>
+
                     </div>
 
                     <div className="detail-infor-doctor">
-                        {detailDoctor && detailDoctor.Markdown && detailDoctor.Markdown.contentHTML
-                            &&
+                        {detailDoctor && detailDoctor.Markdown && detailDoctor.Markdown.contentHTML &&
                             <div
                                 dangerouslySetInnerHTML={{ __html: detailDoctor.Markdown.contentHTML }}
-                            >
-                            </div>
+                            />
                         }
                     </div>
 
@@ -106,7 +113,6 @@ class DetailDoctor extends Component {
                     </div>
 
                 </div>
-
             </>
         );
     }
@@ -118,9 +124,4 @@ const mapStateToProps = state => {
     };
 };
 
-const mapDispatchToProps = dispatch => {
-    return {
-    };
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(DetailDoctor);
+export default connect(mapStateToProps)(DetailDoctor);

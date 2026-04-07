@@ -56,7 +56,7 @@
                                 <label for="gender">Giới tính</label>
                                 <select name="gender" id="gender" class="form-control" required>
                                     <% genders.forEach(function (g) { %>
-                                        <option value="<%= g.keyMap %>" <%=user.gender===g.keyMap ? 'selected' : '' %>>
+                                        <option value="<%= g.keyMap %>" <%=user.gender g.keyMap ? 'selected' : '' %>>
                                             <%= g.valueVi %> (<%= g.keyMap %>)
                                         </option>
                                         <% }); %>
@@ -70,7 +70,7 @@
                                 <label for="roleId">Vai trò</label>
                                 <select name="roleId" id="roleId" class="form-control" required>
                                     <% roles.forEach(function (r) { %>
-                                        <option value="<%= r.keyMap %>" <%=user.roleId===r.keyMap ? 'selected' : '' %>>
+                                        <option value="<%= r.keyMap %>" <%=user.roleId r.keyMap ? 'selected' : '' %>>
                                             <%= r.valueVi %> — <%= r.keyMap %>
                                         </option>
                                         <% }); %>
@@ -81,7 +81,8 @@
                                 <select name="positionId" id="positionId" class="form-control">
                                     <option value="" <%=!user.positionId ? 'selected' : '' %>>— Không chọn —</option>
                                     <% if (positions && positions.length) { positions.forEach(function (p) { %>
-                                        <option value="<%= p.keyMap %>" <%= user.positionId === p.keyMap ? 'selected' : '' %>>
+                                        <option value="<%= p.keyMap %>" <%=user.positionId p.keyMap ? 'selected' : '' %>
+                                            >
                                             <%= p.valueVi %> (<%= p.keyMap %>)
                                         </option>
                                         <% }); } %>

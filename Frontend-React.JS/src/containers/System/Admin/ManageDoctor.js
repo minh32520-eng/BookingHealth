@@ -11,7 +11,6 @@ import Select from 'react-select';
 import { LANGUAGES, CRUD_ACTIONS } from '../../../utils/constant';
 import { getDetailInforDoctor, getAllClinic } from '../../../services/userService';
 
-// convert markdown sang HTML
 const markdownParser = new MarkdownIt();
 
 class ManageDoctor extends Component {
@@ -23,10 +22,10 @@ class ManageDoctor extends Component {
             contentMarkdown: '',
             contentHTML: '',
 
-            selectedDoctor: null, // doctor đang chọn
+            selectedDoctor: null,
             description: '',
             doctorOptions: [],
-            hasExistingData: false, // phân biệt create hay edit
+            hasExistingData: false,
 
             priceOptions: [],
             paymentOptions: [],
@@ -35,12 +34,16 @@ class ManageDoctor extends Component {
             selectedPayment: null,
             selectedProvince: null,
 
-            clinicOptions: [], // danh sách clinic từ DB
+            clinicOptions: [],
             selectedClinic: null,
 
             clinicName: '',
             clinicAddress: '',
-            note: ''
+            note: '',
+
+            // ✅ IMAGE
+            imageBase64: '',
+            previewImgURL: ''
         };
     }
 
@@ -48,7 +51,6 @@ class ManageDoctor extends Component {
         this.props.fetchAllDoctors();
         this.props.getAllRequiredDoctorInfor();
 
-        // load clinic từ database
         const clinicResponse = await getAllClinic();
 
         if (clinicResponse && clinicResponse.errCode === 0) {
@@ -145,9 +147,32 @@ class ManageDoctor extends Component {
         });
     }
 
+    // ✅ IMAGE HANDLE
+    handleOnChangeImage = async (event) => {
+        let file = event.target.files[0];
+        if (file) {
+            let base64 = await this.getBase64(file);
+
+            this.setState({
+                previewImgURL: URL.createObjectURL(file),
+                imageBase64: base64
+            });
+        }
+    }
+
+    getBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            let reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+
     handleSaveDoctorInformation = () => {
 
-        // bắt buộc phải chọn doctor
+        console.log("STATE:", this.state);
+
         if (!this.state.selectedDoctor) {
             alert("Please select a doctor!");
             return;
@@ -161,15 +186,18 @@ class ManageDoctor extends Component {
             doctorId: this.state.selectedDoctor?.value,
             action: this.state.hasExistingData ? CRUD_ACTIONS.EDIT : CRUD_ACTIONS.CREATE,
 
-            selectedPrice: this.state.selectedPrice?.value,
-            selectedPayment: this.state.selectedPayment?.value,
-            selectedProvince: this.state.selectedProvince?.value,
+            priceId: this.state.selectedPrice?.value,
+            paymentId: this.state.selectedPayment?.value,
+            provinceId: this.state.selectedProvince?.value,
 
             clinicId: this.state.selectedClinic?.value,
-            clinicName: this.state.clinicName,
-            clinicAddress: this.state.clinicAddress,
+            nameClinic: this.state.clinicName,
+            addressClinic: this.state.clinicAddress,
 
-            note: this.state.note
+            note: this.state.note,
+
+            // ✅ SEND IMAGE
+            image: this.state.imageBase64
         });
     }
 
@@ -179,7 +207,6 @@ class ManageDoctor extends Component {
 
         const response = await getDetailInforDoctor(selectedDoctor.value);
 
-        // nếu có dữ liệu thì fill lại form
         if (response && response.errCode === 0 && response.data) {
 
             const doctorInfo = response.data.Doctor_Infor || {};
@@ -188,6 +215,12 @@ class ManageDoctor extends Component {
             const selectedPayment = this.state.paymentOptions.find(item => item.value === doctorInfo.paymentId);
             const selectedProvince = this.state.provinceOptions.find(item => item.value === doctorInfo.provinceId);
             const selectedClinic = this.state.clinicOptions.find(item => item.value === doctorInfo.clinicId);
+
+            // 🔥 FIX IMAGE
+            let imageBase64 = '';
+            if (response.data.image) {
+                imageBase64 = `data:image/jpeg;base64,${response.data.image}`;
+            }
 
             this.setState({
                 contentHTML: response.data.Markdown?.contentHTML || '',
@@ -202,11 +235,14 @@ class ManageDoctor extends Component {
                 selectedPrice,
                 selectedPayment,
                 selectedProvince,
-                selectedClinic
+                selectedClinic,
+
+                // ✅ QUAN TRỌNG
+                imageBase64: imageBase64,
+                previewImgURL: imageBase64
             });
 
         } else {
-            // reset form khi chưa có dữ liệu
             this.setState({
                 contentHTML: '',
                 contentMarkdown: '',
@@ -220,7 +256,10 @@ class ManageDoctor extends Component {
                 selectedPrice: null,
                 selectedPayment: null,
                 selectedProvince: null,
-                selectedClinic: null
+                selectedClinic: null,
+
+                imageBase64: '',
+                previewImgURL: ''
             });
         }
     }
@@ -228,7 +267,7 @@ class ManageDoctor extends Component {
     handleClinicSelection = (selectedClinic) => {
         this.setState({
             selectedClinic,
-            clinicName: selectedClinic?.label,
+            clinicName: selectedClinic?.label.split(" - ")[0],
             clinicAddress: selectedClinic?.address
         });
     }
@@ -287,6 +326,23 @@ class ManageDoctor extends Component {
                             onChange={this.handleClinicSelection}
                             options={this.state.clinicOptions}
                         />
+                    </div>
+
+                    <div className="col-4 form-group">
+                        <label>Upload Image</label>
+                        <input type="file" onChange={this.handleOnChangeImage} />
+
+                        {this.state.previewImgURL &&
+                            <div
+                                style={{
+                                    backgroundImage: `url(${this.state.previewImgURL})`,
+                                    width: '100px',
+                                    height: '100px',
+                                    backgroundSize: 'cover',
+                                    marginTop: '10px'
+                                }}
+                            />
+                        }
                     </div>
 
                     <div className="col-4 form-group">

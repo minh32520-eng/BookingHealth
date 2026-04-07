@@ -1,22 +1,33 @@
 'use strict';
-const {
-    Model
-} = require('sequelize');
+const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
     class Doctor_Infor extends Model {
-        /**
-         * Helper method for defining associations.
-         * This method is not a part of Sequelize lifecycle.
-         * The models/index file will call this method automatically.
-         */
-        static associate(models) {
-            // define association here
-            Doctor_Infor.belongsTo(models.User, { foreignKey: 'doctorId' });
 
-            Doctor_Infor.belongsTo(models.Allcode, { foreignKey: 'priceId', targetKey: 'keyMap' });
-            Doctor_Infor.belongsTo(models.Allcode, { foreignKey: 'provinceId', targetKey: 'keyMap' });
-            Doctor_Infor.belongsTo(models.Allcode, { foreignKey: 'paymentId', targetKey: 'keyMap' });
+        static associate(models) {
+
+            Doctor_Infor.belongsTo(models.User, {
+                foreignKey: 'doctorId'
+            });
+
+            // fix alias cho đúng với include
+            Doctor_Infor.belongsTo(models.Allcode, {
+                foreignKey: 'priceId',
+                targetKey: 'keyMap',
+                as: 'priceTypeData'
+            });
+
+            Doctor_Infor.belongsTo(models.Allcode, {
+                foreignKey: 'provinceId',
+                targetKey: 'keyMap',
+                as: 'provinceTypeData'
+            });
+
+            Doctor_Infor.belongsTo(models.Allcode, {
+                foreignKey: 'paymentId',
+                targetKey: 'keyMap',
+                as: 'paymentTypeData'
+            });
 
         }
     };
