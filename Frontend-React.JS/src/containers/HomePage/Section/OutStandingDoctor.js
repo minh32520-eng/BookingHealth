@@ -7,24 +7,7 @@ import { LANGUAGES } from '../../../utils/constant';
 import { withRouter } from 'react-router';
 import './OutStandingDoctor.scss';
 
-
-
 class OutStandingDoctor extends Component {
-
-    constructor(props) {
-        super(props);
-        this.state = {
-            arrDoctors: []
-        };
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.topDoctorsRedux !== this.props.topDoctorsRedux) {
-            this.setState({
-                arrDoctors: this.props.topDoctorsRedux
-            });
-        }
-    }
 
     componentDidMount() {
         this.props.loadTopDoctors();
@@ -37,9 +20,9 @@ class OutStandingDoctor extends Component {
     }
 
     render() {
-        let arrDoctors = this.state.arrDoctors;
-        let { language } = this.props;
 
+        let { topDoctorsRedux, language } = this.props;
+        console.log("TOP DOCTORS REDUX:", topDoctorsRedux);
         return (
             <div>
                 <div className="section-share section-outstanding-doctor">
@@ -57,14 +40,11 @@ class OutStandingDoctor extends Component {
 
                         <div className="section-body">
                             <Slider {...this.props.settings}>
+                                {topDoctorsRedux &&
+                                    topDoctorsRedux.length > 0 &&
+                                    topDoctorsRedux.map((item) => {
 
-                                {arrDoctors && arrDoctors.length > 0 &&
-                                    arrDoctors.map((item, index) => {
-
-                                        // ✅ FIX CHUẨN IMAGE
                                         let imageBase64 = '';
-
-                                        console.log("IMAGE:", item.image);
 
                                         if (item.image) {
                                             imageBase64 = `data:image/jpeg;base64,${item.image}`;
@@ -76,7 +56,7 @@ class OutStandingDoctor extends Component {
                                         return (
                                             <div
                                                 className="section-customize"
-                                                key={index}
+                                                key={item.id}
                                                 onClick={() => this.handleViewDetailDoctor(item)}
                                             >
                                                 <div className="customize-border">
@@ -92,17 +72,16 @@ class OutStandingDoctor extends Component {
 
                                                     <div className="position text-center">
                                                         <div>
-                                                            {language === LANGUAGES.VI ? nameVi : nameEn}
+                                                            {language === LANGUAGES.VI
+                                                                ? nameVi
+                                                                : nameEn}
                                                         </div>
-                                                        <div>Cơ Xương Khớp</div>
                                                     </div>
 
                                                 </div>
                                             </div>
                                         );
-                                    })
-                                }
-
+                                    })}
                             </Slider>
                         </div>
 
@@ -127,4 +106,6 @@ const mapDispatchToProps = dispatch => {
     };
 };
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(OutStandingDoctor));
+export default withRouter(
+    connect(mapStateToProps, mapDispatchToProps)(OutStandingDoctor)
+);

@@ -1,6 +1,5 @@
 import db from "../models/index";
 require("dotenv").config();
-import _ from "lodash";
 
 const MAX_NUMBER_SCHEDULE = process.env.MAX_NUMBER_SCHEDULE;
 
@@ -9,7 +8,7 @@ let getTopDoctorHome = (limitInput) => {
     return new Promise(async (resolve, reject) => {
         try {
             let users = await db.User.findAll({
-                limit: limitInput,
+                limit: Number(limitInput) || 10,
                 where: { roleId: "R2" },
                 order: [["createdAt", "DESC"]],
                 attributes: {
@@ -31,18 +30,22 @@ let getTopDoctorHome = (limitInput) => {
                 nest: true,
             });
 
-            // FIX IMAGE
-            users = users.map(item => {
-                if (item.image) {
-                    item.image = item.image.toString('base64');
+            // FIX: clone plain object, không mutate sequelize instance
+            users = users.map((item) => {
+                let doctor = item.get({ plain: true });
+
+                if (doctor.image) {
+                    doctor.image = doctor.image.toString("base64");
                 }
-                return item;
+
+                return doctor;
             });
 
             resolve({
                 errCode: 0,
                 data: users,
             });
+
         } catch (e) {
             reject(e);
         }
@@ -60,18 +63,21 @@ let getAllDoctors = () => {
                 },
             });
 
-            // FIX IMAGE
-            doctors = doctors.map(item => {
-                if (item.image) {
-                    item.image = item.image.toString('base64');
+            doctors = doctors.map((item) => {
+                let doctor = item.get({ plain: true });
+
+                if (doctor.image) {
+                    doctor.image = doctor.image.toString("base64");
                 }
-                return item;
+
+                return doctor;
             });
 
             resolve({
                 errCode: 0,
                 data: doctors,
             });
+
         } catch (error) {
             reject(error);
         }
@@ -151,29 +157,21 @@ let saveDetailInforDoctor = (inputData) => {
 
             // ===== SAVE IMAGE =====
             if (inputData.image && inputData.image.length > 0) {
-
-                console.log("INPUT IMAGE:", inputData.image);
-
                 let doctor = await db.User.findOne({
                     where: { id: inputData.doctorId },
                     raw: false
                 });
 
                 if (doctor) {
-
                     let imageBase64 = inputData.image.includes(',')
                         ? inputData.image.split(',')[1]
                         : inputData.image;
 
                     doctor.image = Buffer.from(imageBase64, 'base64');
-
                     await doctor.save();
-
-                    console.log("✅ SAVED IMAGE");
                 }
             }
 
-            // ✅ RETURN KẾT QUẢ
             resolve({
                 errCode: 0,
                 errMessage: "Save successfully",
@@ -219,9 +217,12 @@ let getDetailDoctorById = (inputId) => {
                     nest: true,
                 });
 
-                // FIX IMAGE
-                if (data && data.image) {
-                    data.image = data.image.toString('base64');
+                if (data) {
+                    data = data.get({ plain: true });
+
+                    if (data.image) {
+                        data.image = data.image.toString("base64");
+                    }
                 }
 
                 if (!data) data = {};
@@ -264,13 +265,15 @@ let bulkCreateSchedule = (data) => {
                     raw: true,
                 });
 
-                let toCreate = _.differenceWith(
-                    schedule,
-                    existing,
-                    (a, b) => a.timeType === b.timeType && +a.date === +b.date
+                let toCreate = schedule.filter(item =>
+                    !existing.some(e =>
+                        e.timeType === item.timeType &&
+                        +e.date === +item.date &&
+                        e.doctorId === item.doctorId
+                    )
                 );
 
-                if (toCreate && toCreate.length > 0) {
+                if (toCreate.length > 0) {
                     await db.Schedule.bulkCreate(toCreate);
                 }
 
