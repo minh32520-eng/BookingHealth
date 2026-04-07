@@ -2,19 +2,19 @@
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        // 1) Nếu migration cũ tạo nhầm bảng Eric thì đổi tên về Doctor_Infor
+        // 1) Nếu migration cũ tạo nhầm bảng  thì đổi tên về Doctor_Infor
         const [tables] = await queryInterface.sequelize.query(
-            "SHOW TABLES LIKE 'Eric';"
+            "SHOW TABLES LIKE 'Minh';"
         );
-        const hasEric = Array.isArray(tables) && tables.length > 0;
+        const hasMinh = Array.isArray(tables) && tables.length > 0;
 
         const [doctorInforTables] = await queryInterface.sequelize.query(
             "SHOW TABLES LIKE 'Doctor_Infor';"
         );
         const hasDoctorInfor = Array.isArray(doctorInforTables) && doctorInforTables.length > 0;
 
-        if (hasEric && !hasDoctorInfor) {
-            await queryInterface.renameTable('Eric', 'Doctor_Infor');
+        if (hasMinh && !hasDoctorInfor) {
+            await queryInterface.renameTable('Minh', 'Doctor_Infor');
             return;
         }
 

@@ -36,11 +36,11 @@ module.exports = {
             );
         `);
 
-        // Ensure Doctor_Infor exists (older dbs had wrong table Eric)
-        const [hasEricRows] = await queryInterface.sequelize.query(`
+        // Ensure Doctor_Infor exists (older dbs had wrong table Minh)
+        const [hasMinhRows] = await queryInterface.sequelize.query(`
             SELECT COUNT(*) AS total
             FROM information_schema.tables
-            WHERE table_schema = DATABASE() AND table_name = 'Eric';
+            WHERE table_schema = DATABASE() AND table_name = 'Minh';
         `);
         const [hasDoctorInforRows] = await queryInterface.sequelize.query(`
             SELECT COUNT(*) AS total
@@ -48,10 +48,10 @@ module.exports = {
             WHERE table_schema = DATABASE() AND table_name = 'Doctor_Infor';
         `);
 
-        const hasEric = Number(hasEricRows?.[0]?.total || 0) > 0;
+        const hasMinh = Number(hasMinhRows?.[0]?.total || 0) > 0;
         const hasDoctorInfor = Number(hasDoctorInforRows?.[0]?.total || 0) > 0;
-        if (hasEric && !hasDoctorInfor) {
-            await queryInterface.renameTable('Eric', 'Doctor_Infor');
+        if (hasMinh && !hasDoctorInfor) {
+            await queryInterface.renameTable('Minh', 'Doctor_Infor');
         }
 
         await queryInterface.sequelize.query(`
