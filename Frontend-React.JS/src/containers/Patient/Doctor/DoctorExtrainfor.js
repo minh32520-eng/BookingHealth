@@ -16,14 +16,34 @@ class DoctorExtrainfor extends Component {
         }
     }
 
-    async componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps) {
         if (this.props.doctorIdFromParent !== prevProps.doctorIdFromParent) {
-            let res = await getExtraInforDoctorById(this.props.doctorIdFromParent);
+
+            // ✅ FIX: check tồn tại
+            if (this.props.doctorIdFromParent) {
+
+                // reset UI trước khi call API
+                this.setState({
+                    extraInfor: {}
+                });
+
+                this.fetchExtraInfor(this.props.doctorIdFromParent);
+            }
+        }
+    }
+
+    // ✅ tách async ra function riêng
+    fetchExtraInfor = async (doctorId) => {
+        try {
+            let res = await getExtraInforDoctorById(doctorId);
+
             if (res && res.errCode === 0) {
                 this.setState({
-                    extraInfor: res.data
+                    extraInfor: res.data || {}
                 })
             }
+        } catch (e) {
+            console.log("getExtraInforDoctorById error:", e);
         }
     }
 
@@ -47,11 +67,11 @@ class DoctorExtrainfor extends Component {
                     </div>
 
                     <div className="name-clinic">
-                        {extraInfor?.nameClinic}
+                        {extraInfor?.nameClinic || ''}
                     </div>
 
                     <div className="detail-address">
-                        {extraInfor?.addressClinic}
+                        {extraInfor?.addressClinic || ''}
                     </div>
 
                 </div>
@@ -134,7 +154,7 @@ class DoctorExtrainfor extends Component {
                                 </div>
 
                                 <div className="note">
-                                    {extraInfor?.note}
+                                    {extraInfor?.note || ''}
                                 </div>
 
                                 <div className="payment">

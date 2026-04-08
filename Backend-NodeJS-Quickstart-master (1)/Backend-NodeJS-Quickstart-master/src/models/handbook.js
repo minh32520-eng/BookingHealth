@@ -4,13 +4,32 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class Handbook extends Model {
         static associate(models) {
-            // define association here
+            // define association here nếu cần
         }
     }
 
     Handbook.init({
-        title: DataTypes.STRING,
-        content: DataTypes.TEXT('long'),
+        title: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+
+        content: {
+            type: DataTypes.TEXT('long'),
+            allowNull: false,
+        },
+
+        // ✅ THÊM MỚI
+        image: {
+            type: DataTypes.TEXT('long'),
+            allowNull: true,
+        },
+
+        views: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0,
+        },
+
     }, {
         sequelize,
         modelName: 'Handbook',
@@ -20,4 +39,3 @@ module.exports = (sequelize, DataTypes) => {
 
     return Handbook;
 };
-

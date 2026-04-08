@@ -17,6 +17,17 @@ module.exports = {
                 type: Sequelize.TEXT('long'),
                 allowNull: false,
             },
+
+
+            image: {
+                type: Sequelize.TEXT('long'),
+                allowNull: true,
+            },
+            views: {
+                type: Sequelize.INTEGER,
+                defaultValue: 0,
+            },
+
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,
@@ -32,4 +43,3 @@ module.exports = {
         await queryInterface.dropTable('handbooks');
     },
 };
-

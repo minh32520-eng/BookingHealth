@@ -6,7 +6,6 @@ let getTopDoctorHome = async (req, res) => {
 
     try {
         let response = await doctorService.getTopDoctorHome(limit);
-
         return res.status(200).json(response);
 
     } catch (e) {
@@ -18,18 +17,21 @@ let getTopDoctorHome = async (req, res) => {
     }
 };
 
-// ================== GET ALL DOCTOR ==================
+// ================== FIXED HERE ==================
 let getAllDoctors = async (req, res) => {
     try {
         let doctors = await doctorService.getAllDoctors();
-        return res.status(200).json(doctors)
+
+        // ✅ TRẢ THẲNG SERVICE (KHÔNG BỌC LẠI)
+        return res.status(200).json(doctors);
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({
+
+        return res.status(200).json({
             errCode: -1,
-            errMessage: 'Error from server'
-        })
+            data: []
+        });
     }
 }
 

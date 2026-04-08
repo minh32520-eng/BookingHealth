@@ -25,18 +25,19 @@ class HomeHeader extends Component {
     changeLanguage = (language) => {
         this.props.changeLanguageAppRedux(language);
     }
+
     returnToHome = () => {
-        window.location.href = path.HOMEPAGE;
+        this.props.history.push(path.HOMEPAGE);
     }
 
     goToLogin = () => {
-        window.location.href = path.LOGIN;
+        this.props.history.push(path.LOGIN);
     }
 
-    goToSection = (sectionId) => {
-        // User yêu cầu bấm menu Home thì reload lại trang.
-        window.location.href = `${path.HOMEPAGE}#${sectionId}`;
+    goToPage = (route) => {
+        this.props.history.push(route);
     }
+
     render() {
         const { language } = this.props;
 
@@ -50,23 +51,22 @@ class HomeHeader extends Component {
                             <div
                                 className="header-logo"
                                 style={{ backgroundImage: `url('${logoUrl}')` }}
-                                onClick={() => this.returnToHome()}
+                                onClick={this.returnToHome}
                             />
                         </div>
 
                         <div className="center-content">
-                            <div className="child-content" onClick={() => this.goToSection('specialty-section')}>
+
+                            <div className="child-content" onClick={() => this.goToPage('/specialty')}>
                                 <div>
-                                    <b>
-                                        <FormattedMessage id="homeheader.speciality" />
-                                    </b>
+                                    <b><FormattedMessage id="homeheader.speciality" /></b>
                                 </div>
                                 <div className="subs-title">
                                     <FormattedMessage id="homeheader.searchdoctor" />
                                 </div>
                             </div>
 
-                            <div className="child-content" onClick={() => this.goToSection('medical-facility-section')}>
+                            <div className="child-content" onClick={() => this.goToPage('/clinic')}>
                                 <div><b>
                                     <FormattedMessage id="homeheader.health-facility" />
                                 </b></div>
@@ -75,15 +75,15 @@ class HomeHeader extends Component {
                                 </div>
                             </div>
 
-                            <div className="child-content" onClick={() => this.goToSection('outstanding-doctor-section')}>
-                                <div><b> <FormattedMessage id="homeheader.doctor" /></b></div>
+                            <div className="child-content" onClick={() => this.goToPage('/doctor')}>
+                                <div><b><FormattedMessage id="homeheader.doctor" /></b></div>
                                 <div className="subs-title">
                                     <FormattedMessage id="homeheader.select-doctor" />
                                 </div>
                             </div>
 
-                            <div className="child-content" onClick={() => this.goToSection('handbook-section')}>
-                                <div><b> <FormattedMessage id="homeheader.fee" /></b></div>
+                            <div className="child-content" onClick={() => this.goToPage('/handbook')}>
+                                <div><b><FormattedMessage id="homeheader.fee" /></b></div>
                                 <div className="subs-title">
                                     <FormattedMessage id="homeheader.check-health" />
                                 </div>
@@ -93,6 +93,7 @@ class HomeHeader extends Component {
                                 <div><b><FormattedMessage id="homeheader.login" /></b></div>
                                 <div className="subs-title">Login</div>
                             </div>
+
                         </div>
 
                         <div className="right-content">
@@ -133,22 +134,26 @@ class HomeHeader extends Component {
                     <div className="home-header-banner">
 
                         <div className="content-up">
-                            <div className="title1"> <FormattedMessage id="banner.title1" /></div>
-                            <div className="title2"><FormattedMessage id="banner.title2" /></div>
+                            <div className="title1">
+                                <FormattedMessage id="banner.title1" />
+                            </div>
+                            <div className="title2">
+                                <FormattedMessage id="banner.title2" />
+                            </div>
 
                             <div className="search">
                                 <i className="fas fa-search"></i>
                                 <input
                                     type="text"
                                     placeholder="Tìm chuyên gia khám bệnh"
-                                // <FormattedMessage id="banner.title1" />
                                 />
                             </div>
                         </div>
 
                         <div className="content-down">
                             <div className="options">
-                                <div className="option-child" onClick={() => this.goToSection('specialty-section')}>
+
+                                <div className="option-child" onClick={() => this.goToPage('/specialty')}>
                                     <div className="icon-child">
                                         <i className="fas fa-hospital"></i>
                                     </div>
@@ -157,7 +162,7 @@ class HomeHeader extends Component {
                                     </div>
                                 </div>
 
-                                <div className="option-child" onClick={() => this.goToSection('outstanding-doctor-section')}>
+                                <div className="option-child" onClick={() => this.goToPage('/doctor')}>
                                     <div className="icon-child">
                                         <i className="fas fa-phone"></i>
                                     </div>
@@ -166,7 +171,7 @@ class HomeHeader extends Component {
                                     </div>
                                 </div>
 
-                                <div className="option-child" onClick={() => this.goToSection('handbook-section')}>
+                                <div className="option-child" onClick={() => this.goToPage('/handbook')}>
                                     <div className="icon-child">
                                         <i className="fas fa-bed"></i>
                                     </div>
@@ -175,7 +180,7 @@ class HomeHeader extends Component {
                                     </div>
                                 </div>
 
-                                <div className="option-child" onClick={() => this.goToSection('handbook-section')}>
+                                <div className="option-child" onClick={() => this.goToPage('/handbook')}>
                                     <div className="icon-child">
                                         <i className="fas fa-flask"></i>
                                     </div>
@@ -184,7 +189,7 @@ class HomeHeader extends Component {
                                     </div>
                                 </div>
 
-                                <div className="option-child" onClick={() => this.goToSection('about-section')}>
+                                <div className="option-child" onClick={() => this.goToPage('/clinic')}>
                                     <div className="icon-child">
                                         <i className="fas fa-bed"></i>
                                     </div>
@@ -193,7 +198,7 @@ class HomeHeader extends Component {
                                     </div>
                                 </div>
 
-                                <div className="option-child" onClick={() => this.goToSection('about-section')}>
+                                <div className="option-child" onClick={() => this.goToPage('/clinic')}>
                                     <div className="icon-child">
                                         <i className="fas fa-bed"></i>
                                     </div>
@@ -201,6 +206,7 @@ class HomeHeader extends Component {
                                         <FormattedMessage id="banner.child6" />
                                     </div>
                                 </div>
+
                             </div>
                         </div>
 

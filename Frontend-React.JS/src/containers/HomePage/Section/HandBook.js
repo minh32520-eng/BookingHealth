@@ -4,7 +4,6 @@ import Slider from "react-slick";
 import { withRouter } from 'react-router';
 import { getAllHandbook } from '../../../services/userService';
 
-
 class HandBook extends Component {
     constructor(props) {
         super(props);
@@ -14,7 +13,7 @@ class HandBook extends Component {
     }
 
     async componentDidMount() {
-        await this.loadHandbooks();
+        this.loadHandbooks();
     }
 
     loadHandbooks = async () => {
@@ -27,25 +26,21 @@ class HandBook extends Component {
                 });
             }
         } catch (error) {
-            console.log('Load handbook error:', error);
+            console.error('Load handbook error:', error);
         }
     };
 
     handleViewDetailHandbook = (item) => {
-        if (this.props.history) {
-            this.props.history.push(`/detail-handbook/${item.id}`);
-        }
+        this.props.history?.push(`/detail-handbook/${item.id}`);
     };
 
     handleViewMore = () => {
-        if (this.props.history) {
-            this.props.history.push('/handbook');
-        }
+        this.props.history?.push('/handbook');
     };
 
     render() {
-        let { arrHandbooks } = this.state;
-        let { settings } = this.props;
+        const { arrHandbooks } = this.state;
+        const { settings } = this.props;
 
         return (
             <div className="section-share section-handbook">
@@ -65,28 +60,47 @@ class HandBook extends Component {
                     </div>
 
                     <div className="section-body">
-                        {arrHandbooks && arrHandbooks.length > 0 ? (
+                        {arrHandbooks?.length > 0 ? (
                             <Slider {...settings}>
-                                {arrHandbooks.map((item, index) => {
+                                {arrHandbooks.map((item) => {
+
+                                    // xử lý ảnh base64 nếu có
+                                    let imageBase64 = '';
+                                    if (item.image) {
+                                        imageBase64 = `data:image/jpeg;base64,${item.image}`;
+                                    }
+
                                     return (
                                         <div
                                             className="section-customize"
-                                            key={item.id || index}
+                                            key={item.id}
                                             onClick={() =>
                                                 this.handleViewDetailHandbook(item)
                                             }
                                         >
                                             <div className="customize-border">
 
-                                                <div className="bg-image section-handbook">
-                                                </div>
+                                                {/* IMAGE */}
+                                                <div
+                                                    className="bg-image section-handbook"
+                                                    style={{
+                                                        backgroundImage: `url(${imageBase64 || '/default-handbook.jpg'})`,
+                                                        backgroundSize: 'cover',
+                                                        backgroundPosition: 'center',
+                                                        height: '150px'
+                                                    }}
+                                                ></div>
 
+                                                {/* TITLE */}
                                                 <div className="handbook-name">
                                                     {item.title}
                                                 </div>
 
+                                                {/* CONTENT (cắt ngắn) */}
                                                 <div className="handbook-content">
-                                                    {item.content}
+                                                    {item.content
+                                                        ? item.content.slice(0, 100) + '...'
+                                                        : ''}
                                                 </div>
                                             </div>
                                         </div>
@@ -105,10 +119,8 @@ class HandBook extends Component {
     }
 }
 
-const mapStateToProps = state => {
-    return {
-        isLoggedIn: state.user.isLoggedIn
-    };
-};
+const mapStateToProps = state => ({
+    isLoggedIn: state.user.isLoggedIn
+});
 
 export default withRouter(connect(mapStateToProps)(HandBook));

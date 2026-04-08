@@ -2,7 +2,7 @@ const db = require('../models');
 
 const getAllClinics = async () => {
     try {
-        const data = await db.clininc.findAll({
+        const data = await db.Clininc.findAll({
             attributes: ['id', 'name', 'address', 'description', 'image'],
             order: [['id', 'DESC']],
             raw: true,
@@ -26,7 +26,7 @@ const getDetailClinicById = async (id) => {
             };
         }
 
-        const data = await db.clininc.findOne({
+        const data = await db.Clininc.findOne({
             where: { id },
             raw: true,
         });
@@ -57,7 +57,7 @@ const createClinic = async (payload) => {
             };
         }
 
-        await db.clininc.create({
+        await db.Clininc.create({
             name: payload.name,
             address: payload.address,
             description: payload.description,
@@ -78,4 +78,3 @@ module.exports = {
     getDetailClinicById,
     createClinic,
 };
-

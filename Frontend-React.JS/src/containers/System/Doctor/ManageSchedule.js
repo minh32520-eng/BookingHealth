@@ -17,7 +17,7 @@ class ManageSchedule extends Component {
         super(props);
         this.state = {
             listDoctors: [],
-            selectedDoctor: {},
+            selectedDoctor: null, // ✅ FIX
             currentDate: '',
             rangeTime: []
         }
@@ -30,13 +30,24 @@ class ManageSchedule extends Component {
 
     componentDidUpdate(prevProps) {
 
+        // ✅ FIX ALL DOCTORS
         if (prevProps.allDoctors !== this.props.allDoctors) {
-            let dataSelect = this.buildDataInputSelect(this.props.allDoctors);
+
+            let doctors = this.props.allDoctors;
+
+            // 🔥 normalize data giống ManageDoctor
+            if (!Array.isArray(doctors)) {
+                doctors = doctors?.data || doctors?.doctors || [];
+            }
+
+            let dataSelect = this.buildDataInputSelect(doctors);
+
             this.setState({
                 listDoctors: dataSelect
             })
         }
 
+        // ✅ FIX TIME
         if (prevProps.allScheduleTime !== this.props.allScheduleTime) {
             let data = this.props.allScheduleTime;
 
@@ -57,20 +68,19 @@ class ManageSchedule extends Component {
         let result = [];
         let { language } = this.props;
 
-        if (inputData && inputData.length > 0) {
-            inputData.map((item) => {
+        // ✅ chống crash
+        if (!Array.isArray(inputData)) return result;
 
-                let object = {};
+        inputData.forEach((item) => {
 
-                let labelVi = `${item.lastName} ${item.firstName}`;
-                let labelEn = `${item.firstName} ${item.lastName}`;
+            let labelVi = `${item.lastName || ''} ${item.firstName || ''}`;
+            let labelEn = `${item.firstName || ''} ${item.lastName || ''}`;
 
-                object.label = language === LANGUAGES.VI ? labelVi : labelEn;
-                object.value = item.id;
-
-                result.push(object);
-            })
-        }
+            result.push({
+                label: language === LANGUAGES.VI ? labelVi : labelEn,
+                value: item.id
+            });
+        });
 
         return result;
     }
@@ -118,7 +128,7 @@ class ManageSchedule extends Component {
             return;
         }
 
-        if (selectedDoctor && _.isEmpty(selectedDoctor)) {
+        if (!selectedDoctor) { // ✅ FIX
             toast.error("Invalid selected doctor!");
             return;
         }
@@ -131,7 +141,7 @@ class ManageSchedule extends Component {
 
             if (selectedTime && selectedTime.length > 0) {
 
-                selectedTime.map(schedule => {
+                selectedTime.forEach(schedule => {
 
                     let object = {};
 
@@ -154,7 +164,6 @@ class ManageSchedule extends Component {
             formatedDate: formatedDate
         })
 
-
         if (res && res.errCode === 0) {
             toast.success("Save Infor succeed!");
         } else {
@@ -168,6 +177,7 @@ class ManageSchedule extends Component {
         let { rangeTime } = this.state;
         let { language } = this.props;
         let yesterday = new Date(new Date().setDate(new Date().getDate() - 1))
+
         return (
             <div className="manage-schedule-container">
 
@@ -211,7 +221,7 @@ class ManageSchedule extends Component {
                                     return (
                                         <button
                                             key={index}
-                                            className={item.isSelected === true
+                                            className={item.isSelected
                                                 ? "btn btn-schedule active"
                                                 : "btn btn-schedule"}
                                             onClick={() => this.handleClickBtnTime(item)}
@@ -228,7 +238,7 @@ class ManageSchedule extends Component {
 
                             <button
                                 className="btn btn-primary btn-save-schedule"
-                                onClick={() => this.handleSaveSchedule()}
+                                onClick={this.handleSaveSchedule}
                             >
                                 Save
                             </button>

@@ -1,7 +1,17 @@
 import db from "../models/index";
+import moment from "moment";
+import { Op } from "sequelize";
 require("dotenv").config();
 
 const MAX_NUMBER_SCHEDULE = process.env.MAX_NUMBER_SCHEDULE;
+
+// ================== HELPER: SAFE IMAGE ==================
+const convertImage = (image) => {
+    if (image && Buffer.isBuffer(image)) {
+        return image.toString("base64");
+    }
+    return image || "";
+};
 
 // ================== GET TOP DOCTOR ==================
 let getTopDoctorHome = (limitInput) => {
@@ -30,14 +40,9 @@ let getTopDoctorHome = (limitInput) => {
                 nest: true,
             });
 
-            // FIX: clone plain object, không mutate sequelize instance
             users = users.map((item) => {
                 let doctor = item.get({ plain: true });
-
-                if (doctor.image) {
-                    doctor.image = doctor.image.toString("base64");
-                }
-
+                doctor.image = convertImage(doctor.image);
                 return doctor;
             });
 
@@ -47,12 +52,12 @@ let getTopDoctorHome = (limitInput) => {
             });
 
         } catch (e) {
+            console.log("ERROR getTopDoctorHome:", e);
             reject(e);
         }
     });
 };
 
-// ================== GET ALL DOCTOR ==================
 let getAllDoctors = () => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -61,15 +66,11 @@ let getAllDoctors = () => {
                 attributes: {
                     exclude: ["password"],
                 },
+                raw: true
             });
 
-            doctors = doctors.map((item) => {
-                let doctor = item.get({ plain: true });
-
-                if (doctor.image) {
-                    doctor.image = doctor.image.toString("base64");
-                }
-
+            doctors = doctors.map((doctor) => {
+                doctor.image = convertImage(doctor.image);
                 return doctor;
             });
 
@@ -79,6 +80,7 @@ let getAllDoctors = () => {
             });
 
         } catch (error) {
+            console.log("ERROR getAllDoctors:", error);
             reject(error);
         }
     });
@@ -178,6 +180,7 @@ let saveDetailInforDoctor = (inputData) => {
             });
 
         } catch (e) {
+            console.log("ERROR saveDetailInforDoctor:", e);
             reject(e);
         }
     });
@@ -219,10 +222,7 @@ let getDetailDoctorById = (inputId) => {
 
                 if (data) {
                     data = data.get({ plain: true });
-
-                    if (data.image) {
-                        data.image = data.image.toString("base64");
-                    }
+                    data.image = convertImage(data.image);
                 }
 
                 if (!data) data = {};
@@ -233,6 +233,7 @@ let getDetailDoctorById = (inputId) => {
                 });
             }
         } catch (e) {
+            console.log("ERROR getDetailDoctorById:", e);
             reject(e);
         }
     });
@@ -283,6 +284,50 @@ let bulkCreateSchedule = (data) => {
                 });
             }
         } catch (e) {
+            console.log("ERROR bulkCreateSchedule:", e);
+            reject(e);
+        }
+    });
+};
+
+let getScheduleByDate = (doctorId, date) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!doctorId || !date) {
+                return resolve({
+                    errCode: 1,
+                    errMessage: "Missing required parameter!",
+                });
+            }
+
+            let start = moment(+date).startOf("day").valueOf();
+            let end = moment(+date).endOf("day").valueOf();
+
+            let data = await db.Schedule.findAll({
+                where: {
+                    doctorId: doctorId,
+                    date: {
+                        [Op.between]: [start, end],
+                    },
+                },
+                include: [
+                    {
+                        model: db.Allcode,
+                        as: "timeTypeData",
+                        attributes: ["valueEn", "valueVi"],
+                    },
+                ],
+                raw: false,
+                nest: true,
+            });
+
+            resolve({
+                errCode: 0,
+                data: data,
+            });
+
+        } catch (e) {
+            console.log("ERROR getScheduleByDate:", e);
             reject(e);
         }
     });
@@ -295,4 +340,5 @@ module.exports = {
     saveDetailInforDoctor,
     getDetailDoctorById,
     bulkCreateSchedule,
+    getScheduleByDate
 };

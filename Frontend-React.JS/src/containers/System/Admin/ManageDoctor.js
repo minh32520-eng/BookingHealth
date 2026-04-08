@@ -41,7 +41,6 @@ class ManageDoctor extends Component {
             clinicAddress: '',
             note: '',
 
-            // ✅ IMAGE
             imageBase64: '',
             previewImgURL: ''
         };
@@ -63,13 +62,20 @@ class ManageDoctor extends Component {
     componentDidUpdate(prevProps) {
 
         if (prevProps.allDoctors !== this.props.allDoctors) {
+
+            let doctors = this.props.allDoctors;
+
+            if (!Array.isArray(doctors)) {
+                doctors = doctors?.data || doctors?.doctors || [];
+            }
+
             this.setState({
-                doctorOptions: this.buildSelectOptions(this.props.allDoctors, 'DOCTOR')
+                doctorOptions: this.buildSelectOptions(doctors, 'DOCTOR')
             });
         }
 
         if (prevProps.allRequiredDoctorInfor !== this.props.allRequiredDoctorInfor) {
-            const { resPayment, resPrice, resProvince } = this.props.allRequiredDoctorInfor;
+            const { resPayment, resPrice, resProvince } = this.props.allRequiredDoctorInfor || {};
 
             this.setState({
                 priceOptions: this.buildSelectOptions(resPrice, 'PRICE'),
@@ -79,10 +85,16 @@ class ManageDoctor extends Component {
         }
 
         if (prevProps.language !== this.props.language) {
-            const { resPayment, resPrice, resProvince } = this.props.allRequiredDoctorInfor;
+
+            let doctors = this.props.allDoctors;
+            if (!Array.isArray(doctors)) {
+                doctors = doctors?.data || doctors?.doctors || [];
+            }
+
+            const { resPayment, resPrice, resProvince } = this.props.allRequiredDoctorInfor || {};
 
             this.setState({
-                doctorOptions: this.buildSelectOptions(this.props.allDoctors, 'DOCTOR'),
+                doctorOptions: this.buildSelectOptions(doctors, 'DOCTOR'),
                 priceOptions: this.buildSelectOptions(resPrice, 'PRICE'),
                 paymentOptions: this.buildSelectOptions(resPayment, 'PAYMENT'),
                 provinceOptions: this.buildSelectOptions(resProvince, 'PROVINCE')
@@ -94,14 +106,14 @@ class ManageDoctor extends Component {
         const result = [];
         const { language } = this.props;
 
-        if (!inputData) return result;
+        if (!Array.isArray(inputData)) return result;
 
         if (type === 'DOCTOR') {
             inputData.forEach(doctor => {
                 result.push({
                     label: language === LANGUAGES.VI
-                        ? `${doctor.lastName} ${doctor.firstName}`
-                        : `${doctor.firstName} ${doctor.lastName}`,
+                        ? `${doctor.lastName || ''} ${doctor.firstName || ''}`
+                        : `${doctor.firstName || ''} ${doctor.lastName || ''}`,
                     value: doctor.id
                 });
             });
@@ -147,7 +159,6 @@ class ManageDoctor extends Component {
         });
     }
 
-    // ✅ IMAGE HANDLE
     handleOnChangeImage = async (event) => {
         let file = event.target.files[0];
         if (file) {
@@ -171,10 +182,13 @@ class ManageDoctor extends Component {
 
     handleSaveDoctorInformation = () => {
 
-        console.log("STATE:", this.state);
-
-        if (!this.state.selectedDoctor) {
-            alert("Please select a doctor!");
+        if (
+            !this.state.selectedDoctor ||
+            !this.state.selectedPrice ||
+            !this.state.selectedPayment ||
+            !this.state.selectedProvince
+        ) {
+            alert("Missing required fields!");
             return;
         }
 
@@ -195,15 +209,21 @@ class ManageDoctor extends Component {
             addressClinic: this.state.clinicAddress,
 
             note: this.state.note,
-
-            // ✅ SEND IMAGE
             image: this.state.imageBase64
         });
     }
 
     handleDoctorSelection = async (selectedDoctor) => {
 
-        this.setState({ selectedDoctor });
+        // guard options
+        if (
+            !this.state.priceOptions.length ||
+            !this.state.paymentOptions.length ||
+            !this.state.provinceOptions.length
+        ) {
+            console.log("OPTIONS NOT READY");
+            return;
+        }
 
         const response = await getDetailInforDoctor(selectedDoctor.value);
 
@@ -211,18 +231,34 @@ class ManageDoctor extends Component {
 
             const doctorInfo = response.data.Doctor_Infor || {};
 
-            const selectedPrice = this.state.priceOptions.find(item => item.value === doctorInfo.priceId);
-            const selectedPayment = this.state.paymentOptions.find(item => item.value === doctorInfo.paymentId);
-            const selectedProvince = this.state.provinceOptions.find(item => item.value === doctorInfo.provinceId);
-            const selectedClinic = this.state.clinicOptions.find(item => item.value === doctorInfo.clinicId);
+            const selectedPrice = this.state.priceOptions.find(
+                item => String(item.value) === String(doctorInfo.priceId)
+            );
 
-            // 🔥 FIX IMAGE
+            const selectedPayment = this.state.paymentOptions.find(
+                item => String(item.value) === String(doctorInfo.paymentId)
+            );
+
+            const selectedProvince = this.state.provinceOptions.find(
+                item => String(item.value) === String(doctorInfo.provinceId)
+            );
+
+            const selectedClinic = this.state.clinicOptions.find(
+                item => String(item.value) === String(doctorInfo.clinicId)
+            );
+
             let imageBase64 = '';
             if (response.data.image) {
                 imageBase64 = `data:image/jpeg;base64,${response.data.image}`;
             }
 
+            const selectedDoctorOption = this.state.doctorOptions.find(
+                item => item.value === selectedDoctor.value
+            );
+
             this.setState({
+                selectedDoctor: selectedDoctorOption,
+
                 contentHTML: response.data.Markdown?.contentHTML || '',
                 contentMarkdown: response.data.Markdown?.contentMarkdown || '',
                 description: response.data.Markdown?.description || '',
@@ -237,29 +273,8 @@ class ManageDoctor extends Component {
                 selectedProvince,
                 selectedClinic,
 
-                // ✅ QUAN TRỌNG
-                imageBase64: imageBase64,
+                imageBase64,
                 previewImgURL: imageBase64
-            });
-
-        } else {
-            this.setState({
-                contentHTML: '',
-                contentMarkdown: '',
-                description: '',
-                hasExistingData: false,
-
-                clinicName: '',
-                clinicAddress: '',
-                note: '',
-
-                selectedPrice: null,
-                selectedPayment: null,
-                selectedProvince: null,
-                selectedClinic: null,
-
-                imageBase64: '',
-                previewImgURL: ''
             });
         }
     }

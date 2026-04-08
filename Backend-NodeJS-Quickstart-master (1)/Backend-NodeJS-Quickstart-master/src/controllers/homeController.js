@@ -53,7 +53,7 @@ const getHomePage = async (req, res) => {
                 db.User.count(),
                 db.User.count({ where: { roleId: 'R2' } }),
                 db.Specialty.count(),
-                db.clininc ? db.clininc.count() : Promise.resolve(0),
+                db.Clininc ? db.Clininc.count() : Promise.resolve(0), // 
                 db.Handbook ? db.Handbook.count() : Promise.resolve(0),
                 db.User.findAll({
                     raw: true,
@@ -62,7 +62,6 @@ const getHomePage = async (req, res) => {
                     limit: 8,
                 }),
             ]);
-
         return res.render('homepage.ejs', {
             stats: {
                 totalUsers,

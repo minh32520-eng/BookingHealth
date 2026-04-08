@@ -1,0 +1,108 @@
+.blog-wrapper {
+    background: #f1f1f1;
+    min-height: 100vh;
+    font-family: Arial;
+}
+
+/* HEADER */
+.blog-header {
+    padding: 30px;
+    text-align: center;
+    background: #2f80ed;
+    color: white;
+
+    h2 {
+        margin: 0;
+    }
+}
+
+/* LAYOUT */
+.blog-row {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 20px;
+}
+
+/* LEFT */
+.leftcolumn {
+    flex: 70%;
+    padding-right: 20px;
+}
+
+/* RIGHT */
+.rightcolumn {
+    flex: 30%;
+}
+
+/* CARD */
+.card {
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* IMAGE */
+.image img {
+    width: 100%;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+/* CONTENT */
+.content {
+    line-height: 1.8;
+    font-size: 16px;
+
+    h1,
+    h2,
+    h3 {
+        margin-top: 15px;
+    }
+
+    img {
+        width: 100%;
+        margin: 15px 0;
+        border-radius: 8px;
+    }
+}
+
+/* BACK BUTTON */
+.back-btn {
+    margin-bottom: 10px;
+
+    button {
+        background: #2f80ed;
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 5px;
+        cursor: pointer;
+
+        &:hover {
+            background: #1366d6;
+        }
+    }
+}
+
+/* FOOTER */
+.footer {
+    padding: 20px;
+    text-align: center;
+    background: #ddd;
+    margin-top: 20px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .blog-row {
+        flex-direction: column;
+    }
+
+    .leftcolumn,
+    .rightcolumn {
+        flex: 100%;
+        padding: 0;
+    }
+}
