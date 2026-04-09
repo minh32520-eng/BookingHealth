@@ -55,7 +55,7 @@ class ModalUser extends Component {
 
     checkValidateInput = () => {
         let isValid = true;
-        let arrInput = ['email', 'password', 'firstName', 'lastName', 'address'];
+        let arrInput = ['email', 'firstName', 'lastName', 'address'];
 
         for (let i = 0; i < arrInput.length; i++) {
             if (!this.state[arrInput[i]]) {
@@ -149,7 +149,7 @@ class ModalUser extends Component {
                     <Button
                         color="primary"
                         className="px-3"
-                        onClick={this.handleSaveUser()}
+                        onClick={this.handleSaveUser}
                     >
                         Save changes
                     </Button>
@@ -172,3 +172,4 @@ const mapStateToProps = state => ({});
 const mapDispatchToProps = dispatch => ({});
 
 export default connect(mapStateToProps, mapDispatchToProps)(ModalUser);
+

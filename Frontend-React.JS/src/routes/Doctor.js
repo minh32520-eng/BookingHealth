@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { Redirect, Route, Switch } from 'react-router-dom';
 import ManageSchedule from '../containers/System/Doctor/ManageSchedule';
+import PaymentQr from '../containers/System/Doctor/PaymentQr';
 import Header from '../containers/Header/Header';
 
 class Doctor extends Component {
@@ -16,6 +17,8 @@ class Doctor extends Component {
                     <div className="system-list">
                         <Switch>
                             <Route path="/doctor/manage-schedule" component={ManageSchedule} />
+                            <Route path="/doctor/payment-qr" component={PaymentQr} />
+                            <Route component={() => { return (<Redirect to="/doctor/manage-schedule" />) }} />
                         </Switch>
                     </div>
                 </div>

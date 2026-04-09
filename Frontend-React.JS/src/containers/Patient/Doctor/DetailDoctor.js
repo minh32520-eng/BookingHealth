@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
+import { FormattedMessage } from 'react-intl';
 import HomeHeader from '../../HomePage/HomeHeader';
 import './DetailDoctor.scss';
 import { getDetailInforDoctor } from '../../../services/userService';
@@ -39,7 +40,6 @@ class DetailDoctor extends Component {
         let { language } = this.props;
         let { detailDoctor } = this.state;
 
-        // fix: convert base64 ảnh bác sĩ
         let imageBase64 = '';
         if (detailDoctor && detailDoctor.image) {
             imageBase64 = `data:image/jpeg;base64,${detailDoctor.image}`;
@@ -56,9 +56,7 @@ class DetailDoctor extends Component {
                 <HomeHeader isShowBanner={false} />
 
                 <div className="doctor-detail-container">
-
                     <div className="intro-doctor">
-
                         <div
                             className="content-left"
                             style={{
@@ -68,6 +66,9 @@ class DetailDoctor extends Component {
                         </div>
 
                         <div className="content-right">
+                            <div className="doctor-detail-badge">
+                                <FormattedMessage id="patient.detail-doctor.profile" />
+                            </div>
 
                             <div className="up">
                                 {language === LANGUAGES.VI ? nameVi : nameEn}
@@ -86,14 +87,19 @@ class DetailDoctor extends Component {
                     </div>
 
                     <div className="schedule-doctor">
-
                         <div className="content-left">
+                            <div className="detail-card-title">
+                                <FormattedMessage id="patient.detail-doctor.schedule-title" />
+                            </div>
                             <DoctorSchedule
                                 doctorIdFromParent={this.state.currentDoctorId}
                             />
                         </div>
 
                         <div className="content-right">
+                            <div className="detail-card-title">
+                                <FormattedMessage id="patient.detail-doctor.extrainfo-title" />
+                            </div>
                             <DoctorExtrainfor
                                 doctorIdFromParent={this.state.currentDoctorId}
                             />
@@ -102,6 +108,9 @@ class DetailDoctor extends Component {
                     </div>
 
                     <div className="detail-infor-doctor">
+                        <div className="detail-content-title">
+                            <FormattedMessage id="patient.detail-doctor.information-title" />
+                        </div>
                         {detailDoctor && detailDoctor.Markdown && detailDoctor.Markdown.contentHTML &&
                             <div
                                 dangerouslySetInnerHTML={{ __html: detailDoctor.Markdown.contentHTML }}

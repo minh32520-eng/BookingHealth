@@ -5,10 +5,6 @@ export const adminMenu = [
             {
                 name: 'menu.admin.crud',
                 link: '/system/user-manage'
-            },
-            {
-                name: 'menu.admin.crud-redux',
-                link: '/system/user-redux'
             }
         ]
     },
@@ -52,11 +48,19 @@ export const adminMenu = [
 
 export const doctorMenu = [
     {
-        name: 'menu.doctor.system',
+        name: 'menu.doctor.workspace',
         menus: [
+            {
+                name: 'menu.doctor.home',
+                link: '/home'
+            },
             {
                 name: 'menu.doctor.manage-schedule',
                 link: '/doctor/manage-schedule'
+            },
+            {
+                name: 'menu.doctor.payment-qr',
+                link: '/doctor/payment-qr'
             }
         ]
     }

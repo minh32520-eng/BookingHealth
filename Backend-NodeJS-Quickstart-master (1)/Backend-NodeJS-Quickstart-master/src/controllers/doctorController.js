@@ -129,6 +129,36 @@ let getProfileDoctorById = async (req, res) => {
     }
 }
 
+let getListPatientForDoctor = async (req, res) => {
+    try {
+        let infor = await doctorService.getListPatientForDoctor(
+            req.query.doctorId,
+            req.query.date
+        );
+
+        return res.status(200).json(infor);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Error from the server'
+        });
+    }
+}
+
+let deleteDoctorInfor = async (req, res) => {
+    try {
+        let response = await doctorService.deleteDoctorInfor(req.body.doctorId);
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Error from the server'
+        });
+    }
+}
+
 module.exports = {
     getTopDoctorHome,
     getAllDoctors,
@@ -136,6 +166,8 @@ module.exports = {
     getDetailDoctorById,
     bulkCreateSchedule,
     getScheduleByDate,
+    getListPatientForDoctor,
     getExraInforDoctorById,
-    getProfileDoctorById
+    getProfileDoctorById,
+    deleteDoctorInfor
 };

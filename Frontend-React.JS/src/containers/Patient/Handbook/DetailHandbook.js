@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import './DetailHandbook.scss';
 
-import HomeHeader from '../../HomePage/HomeHeader'; // header giống homepage
+import HomeHeader from '../../HomePage/HomeHeader';
 import { getDetailHandbookById } from '../../../services/userService';
+import { path } from '../../../utils';
 
 class DetailHandBook extends Component {
 
@@ -31,6 +34,7 @@ class DetailHandBook extends Component {
 
     render() {
         let { dataDetail } = this.state;
+        const { intl } = this.props;
 
         let imageBase64 = '';
         if (dataDetail && dataDetail.image) {
@@ -39,27 +43,30 @@ class DetailHandBook extends Component {
 
         return (
             <div className="blog-wrapper">
+                <HomeHeader isShowBanner={false} />
 
-                <HomeHeader />
-
-                {/* HEADER BLOG */}
                 <div className="blog-header">
-                    <h2>Health Handbook</h2>
+                    <div className="blog-breadcrumb">
+                        <Link to={path.HOMEPAGE}><FormattedMessage id="patient.detail-common.home" /></Link>
+                        <span> / </span>
+                        <span><FormattedMessage id="patient.detail-handbook.page-title" /></span>
+                    </div>
+                    <h2><FormattedMessage id="patient.detail-handbook.hero-title" /></h2>
+                    <p className="blog-subtitle"><FormattedMessage id="patient.detail-handbook.hero-subtitle" /></p>
                 </div>
 
                 <div className="blog-row">
-
-                    {/* LEFT COLUMN */}
                     <div className="leftcolumn">
-
                         <div className="card">
-
                             <div className="back-btn">
                                 <button onClick={() => this.props.history.goBack()}>
-                                    ← Quay lại
+                                    <FormattedMessage id="patient.detail-common.back" />
                                 </button>
                             </div>
 
+                            <div className="article-label">
+                                <FormattedMessage id="patient.detail-handbook.article-label" />
+                            </div>
                             <h2>{dataDetail.title}</h2>
 
                             {imageBase64 &&
@@ -71,38 +78,35 @@ class DetailHandBook extends Component {
                             <div
                                 className="content"
                                 dangerouslySetInnerHTML={{
-                                    __html: dataDetail.content || ''
+                                    __html: dataDetail.content || `<p>${intl.formatMessage({ id: 'patient.detail-common.no-description' })}</p>`
                                 }}
                             />
                         </div>
                     </div>
 
-                    {/* RIGHT COLUMN */}
                     <div className="rightcolumn">
-
-                        <div className="card">
-                            <h3>About</h3>
-                            <p>Chia sẻ kiến thức sức khỏe hữu ích mỗi ngày.</p>
+                        <div className="card side-card">
+                            <h3><FormattedMessage id="patient.detail-handbook.about-title" /></h3>
+                            <p><FormattedMessage id="patient.detail-handbook.about-text" /></p>
                         </div>
 
-                        <div className="card">
-                            <h3>Bài nổi bật</h3>
-                            <p>• Chăm sóc tim mạch</p>
-                            <p>• Dinh dưỡng hợp lý</p>
-                            <p>• Sức khỏe tinh thần</p>
+                        <div className="card side-card">
+                            <h3><FormattedMessage id="patient.detail-handbook.featured-title" /></h3>
+                            <p><FormattedMessage id="patient.detail-handbook.featured-1" /></p>
+                            <p><FormattedMessage id="patient.detail-handbook.featured-2" /></p>
+                            <p><FormattedMessage id="patient.detail-handbook.featured-3" /></p>
                         </div>
 
-                        <div className="card">
-                            <h3>Theo dõi</h3>
-                            <p>Facebook | Youtube | TikTok</p>
+                        <div className="card side-card">
+                            <h3><FormattedMessage id="patient.detail-handbook.connect-title" /></h3>
+                            <p><FormattedMessage id="patient.detail-handbook.connect-text" /></p>
                         </div>
 
                     </div>
                 </div>
 
-                {/* FOOTER */}
                 <div className="footer">
-                    <h2>Health Blog © 2026</h2>
+                    <h2><FormattedMessage id="patient.detail-handbook.footer" /></h2>
                 </div>
 
             </div>
@@ -114,4 +118,4 @@ const mapStateToProps = state => {
     return {};
 };
 
-export default withRouter(connect(mapStateToProps)(DetailHandBook));
+export default withRouter(injectIntl(connect(mapStateToProps)(DetailHandBook)));

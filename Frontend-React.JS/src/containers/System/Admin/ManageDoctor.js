@@ -9,7 +9,8 @@ import 'react-markdown-editor-lite/lib/index.css';
 import './ManageDoctor.scss';
 import Select from 'react-select';
 import { LANGUAGES, CRUD_ACTIONS } from '../../../utils/constant';
-import { getDetailInforDoctor, getAllClinic } from '../../../services/userService';
+import { deleteDoctorInforService, getDetailInforDoctor, getAllClinic } from '../../../services/userService';
+import { toast } from 'react-toastify';
 
 const markdownParser = new MarkdownIt();
 
@@ -21,26 +22,21 @@ class ManageDoctor extends Component {
         this.state = {
             contentMarkdown: '',
             contentHTML: '',
-
             selectedDoctor: null,
             description: '',
             doctorOptions: [],
             hasExistingData: false,
-
             priceOptions: [],
             paymentOptions: [],
             provinceOptions: [],
             selectedPrice: null,
             selectedPayment: null,
             selectedProvince: null,
-
             clinicOptions: [],
             selectedClinic: null,
-
             clinicName: '',
             clinicAddress: '',
             note: '',
-
             imageBase64: '',
             previewImgURL: ''
         };
@@ -60,11 +56,8 @@ class ManageDoctor extends Component {
     }
 
     componentDidUpdate(prevProps) {
-
         if (prevProps.allDoctors !== this.props.allDoctors) {
-
             let doctors = this.props.allDoctors;
-
             if (!Array.isArray(doctors)) {
                 doctors = doctors?.data || doctors?.doctors || [];
             }
@@ -85,7 +78,6 @@ class ManageDoctor extends Component {
         }
 
         if (prevProps.language !== this.props.language) {
-
             let doctors = this.props.allDoctors;
             if (!Array.isArray(doctors)) {
                 doctors = doctors?.data || doctors?.doctors || [];
@@ -152,6 +144,25 @@ class ManageDoctor extends Component {
         return result;
     }
 
+    resetDoctorForm = () => {
+        this.setState({
+            contentMarkdown: '',
+            contentHTML: '',
+            selectedDoctor: null,
+            description: '',
+            hasExistingData: false,
+            selectedPrice: null,
+            selectedPayment: null,
+            selectedProvince: null,
+            selectedClinic: null,
+            clinicName: '',
+            clinicAddress: '',
+            note: '',
+            imageBase64: '',
+            previewImgURL: ''
+        });
+    }
+
     handleEditorChange = ({ html, text }) => {
         this.setState({
             contentMarkdown: text,
@@ -180,8 +191,7 @@ class ManageDoctor extends Component {
         });
     }
 
-    handleSaveDoctorInformation = () => {
-
+    handleSaveDoctorInformation = async () => {
         if (
             !this.state.selectedDoctor ||
             !this.state.selectedPrice ||
@@ -192,43 +202,37 @@ class ManageDoctor extends Component {
             return;
         }
 
-        this.props.saveDetailDoctor({
+        await this.props.saveDetailDoctor({
             contentHTML: this.state.contentHTML,
             contentMarkdown: this.state.contentMarkdown,
             description: this.state.description,
-
             doctorId: this.state.selectedDoctor?.value,
             action: this.state.hasExistingData ? CRUD_ACTIONS.EDIT : CRUD_ACTIONS.CREATE,
-
             priceId: this.state.selectedPrice?.value,
             paymentId: this.state.selectedPayment?.value,
             provinceId: this.state.selectedProvince?.value,
-
             clinicId: this.state.selectedClinic?.value,
             nameClinic: this.state.clinicName,
             addressClinic: this.state.clinicAddress,
-
             note: this.state.note,
             image: this.state.imageBase64
         });
+
+        await this.props.fetchAllDoctors();
     }
 
     handleDoctorSelection = async (selectedDoctor) => {
-
-        // guard options
         if (
             !this.state.priceOptions.length ||
             !this.state.paymentOptions.length ||
             !this.state.provinceOptions.length
         ) {
-            console.log("OPTIONS NOT READY");
             return;
         }
 
         const response = await getDetailInforDoctor(selectedDoctor.value);
 
         if (response && response.errCode === 0 && response.data) {
-
             const doctorInfo = response.data.Doctor_Infor || {};
 
             const selectedPrice = this.state.priceOptions.find(
@@ -243,9 +247,11 @@ class ManageDoctor extends Component {
                 item => String(item.value) === String(doctorInfo.provinceId)
             );
 
-            const selectedClinic = this.state.clinicOptions.find(
-                item => String(item.value) === String(doctorInfo.clinicId)
-            );
+            const selectedClinic = this.state.clinicOptions.find((item) => (
+                item.label === `${doctorInfo.nameClinic || ''} - ${doctorInfo.addressClinic || ''}`
+            )) || this.state.clinicOptions.find((item) => (
+                item.label.startsWith(`${doctorInfo.nameClinic || ''} -`)
+            ));
 
             let imageBase64 = '';
             if (response.data.image) {
@@ -258,24 +264,39 @@ class ManageDoctor extends Component {
 
             this.setState({
                 selectedDoctor: selectedDoctorOption,
-
                 contentHTML: response.data.Markdown?.contentHTML || '',
                 contentMarkdown: response.data.Markdown?.contentMarkdown || '',
                 description: response.data.Markdown?.description || '',
-                hasExistingData: true,
-
+                hasExistingData: !!(response.data.Markdown || response.data.Doctor_Infor),
                 clinicName: doctorInfo.nameClinic || '',
                 clinicAddress: doctorInfo.addressClinic || '',
                 note: doctorInfo.note || '',
-
                 selectedPrice,
                 selectedPayment,
                 selectedProvince,
                 selectedClinic,
-
                 imageBase64,
                 previewImgURL: imageBase64
             });
+        }
+    }
+
+    handleEditDoctorFromTable = async (doctor) => {
+        await this.handleDoctorSelection({ value: doctor.id });
+    }
+
+    handleDeleteDoctorInfor = async (doctor) => {
+        if (!window.confirm(`Delete saved info of doctor "${doctor.lastName || ''} ${doctor.firstName || ''}"?`)) return;
+
+        const res = await deleteDoctorInforService(doctor.id);
+        if (res && res.errCode === 0) {
+            toast.success('Delete doctor info succeeds!');
+            if (this.state.selectedDoctor?.value === doctor.id) {
+                this.resetDoctorForm();
+            }
+            await this.props.fetchAllDoctors();
+        } else {
+            toast.error((res && res.errMessage) || 'Delete doctor info failed');
         }
     }
 
@@ -299,9 +320,18 @@ class ManageDoctor extends Component {
         });
     }
 
-    render() {
+    getDoctorRows = () => {
+        let doctors = this.props.allDoctors;
+        if (!Array.isArray(doctors)) {
+            doctors = doctors?.data || doctors?.doctors || [];
+        }
 
+        return doctors.filter((item) => item?.Doctor_Infor || item?.Markdown);
+    }
+
+    render() {
         const { hasExistingData } = this.state;
+        const doctorRows = this.getDoctorRows();
 
         return (
             <div className="manage-doctor-container">
@@ -311,7 +341,6 @@ class ManageDoctor extends Component {
                 </div>
 
                 <div className="more-infor">
-
                     <div className="content-left form-group">
                         <label><FormattedMessage id="admin.manage-doctor.select-doctor" /></label>
                         <Select
@@ -329,11 +358,9 @@ class ManageDoctor extends Component {
                             onChange={(e) => this.handleInputChange(e, 'description')}
                         />
                     </div>
-
                 </div>
 
                 <div className="row more-infor-extra">
-
                     <div className="col-4 form-group">
                         <label>Clinic</label>
                         <Select
@@ -349,12 +376,9 @@ class ManageDoctor extends Component {
 
                         {this.state.previewImgURL &&
                             <div
+                                className="doctor-preview"
                                 style={{
-                                    backgroundImage: `url(${this.state.previewImgURL})`,
-                                    width: '100px',
-                                    height: '100px',
-                                    backgroundSize: 'cover',
-                                    marginTop: '10px'
+                                    backgroundImage: `url(${this.state.previewImgURL})`
                                 }}
                             />
                         }
@@ -398,7 +422,6 @@ class ManageDoctor extends Component {
                             onChange={(e) => this.handleInputChange(e, 'note')}
                         />
                     </div>
-
                 </div>
 
                 <MdEditor
@@ -408,13 +431,72 @@ class ManageDoctor extends Component {
                     onChange={this.handleEditorChange}
                 />
 
-                <button
-                    onClick={this.handleSaveDoctorInformation}
-                    className={hasExistingData ? "save-content-doctor" : "create-content-doctor"}
-                >
-                    {hasExistingData ? "Save" : "Add"}
-                </button>
+                <div className="doctor-form-actions">
+                    <button
+                        onClick={this.handleSaveDoctorInformation}
+                        className={hasExistingData ? "save-content-doctor" : "create-content-doctor"}
+                    >
+                        {hasExistingData ? "Save" : "Add"}
+                    </button>
+                    {(this.state.selectedDoctor || hasExistingData) && (
+                        <button onClick={this.resetDoctorForm} className="btn-cancel-doctor">Cancel</button>
+                    )}
+                </div>
 
+                <div className="doctor-info-list mt-4">
+                    <h5>Danh sach thong tin bac si</h5>
+                    <div className="table-responsive admin-table-wrap">
+                        <table className="table admin-info-table">
+                            <thead>
+                                <tr>
+                                    <th style={{ width: '70px' }}>ID</th>
+                                    <th style={{ width: '220px' }}>Doctor</th>
+                                    <th>Intro</th>
+                                    <th style={{ width: '200px' }}>Clinic</th>
+                                    <th style={{ width: '160px' }}>Price</th>
+                                    <th style={{ width: '160px' }}>Note</th>
+                                    <th style={{ width: '120px' }}>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {doctorRows.map((item) => {
+                                    const doctorInfor = item.Doctor_Infor || {};
+                                    const priceLabel = doctorInfor?.priceTypeData
+                                        ? (this.props.language === LANGUAGES.VI
+                                            ? doctorInfor.priceTypeData.valueVi
+                                            : doctorInfor.priceTypeData.valueEn)
+                                        : '';
+
+                                    return (
+                                        <tr key={item.id}>
+                                            <td>{item.id}</td>
+                                            <td>{`${item.lastName || ''} ${item.firstName || ''}`.trim()}</td>
+                                            <td className="cell-multiline">{item.Markdown?.description || ''}</td>
+                                            <td>{doctorInfor.nameClinic || ''}</td>
+                                            <td>{priceLabel}</td>
+                                            <td className="cell-multiline">{doctorInfor.note || ''}</td>
+                                            <td>
+                                                <div className="action-group">
+                                                    <button className="btn-edit" onClick={() => this.handleEditDoctorFromTable(item)}>
+                                                        <i className="fas fa-pencil-alt"></i>
+                                                    </button>
+                                                    <button className="btn-delete" onClick={() => this.handleDeleteDoctorInfor(item)}>
+                                                        <i className="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                                {doctorRows.length === 0 && (
+                                    <tr>
+                                        <td colSpan="7" className="text-center empty-row">Chua co du lieu</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         );
     }

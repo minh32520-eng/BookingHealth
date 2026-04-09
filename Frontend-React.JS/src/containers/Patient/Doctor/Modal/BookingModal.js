@@ -111,7 +111,7 @@ class BookingModal extends Component {
     buildTimeBooking = (dataTime) => {
         let { language } = this.props;
 
-        if (dataTime && !_.isEmpty(dataTime)) {
+        if (dataTime && !_.isEmpty(dataTime) && dataTime.timeTypeData && dataTime.date) {
 
             let time = language === LANGUAGES.VI
                 ? dataTime.timeTypeData.valueVi
@@ -129,11 +129,13 @@ class BookingModal extends Component {
     buildDoctorName = (dataTime) => {
         let { language } = this.props;
 
-        if (dataTime && !_.isEmpty(dataTime)) {
+        if (dataTime && !_.isEmpty(dataTime) && dataTime.doctorData) {
+            const firstName = dataTime.doctorData.firstName || '';
+            const lastName = dataTime.doctorData.lastName || '';
 
             let name = language === LANGUAGES.VI
-                ? `${dataTime.doctorData.lastName} ${dataTime.doctorData.firstName}`
-                : `${dataTime.doctorData.firstName} ${dataTime.doctorData.lastName}`;
+                ? `${lastName} ${firstName}`.trim()
+                : `${firstName} ${lastName}`.trim();
 
             return name;
         }
@@ -141,10 +143,35 @@ class BookingModal extends Component {
         return '';
     }
     handleConfirmBooking = async () => {
+        if (!this.state.fullName || !this.state.phoneNumber || !this.state.email || !this.state.address || !this.state.reason) {
+            toast.error('Please fill in all required information!');
+            return;
+        }
+
+        if (!this.state.birthday) {
+            toast.error('Please choose your birthday!');
+            return;
+        }
+
+        if (!this.state.selectedGender) {
+            toast.error('Please choose your gender!');
+            return;
+        }
+
+        if (!this.state.doctorId || !this.state.timeType || !this.props.dataTime) {
+            toast.error('Schedule information is missing!');
+            return;
+        }
 
         let date = new Date(this.state.birthday).getTime();
         let timeString = this.buildTimeBooking(this.props.dataTime);
         let doctorName = this.buildDoctorName(this.props.dataTime)
+
+        if (!timeString || !doctorName) {
+            toast.error('Doctor schedule data is incomplete!');
+            return;
+        }
+
         let res = await postPatientBookAppointment({
 
             fullName: this.state.fullName,
@@ -215,7 +242,7 @@ class BookingModal extends Component {
 
                     <div className="booking-modal-body">
 
-                        <div className="doctor-infor">
+                        <div className="doctor-infor booking-summary-card">
 
                             <ProfileDoctor
                                 doctorId={doctorId}
@@ -225,13 +252,13 @@ class BookingModal extends Component {
 
                         </div>
 
-                        <div className="price">
+                        <div className="price booking-price-tag">
 
                             <FormattedMessage id="patient.booking-modal.priceBooking" />
 
                         </div>
 
-                        <div className="row">
+                        <div className="row booking-form-grid">
 
                             <div className="col-6 form-group">
 

@@ -39,9 +39,36 @@ let createHandbook = async (req, res) => {
     }
 };
 
+let updateHandbook = async (req, res) => {
+    try {
+        let response = await handbookService.updateHandbook(req.body);
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log(e);
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from the server',
+        });
+    }
+};
+
+let deleteHandbook = async (req, res) => {
+    try {
+        let response = await handbookService.deleteHandbook(req.body.id);
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log(e);
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from the server',
+        });
+    }
+};
+
 module.exports = {
     getAllHandbooks,
     getDetailHandbookById,
     createHandbook,
+    updateHandbook,
+    deleteHandbook,
 };
-

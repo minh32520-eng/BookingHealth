@@ -93,7 +93,8 @@ router.get(
 router.get(
     '/auth/google',
     (req, res, next) => {
-        if (!process.env.GOOGLE_CLIENT_ID) {
+        const googleStrategy = passport._strategy('google');
+        if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !googleStrategy) {
             return redirectToClientError(res, 'google_not_configured');
         }
         passport.authenticate('google', {
@@ -105,6 +106,10 @@ router.get(
 router.get(
     '/auth/google/callback',
     (req, res, next) => {
+        const googleStrategy = passport._strategy('google');
+        if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !googleStrategy) {
+            return redirectToClientError(res, 'google_not_configured');
+        }
         passport.authenticate('google', (err, user) => {
             if (err || !user) {
                 return redirectToClientError(res, 'google_failed');

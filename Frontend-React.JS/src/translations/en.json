@@ -39,7 +39,10 @@
             "manage-handbook": "Manage handbook"
         },
         "doctor": {
-            "manage-schedule": "Manage Doctor's schedule"
+            "manage-schedule": "Manage Doctor's schedule",
+            "workspace": "Doctor workspace",
+            "home": "Homepage",
+            "payment-qr": "Payment QR"
         }
     },
     "manage-user": {
@@ -71,7 +74,11 @@
             "schedule": "Schedule",
             "no-schedule": "The doctor has no appointments during this time, please choose another time",
             "choose": "Choose ",
-            "book-free": " and book (free)"
+            "book-free": " and book (free)",
+            "profile": "Doctor profile",
+            "schedule-title": "Schedule",
+            "extrainfo-title": "Booking information",
+            "information-title": "Detailed information"
         },
         "extra-infor-doctor": {
             "text-address": "Address of examination",
@@ -93,6 +100,43 @@
             "btnCancel": "Cancel",
             "priceBooking": "Free booking",
             "price": "Price:"
+        },
+        "detail-common": {
+            "home": "Home",
+            "loading": "Loading...",
+            "back": "Back",
+            "server-error": "Server connection error",
+            "no-description": "Content is being updated."
+        },
+        "detail-specialty": {
+            "page-title": "Specialty",
+            "missing-id": "Missing specialty id",
+            "not-found": "Specialty not found",
+            "no-description": "Specialty content is being updated."
+        },
+        "detail-clinic": {
+            "page-title": "Clinic",
+            "about-title": "About this clinic",
+            "doctors-title": "Doctors at this clinic",
+            "missing-id": "Missing clinic id",
+            "load-failed": "Unable to load clinic information",
+            "no-doctors": "No doctors have been added to this clinic yet.",
+            "doctor-fallback": "Doctor"
+        },
+        "detail-handbook": {
+            "page-title": "Handbook",
+            "hero-title": "Health Handbook",
+            "hero-subtitle": "Practical articles to help patients understand care, treatment, and healthy habits more clearly.",
+            "article-label": "Featured article",
+            "about-title": "About",
+            "about-text": "Trusted health knowledge is summarized in a concise and easy-to-read format.",
+            "featured-title": "Popular topics",
+            "featured-1": "Cardiovascular care and prevention",
+            "featured-2": "Balanced nutrition for all ages",
+            "featured-3": "Mental health and daily recovery",
+            "connect-title": "Follow updates",
+            "connect-text": "Stay connected through social channels for new health guidance each week.",
+            "footer": "Health Handbook 2026"
         }
     },
     "admin": {

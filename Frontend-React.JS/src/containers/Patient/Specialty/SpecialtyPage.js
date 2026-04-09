@@ -1,7 +1,9 @@
+
 import React, { Component } from 'react';
 import './SpecialtyPage.scss';
-import { getAllSpecialty } from '../../services/userService';
-
+import { getAllSpecialty } from '../../../services/userService';
+import { path } from '../../../utils';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 class SpecialtyPage extends Component {
 
     state = {
@@ -21,6 +23,10 @@ class SpecialtyPage extends Component {
         this.props.history.push(`/detail-specialty/${item.id}`);
     }
 
+    goToHome = () => {
+        this.props.history.push(path.HOMEPAGE);
+    }
+
     render() {
         const { dataSpecialty } = this.state;
 
@@ -28,7 +34,10 @@ class SpecialtyPage extends Component {
             <div className="specialty-page-container">
 
                 <div className="breadcrumb">
-                    <span>🏠</span> / Chuyên khoa
+                    <span className="home-icon" onClick={this.goToHome}>
+                        <i className="fa-solid fa-house"></i>
+                    </span>
+                    <span> / Chuyên khoa</span>
                 </div>
 
                 <h2 className="title">Chuyên khoa</h2>
@@ -69,3 +78,4 @@ class SpecialtyPage extends Component {
 }
 
 export default SpecialtyPage;
+

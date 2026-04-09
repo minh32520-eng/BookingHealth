@@ -1,3 +1,4 @@
+
 import React, { Component, Fragment } from 'react';
 import { connect } from 'react-redux';
 import { Route, Switch } from 'react-router-dom';
@@ -17,7 +18,11 @@ import DetailSpecialty from './Patient/Specialty/DetailSpecialty.js';
 import VerifyEmail from './Patient/VerifyEmail';
 import Doctor from '../routes/Doctor.js';
 import DetailHandbook from './Patient/Handbook/DetailHandbook.js';
-import SpecialtyPage from './Specialty/SpecialtyPage.js';
+import SpecialtyPage from './Patient/Specialty/SpecialtyPage.js';
+import ClinicPage from './Patient/Clinic/ClinicPage.js';
+import DoctorPage from './Patient/Doctor/DoctorPage.js';
+import DetailClinic from './Patient/Clinic/DetailClinic';
+import BookingHistory from './Patient/BookingHistory/BookingHistory';
 class App extends Component {
 
     handlePersistorState = () => {
@@ -48,7 +53,10 @@ class App extends Component {
                             <CustomScrollbars style={{ height: '100vh', width: '100%' }}>
                                 <Switch>
                                     <Route path="/specialty" exact component={SpecialtyPage} />
+                                    <Route path="/clinic" exact component={ClinicPage} />
+                                    <Route path="/doctor" exact component={DoctorPage} />
                                     <Route path="/detail-handbook/:id" component={DetailHandbook} />
+                                    <Route path={path.PATIENT_BOOKING_HISTORY} exact component={BookingHistory} />
                                     <Route path={path.HOME} exact component={Home} />
 
                                     <Route path={path.LOGIN} component={userIsNotAuthenticated(Login)} />
@@ -59,14 +67,10 @@ class App extends Component {
 
                                     <Route path={path.HOMEPAGE} component={HomePage} />
 
-                                    <Route path={path.DetailDoctor} component={DetailDoctor} />
-
-                                    <Route path={path.DETAIL_SPECIALTY} component={DetailSpecialty} />
-
+                                    <Route path={path.DETAIL_DOCTOR} exact component={DetailDoctor} />
+                                    <Route path={path.DETAIL_SPECIALTY} exact component={DetailSpecialty} />
+                                    <Route path="/detail-clinic/:id" exact component={DetailClinic} />
                                     <Route path={path.VERIFY_EMAIL_BOOKING} component={VerifyEmail} />
-
-
-
                                 </Switch>
                             </CustomScrollbars>
                         </div>
@@ -97,8 +101,7 @@ const mapStateToProps = state => {
 };
 
 const mapDispatchToProps = dispatch => {
-    return {
-    };
+    return {};
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);

@@ -1,13 +1,14 @@
+
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import './HomeHeader.scss';
 import { FormattedMessage } from 'react-intl';
 import { LANGUAGES, path } from '../../utils';
-import { changeLanguageApp } from '../../store/actions';
+import { changeLanguageApp, processLogout } from '../../store/actions';
 import { withRouter } from 'react-router';
 
 const logoSvg = encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="60" viewBox="0 0 160 60">
+    `< svg xmlns = "http://www.w3.org/2000/svg" width = "160" height = "60" viewBox = "0 0 160 60" >
         <defs>
             <linearGradient id="g" x1="0" x2="1">
                 <stop offset="0" stop-color="#49bce2"/>
@@ -16,11 +17,22 @@ const logoSvg = encodeURIComponent(
         </defs>
         <rect x="0" y="0" width="160" height="60" rx="12" fill="url(#g)"/>
         <text x="80" y="38" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#fff">HEALTH</text>
-    </svg>`
+    </svg > `
 );
-const logoUrl = `data:image/svg+xml;charset=utf-8,${logoSvg}`;
+const logoUrl = `data: image / svg + xml; charset = utf - 8, ${logoSvg} `;
 
 class HomeHeader extends Component {
+    state = {
+        isAccountMenuOpen: false
+    };
+
+    componentDidMount() {
+        document.addEventListener('mousedown', this.handleClickOutside);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('mousedown', this.handleClickOutside);
+    }
 
     changeLanguage = (language) => {
         this.props.changeLanguageAppRedux(language);
@@ -38,14 +50,48 @@ class HomeHeader extends Component {
         this.props.history.push(route);
     }
 
+    getUserInitial = () => {
+        const fullName = `${this.props.userInfo?.firstName || ''} ${this.props.userInfo?.lastName || ''}`.trim();
+        if (!fullName) return 'U';
+        return fullName.charAt(0).toUpperCase();
+    }
+
+    toggleAccountMenu = () => {
+        this.setState(prevState => ({
+            isAccountMenuOpen: !prevState.isAccountMenuOpen
+        }));
+    }
+
+    closeAccountMenu = () => {
+        this.setState({ isAccountMenuOpen: false });
+    }
+
+    handleClickOutside = (event) => {
+        if (this.accountMenuRef && !this.accountMenuRef.contains(event.target)) {
+            this.closeAccountMenu();
+        }
+    }
+
+    goToBookingHistory = () => {
+        this.closeAccountMenu();
+        this.props.history.push(path.PATIENT_BOOKING_HISTORY);
+    }
+
+    handleLogout = () => {
+        this.closeAccountMenu();
+        this.props.processLogoutRedux();
+        this.props.history.push(path.HOMEPAGE);
+    }
+
     render() {
-        const { language } = this.props;
+        const { language, isLoggedIn, userInfo } = this.props;
 
         return (
             <React.Fragment>
                 <div className="home-header-container">
                     <div className="home-header-content">
 
+                        {/* LEFT */}
                         <div className="left-content">
                             <i className="fas fa-bars"></i>
                             <div
@@ -55,9 +101,10 @@ class HomeHeader extends Component {
                             />
                         </div>
 
+                        {/* CENTER */}
                         <div className="center-content">
 
-                            <div className="child-content" onClick={() => this.goToPage('/specialty')}>
+                            <div className="child-content" onClick={() => this.goToPage(path.SPECIALTY)}>
                                 <div>
                                     <b><FormattedMessage id="homeheader.speciality" /></b>
                                 </div>
@@ -66,50 +113,82 @@ class HomeHeader extends Component {
                                 </div>
                             </div>
 
-                            <div className="child-content" onClick={() => this.goToPage('/clinic')}>
-                                <div><b>
-                                    <FormattedMessage id="homeheader.health-facility" />
-                                </b></div>
+                            <div className="child-content" onClick={() => this.goToPage(path.CLINIC)}>
+                                <div>
+                                    <b><FormattedMessage id="homeheader.health-facility" /></b>
+                                </div>
                                 <div className="subs-title">
                                     <FormattedMessage id="homeheader.select-room" />
                                 </div>
                             </div>
 
-                            <div className="child-content" onClick={() => this.goToPage('/doctor')}>
-                                <div><b><FormattedMessage id="homeheader.doctor" /></b></div>
+                            <div className="child-content" onClick={() => this.goToPage(path.DOCTOR)}>
+                                <div>
+                                    <b><FormattedMessage id="homeheader.doctor" /></b>
+                                </div>
                                 <div className="subs-title">
                                     <FormattedMessage id="homeheader.select-doctor" />
                                 </div>
                             </div>
 
-                            <div className="child-content" onClick={() => this.goToPage('/handbook')}>
-                                <div><b><FormattedMessage id="homeheader.fee" /></b></div>
+                            <div className="child-content" onClick={() => this.goToPage(path.HANDBOOK)}>
+                                <div>
+                                    <b><FormattedMessage id="homeheader.fee" /></b>
+                                </div>
                                 <div className="subs-title">
                                     <FormattedMessage id="homeheader.check-health" />
                                 </div>
                             </div>
 
-                            <div className="child-content" onClick={this.goToLogin}>
-                                <div><b><FormattedMessage id="homeheader.login" /></b></div>
-                                <div className="subs-title">Login</div>
-                            </div>
-
                         </div>
 
+                        {/* RIGHT */}
                         <div className="right-content">
                             <div className="support">
                                 <i className="fas fa-question"></i>
                             </div>
 
-                            {!this.props.isLoggedIn && (
+                            {!isLoggedIn && (
                                 <button
                                     type="button"
                                     className="btn-login"
                                     onClick={this.goToLogin}
                                 >
-                                    <i className="fas fa-sign-in-alt" aria-hidden="true" />
+                                    <i className="fas fa-sign-in-alt" />
                                     <FormattedMessage id="homeheader.login" />
                                 </button>
+                            )}
+
+                            {isLoggedIn && (
+                                <div
+                                    className="account-menu-wrapper"
+                                    ref={(node) => { this.accountMenuRef = node; }}
+                                >
+                                    <button
+                                        type="button"
+                                        className="account-trigger"
+                                        onClick={this.toggleAccountMenu}
+                                    >
+                                        <span className="avatar-circle">{this.getUserInitial()}</span>
+                                        <span className="account-name">
+                                            {userInfo?.firstName || userInfo?.email || 'User'}
+                                        </span>
+                                        <i className="fas fa-chevron-down"></i>
+                                    </button>
+
+                                    {this.state.isAccountMenuOpen && (
+                                        <div className="account-dropdown">
+                                            <button type="button" onClick={this.goToBookingHistory}>
+                                                <i className="far fa-calendar-check"></i>
+                                                <span>Lich su dat kham</span>
+                                            </button>
+                                            <button type="button" onClick={this.handleLogout}>
+                                                <i className="fas fa-sign-out-alt"></i>
+                                                <span>Dang xuat</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             )}
 
                             <div
@@ -130,6 +209,7 @@ class HomeHeader extends Component {
                     </div>
                 </div>
 
+                {/* BANNER */}
                 {this.props.isShowBanner === true &&
                     <div className="home-header-banner">
 
@@ -153,34 +233,34 @@ class HomeHeader extends Component {
                         <div className="content-down">
                             <div className="options">
 
-                                <div className="option-child" onClick={() => this.goToPage('/specialty')}>
+                                <div className="option-child" onClick={() => this.goToPage(path.SPECIALTY)}>
                                     <div className="icon-child">
-                                        <i className="fas fa-hospital"></i>
+                                        <i className="fas fa-stethoscope"></i>
                                     </div>
                                     <div className="text-child">
                                         <FormattedMessage id="banner.child1" />
                                     </div>
                                 </div>
 
-                                <div className="option-child" onClick={() => this.goToPage('/doctor')}>
+                                <div className="option-child" onClick={() => this.goToPage(path.DOCTOR)}>
                                     <div className="icon-child">
-                                        <i className="fas fa-phone"></i>
+                                        <i className="fas fa-user-md"></i>
                                     </div>
                                     <div className="text-child">
                                         <FormattedMessage id="banner.child2" />
                                     </div>
                                 </div>
 
-                                <div className="option-child" onClick={() => this.goToPage('/handbook')}>
+                                <div className="option-child" onClick={() => this.goToPage(path.HANDBOOK)}>
                                     <div className="icon-child">
-                                        <i className="fas fa-bed"></i>
+                                        <i className="fas fa-book-medical"></i>
                                     </div>
                                     <div className="text-child">
                                         <FormattedMessage id="banner.child3" />
                                     </div>
                                 </div>
 
-                                <div className="option-child" onClick={() => this.goToPage('/handbook')}>
+                                <div className="option-child" onClick={() => this.goToPage(path.HANDBOOK)}>
                                     <div className="icon-child">
                                         <i className="fas fa-flask"></i>
                                     </div>
@@ -189,18 +269,18 @@ class HomeHeader extends Component {
                                     </div>
                                 </div>
 
-                                <div className="option-child" onClick={() => this.goToPage('/clinic')}>
+                                <div className="option-child" onClick={() => this.goToPage(path.CLINIC)}>
                                     <div className="icon-child">
-                                        <i className="fas fa-bed"></i>
+                                        <i className="fas fa-hospital"></i>
                                     </div>
                                     <div className="text-child">
                                         <FormattedMessage id="banner.child5" />
                                     </div>
                                 </div>
 
-                                <div className="option-child" onClick={() => this.goToPage('/clinic')}>
+                                <div className="option-child" onClick={() => this.goToPage(path.CLINIC)}>
                                     <div className="icon-child">
-                                        <i className="fas fa-bed"></i>
+                                        <i className="fas fa-hospital"></i>
                                     </div>
                                     <div className="text-child">
                                         <FormattedMessage id="banner.child6" />
@@ -224,7 +304,9 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    changeLanguageAppRedux: (language) => dispatch(changeLanguageApp(language))
+    changeLanguageAppRedux: (language) => dispatch(changeLanguageApp(language)),
+    processLogoutRedux: () => dispatch(processLogout())
 });
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(HomeHeader));
+

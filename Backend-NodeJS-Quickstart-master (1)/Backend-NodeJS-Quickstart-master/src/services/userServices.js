@@ -5,6 +5,11 @@ import db from "../models/index.js";
 
 const salt = bcrypt.genSaltSync(10);
 
+const normalizeEmail = (email) => {
+    if (!email || typeof email !== 'string') return '';
+    return email.trim().toLowerCase();
+};
+
 const findOrCreateOAuthUser = async ({
     provider,
     socialId,
@@ -94,9 +99,10 @@ const hashUserPassword = (password) => {
 
 const handleUserLogin = async (email, password) => {
     try {
+        const normalizedEmail = normalizeEmail(email);
 
         let user = await db.User.findOne({
-            where: { email: email },
+            where: { email: normalizedEmail },
             attributes: ['id', 'email', 'roleId', 'password', 'firstName', 'lastName'],
             raw: true
         });
@@ -131,15 +137,17 @@ const handleUserLogin = async (email, password) => {
 };
 
 const checkUserEmail = async (email) => {
+    const normalizedEmail = normalizeEmail(email);
     let user = await db.User.findOne({
-        where: { email: email }
+        where: { email: normalizedEmail }
     });
 
     return !!user;
 };
 
 const createNewUser = async (data) => {
-    let isExist = await checkUserEmail(data.email);
+    const normalizedEmail = normalizeEmail(data.email);
+    let isExist = await checkUserEmail(normalizedEmail);
 
     if (isExist) {
         return {
@@ -151,7 +159,7 @@ const createNewUser = async (data) => {
     let hashPasswordFromBcrypt = hashUserPassword(data.password);
 
     await db.User.create({
-        email: data.email,
+        email: normalizedEmail,
         password: hashPasswordFromBcrypt,
         firstName: data.firstName,
         lastName: data.lastName,
@@ -165,6 +173,76 @@ const createNewUser = async (data) => {
     return {
         errCode: 0,
         errMessage: 'User created successfully'
+    };
+};
+
+const registerNewPatient = async (data) => {
+    const normalizedEmail = normalizeEmail(data.email);
+
+    if (!data.email || !data.password || !data.firstName || !data.lastName) {
+        return {
+            errCode: 1,
+            errMessage: 'Missing required parameters'
+        };
+    }
+    let isExist = await checkUserEmail(normalizedEmail);
+
+    if (isExist) {
+        return {
+            errCode: 2,
+            errMessage: 'Email already exists'
+        };
+    }
+
+    let hashPasswordFromBcrypt = hashUserPassword(data.password);
+
+    await db.User.create({
+        email: normalizedEmail,
+        password: hashPasswordFromBcrypt,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        address: data.address || '',
+        phonenumber: data.phoneNumber || '',
+        gender: data.gender || 'M',
+        roleId: 'R3',
+        positionId: data.positionId || 'P0',
+        image: ''
+    });
+
+    return {
+        errCode: 0,
+        errMessage: 'Register successfully'
+    };
+};
+
+const forgotPassword = async (data) => {
+    const normalizedEmail = normalizeEmail(data.email);
+
+    if (!data.email || !data.newPassword) {
+        return {
+            errCode: 1,
+            errMessage: 'Missing required parameters'
+        };
+    }
+
+    let user = await db.User.findOne({
+        where: { email: normalizedEmail },
+        raw: false
+    });
+
+    if (!user) {
+        return {
+            errCode: 2,
+            errMessage: 'Email does not exist'
+        };
+    }
+
+    user.password = hashUserPassword(data.newPassword);
+    await user.save();
+
+    return {
+        errCode: 0,
+        errMessage: 'Password updated successfully'
     };
 };
 
@@ -320,8 +398,13 @@ export default {
     findOrCreateOAuthUser,
     getAllUsers,
     createNewUser,
+    registerNewPatient,
+    forgotPassword,
     deleteUser,
     updateUserData,
     getAllCodeService,
     saveDetailDoctor
 };
+
+
+

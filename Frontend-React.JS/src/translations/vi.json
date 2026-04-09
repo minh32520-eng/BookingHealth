@@ -39,7 +39,10 @@
             "manage-handbook": "Quan ly cam nang"
         },
         "doctor": {
-            "manage-schedule": "Quản lý lịch bác sĩ "
+            "manage-schedule": "Quản lý lịch bác sĩ ",
+            "workspace": "Khu bac si",
+            "home": "Trang chu",
+            "payment-qr": "QR thanh toan"
         }
     },
     "manage-user": {
@@ -71,7 +74,11 @@
             "schedule": "Lịch khám",
             "no-schedule": "Bác sĩ không có lịch hẹn trong thời gian này, vui lòng chọn",
             "choose": "Chọn ",
-            "book-free": " và đặt (miễn phí)"
+            "book-free": " và đặt (miễn phí)",
+            "profile": "Ho so bac si",
+            "schedule-title": "Lich kham",
+            "extrainfo-title": "Thong tin dat lich",
+            "information-title": "Thong tin chi tiet"
         },
         "extra-infor-doctor": {
             "text-address": "Địa chỉ examination",
@@ -93,6 +100,43 @@
             "btnCancel": "Hủy",
             "priceBooking": "Đặt lịch miễn phí",
             "price": "Giá:"
+        },
+        "detail-common": {
+            "home": "Trang chu",
+            "loading": "Dang tai...",
+            "back": "Quay lai",
+            "server-error": "Loi ket noi may chu",
+            "no-description": "Noi dung dang duoc cap nhat."
+        },
+        "detail-specialty": {
+            "page-title": "Chuyen khoa",
+            "missing-id": "Thieu ma chuyen khoa",
+            "not-found": "Khong tim thay chuyen khoa",
+            "no-description": "Noi dung chuyen khoa dang duoc cap nhat."
+        },
+        "detail-clinic": {
+            "page-title": "Phong kham",
+            "about-title": "Thong tin phong kham",
+            "doctors-title": "Bac si thuoc phong kham",
+            "missing-id": "Thieu ma phong kham",
+            "load-failed": "Khong tai duoc du lieu phong kham",
+            "no-doctors": "Chua co bac si thuoc phong kham nay.",
+            "doctor-fallback": "Bac si"
+        },
+        "detail-handbook": {
+            "page-title": "Cam nang",
+            "hero-title": "Cam nang suc khoe",
+            "hero-subtitle": "Tong hop bai viet huu ich giup nguoi benh hieu ro hon ve cham soc, dieu tri va thoi quen song lanh manh.",
+            "article-label": "Bai viet noi bat",
+            "about-title": "Gioi thieu",
+            "about-text": "Kien thuc suc khoe duoc tom tat ngan gon, de doc va de ap dung.",
+            "featured-title": "Chu de noi bat",
+            "featured-1": "Cham soc tim mach va phong ngua",
+            "featured-2": "Dinh duong can bang cho moi lua tuoi",
+            "featured-3": "Suc khoe tinh than va phuc hoi hang ngay",
+            "connect-title": "Theo doi cap nhat",
+            "connect-text": "Theo doi cac kenh thong tin de nhan huong dan suc khoe moi moi tuan.",
+            "footer": "Cam nang suc khoe 2026"
         }
     },
     "admin": {
@@ -111,3 +155,6 @@
         }
     }
 }
+
+
+

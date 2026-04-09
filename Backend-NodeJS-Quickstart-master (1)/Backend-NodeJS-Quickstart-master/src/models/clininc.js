@@ -6,9 +6,12 @@ const {
 module.exports = (sequelize, DataTypes) => {
     class Clininc extends Model {
         static associate(models) {
-            // define association here
+            this.hasMany(models.DoctorClinicSpecialty, {
+                foreignKey: 'clinicId',
+                as: 'doctorClinic'
+            });
         }
-    };
+    }
 
     Clininc.init({
         name: DataTypes.STRING,

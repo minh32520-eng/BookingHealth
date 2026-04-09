@@ -1,4 +1,4 @@
-.specialty-page-container {
+.doctor-page-container {
     padding: 20px 120px;
     background: #f5f5f5;
     min-height: 100vh;
@@ -7,6 +7,11 @@
         font-size: 14px;
         color: #45c3d2;
         margin-bottom: 10px;
+        cursor: pointer;
+
+        .home-icon:hover {
+            opacity: 0.7;
+        }
     }
 
     .title {
@@ -16,44 +21,56 @@
         color: #333;
     }
 
-    .specialty-list {
+    .doctor-list {
         background: #fff;
         border-radius: 8px;
         padding: 10px 0;
     }
 
-    .specialty-item {
+    .doctor-item {
         display: flex;
         align-items: center;
         padding: 20px;
         border-bottom: 1px solid #eee;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: 0.2s;
 
         &:hover {
             background: #fafafa;
         }
 
-        .specialty-image {
-            width: 120px;
-            height: 120px;
+        .doctor-image {
+            width: 100px;
+            height: 100px;
             margin-right: 20px;
 
             img {
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
-                border-radius: 4px;
+                border-radius: 50%;
             }
         }
 
-        .specialty-info {
+        .doctor-info {
             flex: 1;
 
-            .specialty-name {
+            .doctor-name {
                 font-size: 18px;
                 font-weight: 600;
                 color: #333;
+                margin-bottom: 5px;
+            }
+
+            .doctor-desc {
+                font-size: 14px;
+                color: #666;
+                line-height: 1.4;
+
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
             }
         }
     }

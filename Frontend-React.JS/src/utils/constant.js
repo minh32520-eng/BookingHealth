@@ -4,9 +4,15 @@ export const path = {
     LOGIN: '/login',
     LOG_OUT: '/logout',
     SYSTEM: '/system',
-
+    CLINIC: '/clinic',
+    SPECIALTY: '/specialty',
+    DOCTOR: '/doctor',
+    DOCTOR_PAYMENT_QR: '/doctor/payment-qr',
+    PATIENT_BOOKING_HISTORY: '/patient/booking-history',
     DETAIL_DOCTOR: '/detail-doctor/:id',
     DETAIL_SPECIALTY: '/detail-specialty/:id',
+
+    DETAIL_ClININC: '/detail-clinic/:id',
     VERIFY_EMAIL_BOOKING: '/verify-booking'
 };
 

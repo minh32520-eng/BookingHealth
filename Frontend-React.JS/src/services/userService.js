@@ -7,6 +7,14 @@ const handleLoginApi = (userEmail, userPassword) => {
     });
 };
 
+const registerApi = (data) => {
+    return axios.post('/api/register', data);
+};
+
+const forgotPasswordApi = (data) => {
+    return axios.post('/api/forgot-password', data);
+};
+
 const getAllUsers = (inputId) => {
     return axios.get(`/api/get-all-users?id=${inputId}`);
 };
@@ -44,6 +52,12 @@ const saveDetailDoctorService = (data) => {
     return axios.post('/api/save-infor-doctors', data);
 };
 
+const deleteDoctorInforService = (doctorId) => {
+    return axios.delete('/api/delete-doctor-infor', {
+        data: { doctorId }
+    });
+};
+
 const getDetailInforDoctor = (inputId) => {
     return axios.get(`/api/get-detail-doctor-by-id?id=${inputId}`);
 };
@@ -55,6 +69,9 @@ const saveBulkScheduleDoctor = (data) => {
 const getScheduleDoctorByDate = (doctorId, date) => {
     return axios.get(`/api/get-schedule-doctor-by-date?doctorId=${doctorId}&date=${date}`);
 };
+const getListPatientForDoctor = (doctorId, date) => {
+    return axios.get(`/api/get-list-patient-for-doctor?doctorId=${doctorId}&date=${date}`);
+};
 const getExtraInforDoctorById = (doctorId) => {
     return axios.get(`/api/get-extra-infor-doctor-by-id?doctorId=${doctorId}`)
 }
@@ -64,11 +81,24 @@ const getProfileDoctorById = (doctorId) => {
 const postPatientBookAppointment = (data) => {
     return axios.post('/api/patient-book-appointment', data)
 }
+const getBookingHistoryByPatient = (patientId) => {
+    return axios.get(`/api/get-booking-history-by-patient?patientId=${patientId}`)
+}
 const postVerifyBookAppointment = (data) => {
     return axios.post('/api/verify-book-appointment', data)
 }
 const createNewSpecialty = (data) => {
     return axios.post('/api/create-new-specialty', data);
+};
+
+const editSpecialty = (data) => {
+    return axios.put('/api/edit-specialty', data);
+};
+
+const deleteSpecialty = (id) => {
+    return axios.delete('/api/delete-specialty', {
+        data: { id }
+    });
 };
 
 const getAllSpecialty = () => {
@@ -83,6 +113,16 @@ const createNewClinic = (data) => {
     return axios.post('/api/create-new-clinic', data);
 };
 
+const editClinic = (data) => {
+    return axios.put('/api/edit-clinic', data);
+};
+
+const deleteClinic = (id) => {
+    return axios.delete('/api/delete-clinic', {
+        data: { id }
+    });
+};
+
 const getAllClinic = () => {
     return axios.get('/api/get-clinic');
 };
@@ -95,6 +135,16 @@ const createNewHandbook = (data) => {
     return axios.post('/api/create-new-handbook', data);
 };
 
+const editHandbook = (data) => {
+    return axios.put('/api/edit-handbook', data);
+};
+
+const deleteHandbook = (id) => {
+    return axios.delete('/api/delete-handbook', {
+        data: { id }
+    });
+};
+
 const getAllHandbook = () => {
     return axios.get('/api/get-handbook');
 };
@@ -105,6 +155,8 @@ const getDetailHandbookById = (id) => {
 
 export {
     handleLoginApi,
+    registerApi,
+    forgotPasswordApi,
     getAllUsers,
     createNewUserService,
     deleteUserService,
@@ -113,20 +165,29 @@ export {
     getTopDoctorHomeService,
     getAllDoctors,
     saveDetailDoctorService,
+    deleteDoctorInforService,
     getDetailInforDoctor,
     saveBulkScheduleDoctor,
     getScheduleDoctorByDate,
+    getListPatientForDoctor,
     getExtraInforDoctorById,
     postPatientBookAppointment,
+    getBookingHistoryByPatient,
     getProfileDoctorById,
     postVerifyBookAppointment,
     createNewSpecialty,
+    editSpecialty,
+    deleteSpecialty,
     getAllSpecialty,
     getDetailSpecialtyById,
     createNewClinic,
+    editClinic,
+    deleteClinic,
     getAllClinic,
     getDetailClinicById,
     createNewHandbook,
+    editHandbook,
+    deleteHandbook,
     getAllHandbook,
     getDetailHandbookById
 

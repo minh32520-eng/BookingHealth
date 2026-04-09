@@ -26,7 +26,7 @@ class UserManage extends Component {
         let response = await getAllUsers('ALL');
         if (response && response.errCode === 0) {
             this.setState({
-                arrUser: response.users
+                arrUser: response.users || []
             });
         }
     }
@@ -67,7 +67,10 @@ class UserManage extends Component {
     }
 
     handleDeleteUser = async (user) => {
-        console.log('click delete', user)
+        if (!window.confirm(`Delete user ${user.email}?`)) {
+            return;
+        }
+
         try {
             let res = await deleteUserService(user.id)
             if (res && res.errCode === 0) {
@@ -81,7 +84,6 @@ class UserManage extends Component {
     }
 
     handleEditUser = (user) => {
-        console.log('check edit user', user);
         this.setState({
             isOpenModalEditUser: true,
             userEdit: user
@@ -106,6 +108,9 @@ class UserManage extends Component {
 
     render() {
         let arrUsers = this.state.arrUser;
+        const adminCount = arrUsers.filter(item => item.roleId === 'R1').length;
+        const doctorCount = arrUsers.filter(item => item.roleId === 'R2').length;
+        const patientCount = arrUsers.filter(item => item.roleId === 'R3').length;
 
         return (
             <div className="user-container">
@@ -125,58 +130,101 @@ class UserManage extends Component {
                     />
                 }
 
-                <div className="title text-center">
-                    Manage Users
-                </div>
+                <div className="user-page-shell">
+                    <div className="user-page-hero">
+                        <div>
+                            <div className="user-page-eyebrow">Admin panel</div>
+                            <div className="title">Manage Users</div>
+                            <div className="user-page-subtitle">
+                                View, create and update system accounts in one place.
+                            </div>
+                        </div>
 
-                <div className="mx-1 my-3">
-                    <button
-                        className="btn btn-primary px-3"
-                        onClick={this.handleAddNewUser}
-                    >
-                        <i className="fas fa-plus"></i> Add new user
-                    </button>
-                </div>
+                        <button
+                            className="btn-add-user"
+                            onClick={this.handleAddNewUser}
+                        >
+                            <i className="fas fa-plus"></i>
+                            <span>Add new user</span>
+                        </button>
+                    </div>
 
-                <div className="user-table mt-3 mx-1">
-                    <table id="customers">
-                        <thead>
-                            <tr>
-                                <th>Email</th>
-                                <th>First name</th>
-                                <th>Last name</th>
-                                <th>Address</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+                    <div className="user-stats-grid">
+                        <div className="user-stat-card">
+                            <span className="label">Total users</span>
+                            <strong>{arrUsers.length}</strong>
+                        </div>
+                        <div className="user-stat-card">
+                            <span className="label">Admins</span>
+                            <strong>{adminCount}</strong>
+                        </div>
+                        <div className="user-stat-card">
+                            <span className="label">Doctors</span>
+                            <strong>{doctorCount}</strong>
+                        </div>
+                        <div className="user-stat-card">
+                            <span className="label">Patients</span>
+                            <strong>{patientCount}</strong>
+                        </div>
+                    </div>
 
-                        <tbody>
-                            {arrUsers && arrUsers.map((item, index) => (
-                                <tr key={index}>
-                                    <td>{item.email}</td>
-                                    <td>{item.firstName}</td>
-                                    <td>{item.lastName}</td>
-                                    <td>{item.address}</td>
-                                    <td>
-                                        <button
-                                            className="btn-edit"
-                                            onClick={() => this.handleEditUser(item)}
-                                        >
-                                            <i className="fas fa-pencil-alt"></i>
-                                        </button>
+                    <div className="user-table-card">
+                        <div className="user-table-head">
+                            <div>
+                                <h3>User list</h3>
+                                <p>Basic account information currently stored in the system.</p>
+                            </div>
+                        </div>
 
-                                        <button
-                                            className="btn-delete"
-                                            onClick={() => this.handleDeleteUser(item)}
-                                        >
-                                            <i className="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
+                        <div className="user-table-wrap">
+                            <table id="customers">
+                                <thead>
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>First name</th>
+                                        <th>Last name</th>
+                                        <th>Address</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
 
-                    </table>
+                                <tbody>
+                                    {arrUsers && arrUsers.length > 0 ? arrUsers.map((item, index) => (
+                                        <tr key={index}>
+                                            <td className="email-cell">{item.email}</td>
+                                            <td>{item.firstName}</td>
+                                            <td>{item.lastName}</td>
+                                            <td>{item.address}</td>
+                                            <td>
+                                                <div className="table-actions">
+                                                    <button
+                                                        className="btn-edit"
+                                                        onClick={() => this.handleEditUser(item)}
+                                                    >
+                                                        <i className="fas fa-pencil-alt"></i>
+                                                    </button>
+
+                                                    <button
+                                                        className="btn-delete"
+                                                        onClick={() => this.handleDeleteUser(item)}
+                                                    >
+                                                        <i className="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan="5" className="empty-users">
+                                                No users found.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
             </div>

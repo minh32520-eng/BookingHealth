@@ -1,138 +1,229 @@
 .login-background {
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg,
-            rgba(34, 193, 195, 1) 0%,
-            rgba(253, 187, 45, 1) 100%);
+    padding: 24px 16px;
+    background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.24), transparent 28%),
+        linear-gradient(135deg, #22c1c3 0%, #fdbb2d 100%);
 }
 
 .login-container {
-    width: 300px;
-    border-radius: 10px;
+    width: 100%;
+    max-width: 420px;
+    border-radius: 24px;
     background-color: white;
-    position: absolute;
-    margin: auto;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    min-height: 480px;
-    height: auto;
-    max-height: 95vh;
-    overflow-y: auto;
+    box-shadow: 0 24px 50px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
 }
 
 .login-content {
-    padding: 20px;
+    padding: 24px 24px 28px;
     margin: 0;
 
     .text-login {
         text-align: center;
-        font-weight: 600;
-        font-size: 24px;
-        padding-top: 10px;
+        font-weight: 700;
+        font-size: 30px;
+        padding-top: 6px;
+        margin-bottom: 16px;
+        color: #163247;
     }
 
     .login-input {
         margin: 7px 0;
+
+        label {
+            font-weight: 600;
+            color: #425a6b;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            height: 46px;
+            border-radius: 14px;
+            border: 1px solid #d6e6ed;
+            box-shadow: none;
+
+            &:focus {
+                border-color: #45c3d2;
+                box-shadow: 0 0 0 3px rgba(69, 195, 210, 0.14);
+            }
+        }
 
         .custom-input-password {
             position: relative;
 
             i {
                 position: absolute;
-                right: 5px;
-                top: 10px;
+                right: 14px;
+                top: 14px;
                 cursor: pointer;
+                color: #60717f;
             }
         }
     }
 
+    .compact-input {
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+
     .btn-login {
         width: 100%;
-        margin: 10px 0;
-        height: 35px;
-        border-radius: 20px;
+        margin: 12px 0 8px;
+        height: 46px;
+        border-radius: 14px;
         border: none;
         color: white;
         font-size: 16px;
+        font-weight: 700;
         cursor: pointer;
-        background: linear-gradient(135deg,
-                rgba(34, 193, 195, 1) 0%,
-                rgba(253, 187, 45, 1) 100%);
+        background: linear-gradient(135deg, #1f8da0 0%, #45c3d2 100%);
+        box-shadow: 0 16px 28px rgba(69, 195, 210, 0.24);
     }
 
-    .forgot-pass {
-        font-size: 12px;
-        cursor: pointer;
+    .text-other-login {
+        color: #708391;
+        font-size: 13px;
+        font-weight: 600;
     }
+}
+
+.auth-mode-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+
+    button {
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid #d6e6ed;
+        background: #f8fbfd;
+        color: #537082;
+        font-weight: 700;
+        font-size: 13px;
+        transition: all 0.2s ease;
+
+        &.active {
+            background: #163247;
+            border-color: #163247;
+            color: #ffffff;
+        }
+    }
+}
+
+.auth-message {
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+
+    &.error {
+        background: #fff1f1;
+        color: #c93f3f;
+        border: 1px solid #f3d3d3;
+    }
+
+    &.success {
+        background: #eefaf0;
+        color: #238a46;
+        border: 1px solid #cfe9d6;
+    }
+}
+
+.auth-inline-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-top: 2px;
+
+    &.center-only {
+        justify-content: center;
+    }
+}
+
+.link-button {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #1c8ca2;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.social-title {
+    margin-top: 14px;
 }
 
 .col-12-social-login {
     display: flex;
     justify-content: center;
-    align-items: center; // 🔥 quan trọng
-    gap: 20px;
-    margin-top: 15px;
-}
-
-a.social-icon {
-    text-decoration: none;
-    color: inherit;
+    align-items: center;
+    gap: 18px;
+    margin-top: 14px;
 }
 
 .social-icon {
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: 0.3s;
+    border: none;
+    padding: 0;
 }
 
-/* Facebook */
 .facebook {
     background: #1877f2;
     color: white;
     font-size: 22px;
 }
 
-/* Google */
 .google {
     background: white;
     border: 1px solid #ddd;
 }
 
 .instagram {
-    background: linear-gradient(45deg,
-            #feda75,
-            #fa7e1e,
-            #d62976,
-            #962fbf,
-            #4f5bd5);
+    background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
     color: white;
     font-size: 22px;
 }
 
 .github {
-    background: linear-gradient(45deg,
-            rgb(2, 12, 12),
-            black,
-            white);
+    background: linear-gradient(45deg, rgb(2, 12, 12), black, white);
     color: white;
     font-size: 22px;
 }
 
-/* Fix icon Google bị lệch */
 .google svg {
     font-size: 22px;
 }
 
-/* Hover */
 .social-icon:hover {
-    transform: scale(1.1);
+    transform: scale(1.08);
+}
+
+@media (max-width: 576px) {
+    .login-content {
+        padding: 20px 18px 22px;
+
+        .text-login {
+            font-size: 26px;
+        }
+    }
+
+    .auth-inline-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

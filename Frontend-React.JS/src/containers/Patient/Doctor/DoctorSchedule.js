@@ -28,7 +28,7 @@ class DoctorSchedule extends Component {
             allDays: allDays,
         });
 
-        // 🔥 CALL API NGAY KHI LOAD
+
         if (doctorIdFromParent && doctorIdFromParent !== -1) {
             await this.fetchSchedule(doctorIdFromParent, allDays[0].value);
         }

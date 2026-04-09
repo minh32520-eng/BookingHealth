@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import HomeHeader from '../../HomePage/HomeHeader';
 import { getDetailSpecialtyById } from '../../../services/userService';
 import { path } from '../../../utils';
@@ -31,7 +32,7 @@ class DetailSpecialty extends Component {
             this.setState({
                 loading: false,
                 specialty: {},
-                errMessage: 'Thiếu mã chuyên khoa'
+                errMessage: 'missing_specialty_id'
             });
             return;
         }
@@ -54,16 +55,14 @@ class DetailSpecialty extends Component {
                 this.setState({
                     loading: false,
                     specialty: {},
-                    errMessage:
-                        (res && res.errMessage) ||
-                        'Không tìm thấy chuyên khoa'
+                    errMessage: (res && res.errMessage) || 'specialty_not_found'
                 });
             }
         } catch (e) {
             this.setState({
                 loading: false,
                 specialty: {},
-                errMessage: 'Lỗi kết nối máy chủ'
+                errMessage: 'server_connection_error'
             });
         }
     }
@@ -83,13 +82,14 @@ class DetailSpecialty extends Component {
     renderLoadingSections() {
         return (
             <div className="detail-specialty-body detail-specialty-loading" aria-busy="true">
-                <div className="detail-specialty-section">
+                <div className="detail-specialty-section detail-specialty-section-hero">
                     <div className="skeleton skeleton-cover" />
                 </div>
-                <div className="detail-specialty-section">
+                <div className="detail-specialty-section detail-specialty-section-heading">
+                    <div className="skeleton skeleton-label" />
                     <div className="skeleton skeleton-title" />
                 </div>
-                <div className="detail-specialty-section">
+                <div className="detail-specialty-section detail-specialty-section-content">
                     <div className="skeleton skeleton-line" />
                     <div className="skeleton skeleton-line" />
                     <div className="skeleton skeleton-line skeleton-line-short" />
@@ -100,23 +100,31 @@ class DetailSpecialty extends Component {
 
     render() {
         const { loading, specialty, errMessage } = this.state;
+        const { intl } = this.props;
         const html =
             specialty.descriptionHTML ||
             specialty.description ||
-            '';
+            `<p>${intl.formatMessage({ id: 'patient.detail-specialty.no-description' })}</p>`;
+
+        const errorMessageIdMap = {
+            missing_specialty_id: 'patient.detail-specialty.missing-id',
+            specialty_not_found: 'patient.detail-specialty.not-found',
+            server_connection_error: 'patient.detail-common.server-error'
+        };
+        const errorMessageId = errorMessageIdMap[errMessage];
 
         return (
             <>
                 <HomeHeader isShowBanner={false} />
                 <div className="detail-specialty-page">
                     <div className="detail-specialty-breadcrumb">
-                        <Link to={path.HOMEPAGE}>Trang chủ</Link>
+                        <Link to={path.HOMEPAGE}><FormattedMessage id="patient.detail-common.home" /></Link>
                         <span> / </span>
-                        <span>Chuyên khoa</span>
+                        <span><FormattedMessage id="patient.detail-specialty.page-title" /></span>
                         {loading ? (
                             <>
                                 <span> / </span>
-                                <span className="breadcrumb-loading">Đang tải…</span>
+                                <span className="breadcrumb-loading"><FormattedMessage id="patient.detail-common.loading" /></span>
                             </>
                         ) : (
                             specialty.name && (
@@ -131,7 +139,9 @@ class DetailSpecialty extends Component {
                     {loading && this.renderLoadingSections()}
 
                     {!loading && errMessage && (
-                        <div className="detail-specialty-error">{errMessage}</div>
+                        <div className="detail-specialty-error">
+                            {errorMessageId ? <FormattedMessage id={errorMessageId} /> : errMessage}
+                        </div>
                     )}
 
                     {!loading && !errMessage && (
@@ -147,6 +157,9 @@ class DetailSpecialty extends Component {
                                 />
                             </section>
                             <section className="detail-specialty-section detail-specialty-section-heading">
+                                <div className="detail-specialty-label">
+                                    <FormattedMessage id="patient.detail-specialty.page-title" />
+                                </div>
                                 <h1 className="detail-specialty-title">
                                     {specialty.name}
                                 </h1>
@@ -167,4 +180,4 @@ class DetailSpecialty extends Component {
 
 const mapStateToProps = () => ({});
 
-export default connect(mapStateToProps)(DetailSpecialty);
+export default injectIntl(connect(mapStateToProps)(DetailSpecialty));

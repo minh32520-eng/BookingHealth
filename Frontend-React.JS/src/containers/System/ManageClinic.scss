@@ -7,23 +7,125 @@
         margin-bottom: 16px;
     }
 
-    .btn-save-clinic {
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .btn-save-clinic,
+    .btn-cancel-clinic {
         padding: 8px 18px;
         border: none;
         border-radius: 6px;
-        background: #49bce2;
         color: #fff;
         font-weight: 600;
         cursor: pointer;
     }
 
+    .btn-save-clinic {
+        background: #49bce2;
+    }
+
+    .btn-cancel-clinic {
+        background: #7f8c8d;
+    }
+
     .mc-preview {
         margin-top: 10px;
+
         img {
             max-width: 220px;
             border-radius: 8px;
-            border: 1px solid #eee;
+            border: 1px solid #dfe6eb;
+            object-fit: cover;
         }
     }
-}
 
+    .admin-table-wrap {
+        margin-top: 12px;
+        border: 1px solid #dfe6eb;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .admin-info-table {
+        margin-bottom: 0;
+
+        thead th {
+            border: none;
+            background: #f3f8fb;
+            color: #24445a;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 14px 16px;
+            vertical-align: middle;
+        }
+
+        tbody td {
+            border-top: 1px solid #edf2f7;
+            border-left: none;
+            border-right: none;
+            padding: 14px 16px;
+            vertical-align: top;
+            color: #24313f;
+            background: #fff;
+        }
+
+        tbody tr:hover td {
+            background: #f9fcfe;
+        }
+
+        .cell-multiline {
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-width: 420px;
+            color: #4a5568;
+        }
+
+        .empty-row {
+            padding: 28px 16px;
+            color: #718096;
+        }
+    }
+
+    .action-group {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-edit,
+    .btn-delete {
+        width: 34px;
+        height: 34px;
+        border: none;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .btn-edit {
+        background: #edf7ff;
+        color: #1d70b8;
+    }
+
+    .btn-delete {
+        background: #fff1f2;
+        color: #c53030;
+    }
+
+    .btn-edit:hover {
+        background: #dbeefe;
+    }
+
+    .btn-delete:hover {
+        background: #ffe1e6;
+    }
+}

@@ -102,7 +102,79 @@ let postVerifyBookAppointment = (data) => {
         }
     });
 };
+
+let getBookingHistoryByPatient = (patientId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!patientId) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing parameter',
+                    data: []
+                });
+                return;
+            }
+
+            let bookings = await db.Booking.findAll({
+                where: { patientId: patientId },
+                raw: true,
+                order: [['createdAt', 'DESC']]
+            });
+
+            if (!bookings || bookings.length === 0) {
+                resolve({
+                    errCode: 0,
+                    errMessage: 'OK',
+                    data: []
+                });
+                return;
+            }
+
+            let doctorIds = [...new Set(bookings.map(item => item.doctorId).filter(Boolean))];
+            let timeTypes = [...new Set(bookings.map(item => item.timeType).filter(Boolean))];
+            let statusIds = [...new Set(bookings.map(item => item.statusId).filter(Boolean))];
+
+            let [doctors, times, statuses] = await Promise.all([
+                db.User.findAll({
+                    where: { id: doctorIds },
+                    attributes: ['id', 'firstName', 'lastName'],
+                    raw: true
+                }),
+                db.Allcode.findAll({
+                    where: { keyMap: timeTypes },
+                    attributes: ['keyMap', 'valueEn', 'valueVi'],
+                    raw: true
+                }),
+                db.Allcode.findAll({
+                    where: { keyMap: statusIds },
+                    attributes: ['keyMap', 'valueEn', 'valueVi'],
+                    raw: true
+                })
+            ]);
+
+            let doctorMap = new Map(doctors.map(item => [item.id, item]));
+            let timeMap = new Map(times.map(item => [item.keyMap, item]));
+            let statusMap = new Map(statuses.map(item => [item.keyMap, item]));
+
+            let data = bookings.map(item => ({
+                ...item,
+                doctorData: doctorMap.get(item.doctorId) || null,
+                timeTypeData: timeMap.get(item.timeType) || null,
+                statusData: statusMap.get(item.statusId) || null
+            }));
+
+            resolve({
+                errCode: 0,
+                errMessage: 'OK',
+                data
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
 module.exports = {
     postBookAppointment: postBookAppointment,
-    postVerifyBookAppointment
+    postVerifyBookAppointment,
+    getBookingHistoryByPatient
 }

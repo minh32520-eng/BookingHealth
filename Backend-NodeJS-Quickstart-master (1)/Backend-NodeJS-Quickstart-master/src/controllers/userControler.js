@@ -70,6 +70,30 @@ let handleCreateNewUser = async (req, res) => {
     }
 };
 
+let handleRegister = async (req, res) => {
+    try {
+        let message = await userService.registerNewPatient(req.body);
+        return res.status(200).json(message);
+    } catch (e) {
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        });
+    }
+};
+
+let handleForgotPassword = async (req, res) => {
+    try {
+        let message = await userService.forgotPassword(req.body);
+        return res.status(200).json(message);
+    } catch (e) {
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        });
+    }
+};
+
 let handleDeleteUser = async (req, res) => {
     try {
         if (!req.body.id) {
@@ -119,6 +143,8 @@ module.exports = {
     handleLogin,
     handleGetAllUsers,
     handleCreateNewUser,
+    handleRegister,
+    handleForgotPassword,
     handleEditUser,
     handleDeleteUser,
     getAllCode,

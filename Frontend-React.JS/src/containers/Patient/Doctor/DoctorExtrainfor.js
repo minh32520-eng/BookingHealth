@@ -19,7 +19,7 @@ class DoctorExtrainfor extends Component {
     componentDidUpdate(prevProps) {
         if (this.props.doctorIdFromParent !== prevProps.doctorIdFromParent) {
 
-            // ✅ FIX: check tồn tại
+            // FIX: check tồn tại
             if (this.props.doctorIdFromParent) {
 
                 // reset UI trước khi call API
@@ -32,7 +32,7 @@ class DoctorExtrainfor extends Component {
         }
     }
 
-    // ✅ tách async ra function riêng
+    //  tách async ra function riêng
     fetchExtraInfor = async (doctorId) => {
         try {
             let res = await getExtraInforDoctorById(doctorId);
