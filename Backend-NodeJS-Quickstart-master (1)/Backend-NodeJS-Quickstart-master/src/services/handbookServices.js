@@ -1,4 +1,5 @@
 const db = require('../models');
+const { normalizeBase64Image } = require('../utils/image');
 
 // ==================== GET ALL HANDBOOKS ====================
 const getAllHandbooks = async () => {
@@ -58,7 +59,7 @@ const getDetailHandbookById = async (id) => {
 // ==================== CREATE ====================
 const createHandbook = async (payload) => {
     try {
-        if (!payload.title || !payload.content) {
+        if (!payload.title || !payload.content || !payload.imageBase64) {
             return {
                 errCode: 1,
                 errMessage: 'Missing parameter',
@@ -68,7 +69,7 @@ const createHandbook = async (payload) => {
         await db.Handbook.create({
             title: payload.title,
             content: payload.content,
-            image: payload.image || null, // thêm image
+            image: normalizeBase64Image(payload.imageBase64),
         });
 
         return {
@@ -104,8 +105,8 @@ const updateHandbook = async (payload) => {
         handbook.title = payload.title;
         handbook.content = payload.content;
 
-        if (payload.image !== undefined) {
-            handbook.image = payload.image;
+        if (payload.imageBase64) {
+            handbook.image = normalizeBase64Image(payload.imageBase64);
         }
 
         await handbook.save();
@@ -158,3 +159,4 @@ module.exports = {
     updateHandbook,
     deleteHandbook,
 };
+

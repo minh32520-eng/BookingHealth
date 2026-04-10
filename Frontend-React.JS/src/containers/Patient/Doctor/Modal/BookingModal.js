@@ -12,9 +12,15 @@ import * as actions from '../../../../store/actions'
 import { LANGUAGES } from '../../../../utils';
 import Select from 'react-select';
 
-import { postPatientBookAppointment } from '../../../../services/userService';
+import { getAllCodeService, postPatientBookAppointment } from '../../../../services/userService';
 import { toast } from 'react-toastify';
 import moment from 'moment';
+
+const DEFAULT_DOCTOR_NAME = {
+    vi: 'Bac si',
+    en: 'Doctor'
+};
+
 class BookingModal extends Component {
 
     constructor(props) {
@@ -29,12 +35,42 @@ class BookingModal extends Component {
             selectedGender: null,
             doctorId: '',
             genders: [],
-            timeType: '',
+            timeType: ''
         }
     }
 
     async componentDidMount() {
         this.props.getGenders();
+        await this.loadGenderOptions();
+
+        const { userInfo } = this.props;
+        if (userInfo) {
+            const fullName = [userInfo.lastName, userInfo.firstName].filter(Boolean).join(' ').trim();
+            const selectedGender = userInfo.gender
+                ? { value: userInfo.gender, label: userInfo.gender }
+                : null;
+
+            this.setState({
+                fullName: fullName || '',
+                phoneNumber: userInfo.phoneNumber || '',
+                email: userInfo.email || '',
+                address: userInfo.address || '',
+                selectedGender
+            });
+        }
+    }
+
+    loadGenderOptions = async () => {
+        try {
+            const res = await getAllCodeService('GENDER');
+            if (res && res.errCode === 0) {
+                this.setState({
+                    genders: this.buildDataGender(res.data || [])
+                });
+            }
+        } catch (error) {
+            console.log('loadGenderOptions failed:', error);
+        }
     }
 
     buildDataGender = (data) => {
@@ -63,8 +99,20 @@ class BookingModal extends Component {
         }
 
         if (this.props.genders !== prevProps.genders) {
+            const nextGenders = this.buildDataGender(this.props.genders);
             this.setState({
-                genders: this.buildDataGender(this.props.genders)
+                genders: nextGenders
+            }, async () => {
+                if (this.state.selectedGender?.value) {
+                    const matchedGender = nextGenders.find(item => item.value === this.state.selectedGender.value);
+                    if (matchedGender) {
+                        this.setState({ selectedGender: matchedGender });
+                    }
+                }
+
+                if (!nextGenders || nextGenders.length === 0) {
+                    await this.loadGenderOptions();
+                }
             })
         }
 
@@ -140,9 +188,13 @@ class BookingModal extends Component {
             return name;
         }
 
-        return '';
+        return language === LANGUAGES.VI ? DEFAULT_DOCTOR_NAME.vi : DEFAULT_DOCTOR_NAME.en;
     }
     handleConfirmBooking = async () => {
+        const currentDataTime = this.props.dataTime || {};
+        const doctorId = currentDataTime.doctorId || this.state.doctorId;
+        const timeType = currentDataTime.timeType || this.state.timeType;
+
         if (!this.state.fullName || !this.state.phoneNumber || !this.state.email || !this.state.address || !this.state.reason) {
             toast.error('Please fill in all required information!');
             return;
@@ -158,31 +210,39 @@ class BookingModal extends Component {
             return;
         }
 
-        if (!this.state.doctorId || !this.state.timeType || !this.props.dataTime) {
+        if (!doctorId || !timeType || _.isEmpty(currentDataTime)) {
             toast.error('Schedule information is missing!');
             return;
         }
 
-        let date = new Date(this.state.birthday).getTime();
-        let timeString = this.buildTimeBooking(this.props.dataTime);
-        let doctorName = this.buildDoctorName(this.props.dataTime)
+        let birthday = new Date(this.state.birthday).getTime();
+        let scheduleDate = currentDataTime.date;
+        let timeString = this.buildTimeBooking(currentDataTime);
+        let doctorName = this.buildDoctorName(currentDataTime)
 
-        if (!timeString || !doctorName) {
-            toast.error('Doctor schedule data is incomplete!');
+        if (!timeString) {
+            toast.error('Schedule information is missing!');
+            return;
+        }
+
+        if (!scheduleDate) {
+            toast.error('Schedule information is missing!');
             return;
         }
 
         let res = await postPatientBookAppointment({
 
+            patientId: this.props.userInfo?.id,
             fullName: this.state.fullName,
             phoneNumber: this.state.phoneNumber,
-            email: this.state.email,
+            email: this.state.email.trim().toLowerCase(),
             address: this.state.address,
             reason: this.state.reason,
-            date: date,
+            birthday: birthday,
+            date: scheduleDate,
             selectedGender: this.state.selectedGender?.value,
-            doctorId: this.state.doctorId,
-            timeType: this.state.timeType,
+            doctorId: doctorId,
+            timeType: timeType,
             language: this.props.language,
             timeString: timeString,
             doctorName: doctorName
@@ -191,11 +251,29 @@ class BookingModal extends Component {
         if (res && res.errCode === 0) {
 
             toast.success('Booking a new appointment succeed!');
+            if (this.props.reloadSchedule) {
+                await this.props.reloadSchedule();
+            }
             this.props.closeBookingClose();
 
         } else {
+            const errMessage = res?.errMessage || 'Booking a new appointment error!';
 
-            toast.error('Booking a new appointment error!');
+            if (
+                errMessage === 'Selected schedule is not available' ||
+                errMessage === 'Cannot book past schedules'
+            ) {
+                toast.error('This schedule is no longer available. Please choose another time slot.');
+
+                if (this.props.reloadSchedule) {
+                    await this.props.reloadSchedule();
+                }
+
+                this.props.closeBookingClose();
+                return;
+            }
+
+            toast.error(errMessage);
         }
     }
 
@@ -270,6 +348,7 @@ class BookingModal extends Component {
 
                                 <input
                                     className="form-control"
+                                    value={this.state.fullName}
                                     onChange={(event) => this.handleOnchangeInput(event, 'fullName')}
                                 />
 
@@ -285,6 +364,7 @@ class BookingModal extends Component {
 
                                 <input
                                     className="form-control"
+                                    value={this.state.phoneNumber}
                                     onChange={(event) => this.handleOnchangeInput(event, 'phoneNumber')}
                                 />
 
@@ -300,6 +380,7 @@ class BookingModal extends Component {
 
                                 <input
                                     className="form-control"
+                                    value={this.state.email}
                                     onChange={(event) => this.handleOnchangeInput(event, 'email')}
                                 />
 
@@ -315,6 +396,7 @@ class BookingModal extends Component {
 
                                 <input
                                     className="form-control"
+                                    value={this.state.address}
                                     onChange={(event) => this.handleOnchangeInput(event, 'address')}
                                 />
 
@@ -405,7 +487,8 @@ const mapStateToProps = state => {
     return {
 
         language: state.app.language,
-        genders: state.admin.genders
+        genders: state.admin.genders,
+        userInfo: state.user.userInfo
 
     };
 };

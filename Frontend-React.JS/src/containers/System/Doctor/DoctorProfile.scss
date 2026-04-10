@@ -1,0 +1,205 @@
+.doctor-profile-page {
+    min-height: calc(100vh - 78px);
+    padding: 24px 24px 36px;
+    background:
+        radial-gradient(circle at top left, rgba(73, 191, 199, 0.12), transparent 24%),
+        linear-gradient(180deg, #f4fbff 0%, #ffffff 320px);
+}
+
+.doctor-profile-shell {
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+}
+
+.doctor-profile-hero,
+.doctor-profile-card,
+.doctor-profile-state {
+    background: #ffffff;
+    border: 1px solid #ddeef5;
+    border-radius: 28px;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.06);
+}
+
+.doctor-profile-hero {
+    margin-bottom: 20px;
+    padding: 28px 30px;
+}
+
+.doctor-profile-eyebrow {
+    display: inline-flex;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #f1fbfe;
+    color: #1b8192;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.doctor-profile-hero h1 {
+    margin: 0 0 10px;
+    font-size: 34px;
+    font-weight: 700;
+    color: #163247;
+}
+
+.doctor-profile-hero p {
+    margin: 0;
+    max-width: 720px;
+    color: #5d6d7b;
+    line-height: 1.7;
+}
+
+.doctor-profile-state {
+    padding: 24px 28px;
+    color: #5d6d7b;
+    font-weight: 600;
+}
+
+.doctor-profile-card {
+    padding: 26px;
+}
+
+.doctor-profile-grid {
+    display: grid;
+    grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.profile-avatar-panel {
+    padding: 24px 22px;
+    border-radius: 24px;
+    border: 1px solid #d9edf3;
+    background: linear-gradient(180deg, #f8fdff 0%, #eef9fc 100%);
+    text-align: center;
+}
+
+.profile-avatar-preview {
+    width: 170px;
+    height: 170px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background:
+        linear-gradient(135deg, rgba(73, 191, 199, 0.18), rgba(17, 124, 167, 0.1)),
+        #eaf4f8;
+    background-size: cover;
+    background-position: center;
+    border: 6px solid #ffffff;
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+}
+
+.upload-avatar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #1e8297, #49bfc7);
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(30, 130, 151, 0.22);
+    }
+}
+
+.profile-form-panel {
+    padding: 24px 26px;
+    border-radius: 24px;
+    border: 1px solid #d9edf3;
+    background: #ffffff;
+}
+
+.profile-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.profile-form-panel .form-group {
+    display: flex;
+    flex-direction: column;
+
+    &.full-width {
+        grid-column: 1 / -1;
+    }
+
+    label {
+        margin-bottom: 8px;
+        color: #355063;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    input,
+    select {
+        height: 48px;
+        width: 100%;
+        padding: 0 15px;
+        border-radius: 16px;
+        border: 1px solid #d5e7ed;
+        background: #fbfeff;
+        color: #18384f;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+        &:focus {
+            border-color: #49bfc7;
+            box-shadow: 0 0 0 4px rgba(73, 191, 199, 0.14);
+        }
+
+        &:disabled {
+            background: #f1f6f8;
+            color: #6f8391;
+            cursor: not-allowed;
+        }
+    }
+}
+
+.profile-actions {
+    margin-top: 22px;
+    display: flex;
+    justify-content: flex-end;
+
+    .btn {
+        min-width: 180px;
+        border-radius: 999px !important;
+        padding: 11px 18px !important;
+        font-weight: 700 !important;
+    }
+}
+
+@media (max-width: 991px) {
+    .doctor-profile-page {
+        padding: 18px 16px 28px;
+    }
+
+    .doctor-profile-hero,
+    .doctor-profile-card,
+    .doctor-profile-state {
+        border-radius: 22px;
+    }
+
+    .doctor-profile-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767px) {
+    .profile-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-form-panel .form-group.full-width {
+        grid-column: auto;
+    }
+}

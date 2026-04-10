@@ -13,6 +13,23 @@
         align-items: center;
     }
 
+    .mh-preview {
+        margin-top: 12px;
+        width: 220px;
+        height: 140px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #dfe6eb;
+        background: #f8fbfd;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+    }
+
     .btn-save-handbook,
     .btn-cancel-handbook {
         padding: 8px 18px;

@@ -4,6 +4,7 @@ import { withRouter } from 'react-router';
 import Slider from "react-slick";
 import './MedicalFacillity.scss';
 import { getAllClinic } from '../../../services/userService';
+import CommonUtils from '../../../utils/CommonUtils';
 
 class MedicalFacillity extends Component {
     constructor(props) {
@@ -43,6 +44,10 @@ class MedicalFacillity extends Component {
         }
     };
 
+    buildImageSrc = (image) => {
+        return CommonUtils.buildImageSrc(image);
+    };
+
     render() {
         let { arrClinics } = this.state;
         let { settings } = this.props;
@@ -68,6 +73,7 @@ class MedicalFacillity extends Component {
                         {arrClinics && arrClinics.length > 0 ? (
                             <Slider {...settings}>
                                 {arrClinics.map((item, index) => {
+                                    const imageBase64 = this.buildImageSrc(item.image);
                                     return (
                                         <div
                                             className="section-customize"
@@ -75,10 +81,14 @@ class MedicalFacillity extends Component {
                                             onClick={() =>
                                                 this.handleViewDetailClinic(item)
                                             }
-                                        >
-                                            <div className="customize-border">
-
+                                            >
+                                                <div className="customize-border">
                                                 <div className="bg-image section-medical-facility">
+                                                    <img
+                                                        src={imageBase64 || '/default-clinic.jpg'}
+                                                        alt={item.name || 'clinic'}
+                                                        className="section-image-el"
+                                                    />
                                                 </div>
 
                                                 <div className="clinic-name">

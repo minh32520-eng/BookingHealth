@@ -1,0 +1,217 @@
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import moment from 'moment';
+import { FormattedMessage, injectIntl } from 'react-intl';
+import { getAdminPayments } from '../../../services/userService';
+import './ManagePayment.scss';
+
+const PAYMENT_STATUS_OPTIONS = [
+    { value: '', labelId: 'admin.manage-payment.filters.all' },
+    { value: 'pending', labelId: 'admin.manage-payment.filters.pending' },
+    { value: 'paid', labelId: 'admin.manage-payment.filters.paid' },
+    { value: 'failed', labelId: 'admin.manage-payment.filters.failed' }
+];
+
+class ManagePayment extends Component {
+    state = {
+        loading: true,
+        error: '',
+        selectedStatus: '',
+        payments: []
+    };
+
+    componentDidMount() {
+        this.loadPayments();
+    }
+
+    loadPayments = async () => {
+        this.setState({ loading: true, error: '' });
+        try {
+            const res = await getAdminPayments(this.state.selectedStatus);
+            if (res && res.errCode === 0) {
+                this.setState({
+                    loading: false,
+                    payments: res.data || []
+                });
+                return;
+            }
+
+            this.setState({
+                loading: false,
+                error: res?.errMessage || this.props.intl.formatMessage({ id: 'admin.manage-payment.messages.load-error' })
+            });
+        } catch (error) {
+            this.setState({
+                loading: false,
+                error: this.props.intl.formatMessage({ id: 'admin.manage-payment.messages.load-error' })
+            });
+        }
+    };
+
+    handleFilterChange = (event) => {
+        this.setState({ selectedStatus: event.target.value }, this.loadPayments);
+    };
+
+    getDoctorName = (payment) => {
+        const doctor = payment?.doctorData;
+        return `${doctor?.lastName || ''} ${doctor?.firstName || ''}`.trim() || '--';
+    };
+
+    getPatientName = (payment) => {
+        const patient = payment?.patientData;
+        return `${patient?.lastName || ''} ${patient?.firstName || ''}`.trim() || patient?.email || '--';
+    };
+
+    getPaymentStatusLabel = (status) => {
+        if (status === 'pending') return this.props.intl.formatMessage({ id: 'admin.manage-payment.filters.pending' });
+        if (status === 'paid') return this.props.intl.formatMessage({ id: 'admin.manage-payment.filters.paid' });
+        if (status === 'failed') return this.props.intl.formatMessage({ id: 'admin.manage-payment.filters.failed' });
+        return status || '--';
+    };
+
+    formatAmount = (amount) => {
+        const value = Number(amount || 0);
+        return new Intl.NumberFormat(this.props.language === 'vi' ? 'vi-VN' : 'en-US', {
+            style: 'currency',
+            currency: 'VND',
+            maximumFractionDigits: 0
+        }).format(value);
+    };
+
+    formatDate = (date) => {
+        if (!date) return '--';
+        return moment(Number(date)).format('DD/MM/YYYY');
+    };
+
+    getTimeLabel = (payment) => {
+        const data = payment?.timeTypeData;
+        if (!data) return '--';
+        return this.props.language === 'vi' ? data.valueVi : data.valueEn;
+    };
+
+    render() {
+        const { loading, error, payments, selectedStatus } = this.state;
+
+        return (
+            <div className="manage-payment-page">
+                <div className="payment-page-shell">
+                    <div className="payment-page-hero">
+                        <div>
+                            <div className="payment-page-eyebrow"><FormattedMessage id="admin.manage-payment.eyebrow" /></div>
+                            <h1><FormattedMessage id="admin.manage-payment.title" /></h1>
+                            <p><FormattedMessage id="admin.manage-payment.subtitle" /></p>
+                        </div>
+                        <div className="payment-filter">
+                            <label><FormattedMessage id="admin.manage-payment.filter-label" /></label>
+                            <select value={selectedStatus} onChange={this.handleFilterChange}>
+                                {PAYMENT_STATUS_OPTIONS.map((item) => (
+                                    <option key={item.value || 'all'} value={item.value}>
+                                        {this.props.intl.formatMessage({ id: item.labelId })}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {loading && <div className="payment-state"><FormattedMessage id="admin.manage-payment.loading" /></div>}
+                    {!loading && error && <div className="payment-state error">{error}</div>}
+
+                    {!loading && !error && (
+                        <div className="payment-grid">
+                            <div className="payment-table-card">
+                                <div className="payment-table-head">
+                                    <h3><FormattedMessage id="admin.manage-payment.list-title" /></h3>
+                                    <p>{payments.length} <FormattedMessage id="admin.manage-payment.total-suffix" /></p>
+                                </div>
+                                <div className="payment-table-wrap">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th><FormattedMessage id="admin.manage-payment.table.booking" /></th>
+                                                <th><FormattedMessage id="admin.manage-payment.table.patient" /></th>
+                                                <th><FormattedMessage id="admin.manage-payment.table.doctor" /></th>
+                                                <th><FormattedMessage id="admin.manage-payment.table.schedule" /></th>
+                                                <th><FormattedMessage id="admin.manage-payment.table.amount" /></th>
+                                                <th><FormattedMessage id="admin.manage-payment.table.status" /></th>
+                                                <th><FormattedMessage id="admin.manage-payment.table.reference" /></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {payments.map((item) => (
+                                                <tr key={item.id}>
+                                                    <td>#{item.id}</td>
+                                                    <td>
+                                                        <div className="name-cell">{this.getPatientName(item)}</div>
+                                                        <div className="sub-cell">{item.patientData?.email || '--'}</div>
+                                                    </td>
+                                                    <td>{this.getDoctorName(item)}</td>
+                                                    <td>
+                                                        <div className="name-cell">{this.formatDate(item.date)}</div>
+                                                        <div className="sub-cell">{this.getTimeLabel(item)}</div>
+                                                    </td>
+                                                    <td>{this.formatAmount(item.paymentAmount)}</td>
+                                                    <td>
+                                                        <span className={`status-badge status-${String(item.paymentStatus || '').toLowerCase()}`}>
+                                                            {this.getPaymentStatusLabel(item.paymentStatus)}
+                                                        </span>
+                                                    </td>
+                                                    <td>{item.paymentRef || item.transferText || '--'}</td>
+                                                </tr>
+                                            ))}
+                                            {payments.length === 0 && (
+                                                <tr>
+                                                    <td colSpan="7" className="empty-payments"><FormattedMessage id="admin.manage-payment.table.empty" /></td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div className="payment-side">
+                                {payments.slice(0, 6).map((item) => (
+                                    <div className="payment-qr-card" key={`qr-${item.id}`}>
+                                        <div className="payment-qr-header">
+                                            <div>
+                                                <div className="payment-qr-booking">#{item.id}</div>
+                                                <div className="payment-qr-patient">{this.getPatientName(item)}</div>
+                                            </div>
+                                            <span className={`status-badge status-${String(item.paymentStatus || '').toLowerCase()}`}>
+                                                {this.getPaymentStatusLabel(item.paymentStatus)}
+                                            </span>
+                                        </div>
+                                        <div className="payment-qr-meta">
+                                            <span>{this.formatAmount(item.paymentAmount)}</span>
+                                            <span>{this.formatDate(item.date)} · {this.getTimeLabel(item)}</span>
+                                        </div>
+                                        <div className="payment-qr-note">{item.transferText || '--'}</div>
+                                        {item.qrUrl ? (
+                                            <a href={item.qrUrl} target="_blank" rel="noreferrer" className="payment-qr-preview">
+                                                <img src={item.qrUrl} alt={`QR booking ${item.id}`} />
+                                            </a>
+                                        ) : (
+                                            <div className="payment-qr-empty">
+                                                <FormattedMessage id="admin.manage-payment.qr-empty" />
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                                {payments.length === 0 && (
+                                    <div className="payment-qr-empty standalone">
+                                        <FormattedMessage id="admin.manage-payment.table.empty" />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+}
+
+const mapStateToProps = (state) => ({
+    language: state.app.language
+});
+
+export default injectIntl(connect(mapStateToProps)(ManagePayment));

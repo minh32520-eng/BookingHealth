@@ -44,8 +44,47 @@ let getBookingHistoryByPatient = async (req, res) => {
         });
     }
 }
+let createVnpayPaymentUrl = async (req, res) => {
+    try {
+        let infor = await patientService.createVnpayPaymentUrl(req.body, req.ip || req.connection?.remoteAddress);
+        return res.status(200).json(infor);
+    } catch (e) {
+        console.log(e);
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from the server'
+        });
+    }
+}
+
+let handleVnpayReturn = async (req, res) => {
+    try {
+        let result = await patientService.handleVnpayReturn(req.query);
+        return res.redirect(result.redirectUrl);
+    } catch (e) {
+        console.log(e);
+        const fallback = `${process.env.CLIENT_URL || process.env.URL_REACT || 'http://localhost:3000'}/patient/booking-history?vnpay=failed`;
+        return res.redirect(fallback);
+    }
+}
+
+let handleVnpayIpn = async (req, res) => {
+    try {
+        let result = await patientService.handleVnpayIpn(req.query);
+        return res.status(200).json(result);
+    } catch (e) {
+        console.log(e);
+        return res.status(200).json({
+            RspCode: '99',
+            Message: 'Unknown error'
+        });
+    }
+}
 module.exports = {
     postBookAppointment: postBookAppointment,
     postVerifyBookAppointment:postVerifyBookAppointment,
-    getBookingHistoryByPatient
+    getBookingHistoryByPatient,
+    createVnpayPaymentUrl,
+    handleVnpayReturn,
+    handleVnpayIpn
 }

@@ -318,6 +318,39 @@
             background: #fff6e8;
             color: #d18410;
         }
+
+        &.examined {
+            background: #eaf1ff;
+            color: #2c5db2;
+        }
+    }
+
+    .btn-finish-booking {
+        min-width: 132px;
+        padding: 9px 14px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #1f8da0 0%, #45c3d2 100%);
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 800;
+        box-shadow: 0 12px 24px rgba(69, 195, 210, 0.22);
+    }
+
+    .btn-finish-booking:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .btn-finish-booking.waiting {
+        background: #edf3f7;
+        color: #678091;
+        box-shadow: none;
+    }
+
+    .booking-action-done {
+        color: #8ba0af;
+        font-weight: 700;
     }
 
     .empty-booking-row {

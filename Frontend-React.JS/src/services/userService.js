@@ -15,6 +15,42 @@ const forgotPasswordApi = (data) => {
     return axios.post('/api/forgot-password', data);
 };
 
+const sendEmailOtpApi = (data) => {
+    return axios.post('/api/send-email-otp', data);
+};
+
+const verifyEmailOtpApi = (data) => {
+    return axios.post('/api/verify-email-otp', data);
+};
+
+const getRevenueDashboard = (year, filters = {}) => {
+    const params = new URLSearchParams();
+    params.append('year', year);
+    if (filters.doctorId) params.append('doctorId', filters.doctorId);
+    if (filters.clinicId) params.append('clinicId', filters.clinicId);
+    return axios.get(`/api/admin/revenue-dashboard?${params.toString()}`);
+};
+
+const getAdminBookings = (statusId = '') => {
+    const params = new URLSearchParams();
+    if (statusId) params.append('statusId', statusId);
+    return axios.get(`/api/admin/bookings?${params.toString()}`);
+};
+
+const getAdminPayments = (paymentStatus = '') => {
+    const params = new URLSearchParams();
+    if (paymentStatus) params.append('paymentStatus', paymentStatus);
+    return axios.get(`/api/admin/payments?${params.toString()}`);
+};
+
+const getPaymentConfig = () => {
+    return axios.get('/api/admin/payment-config');
+};
+
+const savePaymentConfig = (data) => {
+    return axios.put('/api/admin/payment-config', data);
+};
+
 const getAllUsers = (inputId) => {
     return axios.get(`/api/get-all-users?id=${inputId}`);
 };
@@ -78,11 +114,29 @@ const getExtraInforDoctorById = (doctorId) => {
 const getProfileDoctorById = (doctorId) => {
     return axios.get(`/api/get-profile-doctor-by-id?doctorId=${doctorId}`)
 }
+const getDoctorMedicalRecords = (doctorId, statusId = '') => {
+    const params = new URLSearchParams();
+    params.append('doctorId', doctorId);
+    if (statusId) params.append('statusId', statusId);
+    return axios.get(`/api/get-doctor-medical-records?${params.toString()}`);
+}
+const saveDoctorMedicalRecord = (data) => {
+    return axios.post('/api/save-doctor-medical-record', data);
+}
+const confirmFinishedBooking = (data) => {
+    return axios.put('/api/confirm-finished-booking', data);
+}
+const updateDoctorProfile = (data) => {
+    return axios.put('/api/update-doctor-profile', data);
+}
 const postPatientBookAppointment = (data) => {
     return axios.post('/api/patient-book-appointment', data)
 }
 const getBookingHistoryByPatient = (patientId) => {
     return axios.get(`/api/get-booking-history-by-patient?patientId=${patientId}`)
+}
+const createVnpayPayment = (data) => {
+    return axios.post('/api/create-vnpay-payment', data);
 }
 const postVerifyBookAppointment = (data) => {
     return axios.post('/api/verify-book-appointment', data)
@@ -157,6 +211,13 @@ export {
     handleLoginApi,
     registerApi,
     forgotPasswordApi,
+    sendEmailOtpApi,
+    verifyEmailOtpApi,
+    getRevenueDashboard,
+    getAdminBookings,
+    getAdminPayments,
+    getPaymentConfig,
+    savePaymentConfig,
     getAllUsers,
     createNewUserService,
     deleteUserService,
@@ -171,8 +232,13 @@ export {
     getScheduleDoctorByDate,
     getListPatientForDoctor,
     getExtraInforDoctorById,
+    getDoctorMedicalRecords,
+    saveDoctorMedicalRecord,
+    confirmFinishedBooking,
+    updateDoctorProfile,
     postPatientBookAppointment,
     getBookingHistoryByPatient,
+    createVnpayPayment,
     getProfileDoctorById,
     postVerifyBookAppointment,
     createNewSpecialty,

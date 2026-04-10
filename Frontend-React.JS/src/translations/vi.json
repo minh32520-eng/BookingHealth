@@ -9,13 +9,13 @@
         "fee": "Gói khám",
         "check-health": "Khám sức khỏe tổng quát",
         "support": "Hỗ trợ",
-        "welcome": "Xin chao",
+        "welcome": "Xin chào",
         "login": "Đăng nhập"
     },
     "banner": {
         "title1": "NỀN TẢNG Y TẾ",
         "title2": "CHĂM SÓC SỨC KHỎE TOÀN DIỆN",
-        "search": "Tìm chuyên gia khám bệnh ",
+        "search": "Tìm chuyên gia khám bệnh",
         "child1": "Khám chuyên khoa",
         "child2": "Khám từ xa",
         "child3": "Khám tổng quát",
@@ -25,24 +25,31 @@
     },
     "menu": {
         "admin": {
-            "dashboard": "Dashboard",
-            "manage-user": "Quan ly nguoi dung ",
-            "manage-doctor": "Quan ly bac sy",
-            "manage-admin": "Quan ly admin",
-            "crud": "CRUD user",
-            "crud-redux": "CRUD redux",
-            "clinic": "Phong kham",
-            "manage-clinic": "Quan ly phong kham",
-            "specialty": "Chuyen khoa",
-            "manage-specialty": "Quan ly chuyen khoa",
-            "handbook": "Cam nang",
-            "manage-handbook": "Quan ly cam nang"
+            "dashboard": "Bảng điều khiển",
+            "manage-user": "Quản lý người dùng",
+            "payment": "Thanh toán",
+            "manage-payment": "Quản lý thanh toán",
+            "payment-config": "Cấu hình thanh toán",
+            "manage-doctor": "Quản lý bác sĩ",
+            "manage-admin": "Quản lý admin",
+            "crud": "CRUD người dùng",
+            "crud-redux": "CRUD Redux",
+            "clinic": "Phòng khám",
+            "manage-clinic": "Quản lý phòng khám",
+            "specialty": "Chuyên khoa",
+            "manage-specialty": "Quản lý chuyên khoa",
+            "handbook": "Cẩm nang",
+            "manage-handbook": "Quản lý cẩm nang",
+            "booking": "Lịch khám",
+            "manage-booking": "Quản lý lịch khám"
         },
         "doctor": {
-            "manage-schedule": "Quản lý lịch bác sĩ ",
-            "workspace": "Khu bac si",
-            "home": "Trang chu",
-            "payment-qr": "QR thanh toan"
+            "manage-schedule": "Quản lý lịch bác sĩ",
+            "workspace": "Khu bác sĩ",
+            "home": "Trang chủ",
+            "payment-qr": "QR thanh toán",
+            "medical-records": "Hồ sơ khám bệnh",
+            "profile": "Thông tin cá nhân"
         }
     },
     "manage-user": {
@@ -56,7 +63,7 @@
         "gender": "Giới tính",
         "position": "Chức danh",
         "role": "Vai trò",
-        "save": "Lưu user",
+        "save": "Lưu người dùng",
         "edit": "Lưu thay đổi"
     },
     "homepage": {
@@ -72,20 +79,20 @@
     "patient": {
         "detail-doctor": {
             "schedule": "Lịch khám",
-            "no-schedule": "Bác sĩ không có lịch hẹn trong thời gian này, vui lòng chọn",
+            "no-schedule": "Bác sĩ không có lịch hẹn trong thời gian này, vui lòng chọn thời gian khác",
             "choose": "Chọn ",
             "book-free": " và đặt (miễn phí)",
-            "profile": "Ho so bac si",
-            "schedule-title": "Lich kham",
-            "extrainfo-title": "Thong tin dat lich",
-            "information-title": "Thong tin chi tiet"
+            "profile": "Hồ sơ bác sĩ",
+            "schedule-title": "Lịch khám",
+            "extrainfo-title": "Thông tin đặt lịch",
+            "information-title": "Thông tin chi tiết"
         },
         "extra-infor-doctor": {
-            "text-address": "Địa chỉ examination",
+            "text-address": "Địa chỉ khám",
             "price": "Giá tiền: ",
             "detail": "Xem chi tiết",
-            "payment": "Bệnh nhân có thể thanh toán bằng :",
-            "hide-price": "Danh sách giá"
+            "payment": "Bệnh nhân có thể thanh toán bằng:",
+            "hide-price": "Ẩn bảng giá"
         },
         "booking-modal": {
             "title": "Thông tin đặt lịch khám",
@@ -102,46 +109,84 @@
             "price": "Giá:"
         },
         "detail-common": {
-            "home": "Trang chu",
-            "loading": "Dang tai...",
-            "back": "Quay lai",
-            "server-error": "Loi ket noi may chu",
-            "no-description": "Noi dung dang duoc cap nhat."
+            "home": "Trang chủ",
+            "loading": "Đang tải...",
+            "back": "Quay lại",
+            "server-error": "Lỗi kết nối máy chủ",
+            "no-description": "Nội dung đang được cập nhật."
         },
         "detail-specialty": {
-            "page-title": "Chuyen khoa",
-            "missing-id": "Thieu ma chuyen khoa",
-            "not-found": "Khong tim thay chuyen khoa",
-            "no-description": "Noi dung chuyen khoa dang duoc cap nhat."
+            "page-title": "Chuyên khoa",
+            "missing-id": "Thiếu mã chuyên khoa",
+            "not-found": "Không tìm thấy chuyên khoa",
+            "no-description": "Nội dung chuyên khoa đang được cập nhật."
         },
         "detail-clinic": {
-            "page-title": "Phong kham",
-            "about-title": "Thong tin phong kham",
-            "doctors-title": "Bac si thuoc phong kham",
-            "missing-id": "Thieu ma phong kham",
-            "load-failed": "Khong tai duoc du lieu phong kham",
-            "no-doctors": "Chua co bac si thuoc phong kham nay.",
-            "doctor-fallback": "Bac si"
+            "page-title": "Phòng khám",
+            "about-title": "Thông tin phòng khám",
+            "doctors-title": "Bác sĩ thuộc phòng khám",
+            "missing-id": "Thiếu mã phòng khám",
+            "load-failed": "Không tải được dữ liệu phòng khám",
+            "no-doctors": "Chưa có bác sĩ thuộc phòng khám này.",
+            "doctor-fallback": "Bác sĩ"
         },
         "detail-handbook": {
-            "page-title": "Cam nang",
-            "hero-title": "Cam nang suc khoe",
-            "hero-subtitle": "Tong hop bai viet huu ich giup nguoi benh hieu ro hon ve cham soc, dieu tri va thoi quen song lanh manh.",
-            "article-label": "Bai viet noi bat",
-            "about-title": "Gioi thieu",
-            "about-text": "Kien thuc suc khoe duoc tom tat ngan gon, de doc va de ap dung.",
-            "featured-title": "Chu de noi bat",
-            "featured-1": "Cham soc tim mach va phong ngua",
-            "featured-2": "Dinh duong can bang cho moi lua tuoi",
-            "featured-3": "Suc khoe tinh than va phuc hoi hang ngay",
-            "connect-title": "Theo doi cap nhat",
-            "connect-text": "Theo doi cac kenh thong tin de nhan huong dan suc khoe moi moi tuan.",
-            "footer": "Cam nang suc khoe 2026"
+            "page-title": "Cẩm nang",
+            "hero-title": "Cẩm nang sức khỏe",
+            "hero-subtitle": "Tổng hợp bài viết hữu ích giúp người bệnh hiểu rõ hơn về chăm sóc, điều trị và thói quen sống lành mạnh.",
+            "article-label": "Bài viết nổi bật",
+            "about-title": "Giới thiệu",
+            "about-text": "Kiến thức sức khỏe được tóm tắt ngắn gọn, dễ đọc và dễ áp dụng.",
+            "featured-title": "Chủ đề nổi bật",
+            "featured-1": "Chăm sóc tim mạch và phòng ngừa",
+            "featured-2": "Dinh dưỡng cân bằng cho mọi lứa tuổi",
+            "featured-3": "Sức khỏe tinh thần và phục hồi hằng ngày",
+            "connect-title": "Theo dõi cập nhật",
+            "connect-text": "Theo dõi các kênh thông tin để nhận hướng dẫn sức khỏe mới mỗi tuần.",
+            "footer": "Cẩm nang sức khỏe 2026"
         }
     },
     "admin": {
+        "revenue-dashboard": {
+            "eyebrow": "Phân tích quản trị",
+            "title": "Thống kê doanh thu",
+            "subtitle": "Theo dõi tổng doanh thu, số lượt khám và xu hướng doanh thu theo từng tháng.",
+            "loading": "Đang tải dữ liệu doanh thu...",
+            "month-prefix": "Tháng",
+            "filters": {
+                "doctor": "Lọc theo bác sĩ",
+                "clinic": "Lọc theo phòng khám",
+                "all-doctors": "Tất cả bác sĩ",
+                "all-clinics": "Tất cả phòng khám"
+            },
+            "actions": {
+                "export-excel": "Xuất Excel",
+                "export-pdf": "Xuất PDF"
+            },
+            "stats": {
+                "total-revenue": "Tổng doanh thu",
+                "total-bookings": "Lịch đã xác nhận",
+                "avg-booking": "Trung bình mỗi lịch",
+                "best-month": "Tháng cao nhất"
+            },
+            "charts": {
+                "revenue-title": "Doanh thu theo tháng",
+                "revenue-subtitle": "Chỉ tính từ booking đã được xác nhận thành công.",
+                "bookings-title": "Số lượt khám theo tháng",
+                "bookings-subtitle": "Biểu đồ đường cho tổng số booking đã xác nhận."
+            },
+            "table": {
+                "title": "Chi tiết theo tháng",
+                "month": "Tháng",
+                "bookings": "Số lượt khám",
+                "revenue": "Doanh thu"
+            },
+            "pdf": {
+                "subtitle": "Thống kê theo bộ lọc hiện tại."
+            }
+        },
         "manage-doctor": {
-            "title": "Tạo thêm thông tin doctor",
+            "title": "Tạo thêm thông tin bác sĩ",
             "select-doctor": "Chọn bác sĩ",
             "intro": "Thông tin giới thiệu",
             "add": "Tạo thông tin",
@@ -151,10 +196,337 @@
             "province": "Tỉnh / Thành phố",
             "nameClinic": "Tên phòng khám",
             "addressClinic": "Địa chỉ phòng khám",
-            "note": "Ghi chú"
+            "note": "Ghi chú",
+            "clinic": "Phòng khám",
+            "upload-image": "Tải ảnh lên",
+            "cancel": "Hủy",
+            "list-title": "Danh sách thông tin bác sĩ",
+            "table": {
+                "id": "ID",
+                "doctor": "Bác sĩ",
+                "intro": "Giới thiệu",
+                "clinic": "Phòng khám",
+                "price": "Giá",
+                "note": "Ghi chú",
+                "actions": "Thao tác",
+                "empty": "Chưa có dữ liệu"
+            },
+            "messages": {
+                "missing-fields": "Thiếu trường bắt buộc!",
+                "delete-confirm": "Xóa thông tin đã lưu của bác sĩ",
+                "delete-success": "Xóa thông tin bác sĩ thành công!",
+                "delete-failed": "Xóa thông tin bác sĩ thất bại"
+            }
+        },
+        "manage-clinic": {
+            "title": "Quản lý phòng khám",
+            "form": {
+                "name": "Tên phòng khám",
+                "address": "Địa chỉ",
+                "description": "Mô tả",
+                "image": "Ảnh phòng khám"
+            },
+            "actions": {
+                "save": "Lưu",
+                "update": "Cập nhật",
+                "cancel": "Hủy"
+            },
+            "list": {
+                "title": "Danh sách phòng khám"
+            },
+            "table": {
+                "id": "ID",
+                "name": "Tên",
+                "address": "Địa chỉ",
+                "description": "Mô tả",
+                "actions": "Thao tác",
+                "empty": "Chưa có dữ liệu"
+            },
+            "messages": {
+                "load-error": "Không tải được danh sách phòng khám",
+                "create-success": "Tạo phòng khám thành công",
+                "update-success": "Cập nhật phòng khám thành công",
+                "save-failed": "Lưu phòng khám thất bại",
+                "delete-confirm": "Xóa phòng khám",
+                "delete-success": "Xóa phòng khám thành công",
+                "delete-failed": "Xóa phòng khám thất bại",
+                "delete-network": "Không thể xóa phòng khám"
+            }
+        },
+        "manage-specialty": {
+            "title": "Quản lý chuyên khoa",
+            "form": {
+                "name": "Tên chuyên khoa",
+                "image": "Ảnh chuyên khoa"
+            },
+            "actions": {
+                "save": "Lưu",
+                "update": "Cập nhật",
+                "cancel": "Hủy"
+            },
+            "list": {
+                "title": "Danh sách chuyên khoa"
+            },
+            "table": {
+                "id": "ID",
+                "name": "Tên",
+                "description": "Mô tả",
+                "actions": "Thao tác",
+                "empty": "Chưa có dữ liệu"
+            },
+            "messages": {
+                "create-success": "Tạo chuyên khoa thành công",
+                "update-success": "Cập nhật chuyên khoa thành công",
+                "save-failed": "Lưu chuyên khoa thất bại",
+                "delete-confirm": "Xóa chuyên khoa",
+                "delete-success": "Xóa chuyên khoa thành công",
+                "delete-failed": "Xóa chuyên khoa thất bại"
+            }
+        },
+        "manage-handbook": {
+            "title": "Quản lý cẩm nang",
+            "form": {
+                "title": "Tiêu đề",
+                "image": "Ảnh cẩm nang",
+                "content": "Nội dung"
+            },
+            "actions": {
+                "save": "Lưu",
+                "update": "Cập nhật",
+                "cancel": "Hủy"
+            },
+            "list": {
+                "title": "Danh sách cẩm nang"
+            },
+            "table": {
+                "id": "ID",
+                "title": "Tiêu đề",
+                "content": "Nội dung",
+                "actions": "Thao tác",
+                "empty": "Chưa có dữ liệu"
+            },
+            "messages": {
+                "load-error": "Không tải được danh sách cẩm nang",
+                "create-success": "Tạo cẩm nang thành công",
+                "update-success": "Cập nhật cẩm nang thành công",
+                "save-failed": "Lưu cẩm nang thất bại",
+                "delete-confirm": "Xóa cẩm nang",
+                "delete-success": "Xóa cẩm nang thành công",
+                "delete-failed": "Xóa cẩm nang thất bại",
+                "delete-network": "Không thể xóa cẩm nang"
+            }
+        },
+        "manage-booking": {
+            "eyebrow": "Quản trị lịch khám",
+            "title": "Quản lý lịch khám",
+            "subtitle": "Theo dõi lịch khám, tách riêng trạng thái lịch và trạng thái thanh toán.",
+            "filter-label": "Lọc theo nhóm",
+            "loading": "Đang tải danh sách lịch khám...",
+            "list-title": "Danh sách lịch khám",
+            "total-suffix": "lịch",
+            "filters": {
+                "all": "Tất cả",
+                "unpaid": "Chưa thanh toán",
+                "paid": "Đã thanh toán",
+                "examined": "Đã khám"
+            },
+            "status": {
+                "pending-confirm": "Chờ xác nhận",
+                "confirmed": "Đã xác nhận",
+                "examined": "Đã khám"
+            },
+            "payment": {
+                "pending": "Chưa thanh toán",
+                "paid": "Đã thanh toán",
+                "failed": "Thanh toán thất bại"
+            },
+            "table": {
+                "id": "ID",
+                "patient": "Bệnh nhân",
+                "doctor": "Bác sĩ",
+                "date": "Ngày khám",
+                "time": "Giờ khám",
+                "status": "Trạng thái lịch",
+                "payment-status": "Trạng thái thanh toán",
+                "amount": "Số tiền",
+                "empty": "Không có lịch khám"
+            },
+            "messages": {
+                "load-error": "Không tải được danh sách lịch khám"
+            }
+        },
+        "manage-payment": {
+            "eyebrow": "Quản trị thanh toán",
+            "title": "Quản lý thanh toán",
+            "subtitle": "Theo dõi booking theo trạng thái thanh toán và xem trước QR chuyển khoản được tạo cho từng booking.",
+            "filter-label": "Lọc trạng thái thanh toán",
+            "loading": "Đang tải danh sách thanh toán...",
+            "list-title": "Danh sách thanh toán",
+            "total-suffix": "giao dịch",
+            "filters": {
+                "all": "Tất cả trạng thái",
+                "pending": "Chờ thanh toán",
+                "paid": "Đã thanh toán",
+                "failed": "Thanh toán thất bại"
+            },
+            "table": {
+                "booking": "Booking",
+                "patient": "Bệnh nhân",
+                "doctor": "Bác sĩ",
+                "schedule": "Lịch khám",
+                "amount": "Số tiền",
+                "status": "Trạng thái thanh toán",
+                "reference": "Nội dung / mã tham chiếu",
+                "empty": "Không có dữ liệu thanh toán"
+            },
+            "qr-empty": "Cần cấu hình thanh toán trước khi xem QR của từng booking.",
+            "messages": {
+                "load-error": "Không tải được danh sách thanh toán"
+            }
+        },
+        "payment-config": {
+            "eyebrow": "Cấu hình ngân hàng",
+            "title": "Cấu hình thanh toán",
+            "subtitle": "Lưu tài khoản nhận chuyển khoản và nội dung mặc định để hệ thống tạo QR riêng cho từng booking.",
+            "loading": "Đang tải cấu hình thanh toán...",
+            "form": {
+                "title": "Thông tin tài khoản nhận tiền",
+                "bank-code": "Mã ngân hàng",
+                "bank-name": "Tên ngân hàng",
+                "account-number": "Số tài khoản",
+                "account-name": "Tên chủ tài khoản",
+                "default-content": "Nội dung chuyển khoản mặc định",
+                "qr-provider": "Nhà cung cấp QR",
+                "active": "Kích hoạt cấu hình thanh toán này"
+            },
+            "actions": {
+                "save": "Lưu cấu hình thanh toán",
+                "saving": "Đang lưu..."
+            },
+            "preview": {
+                "title": "Xem trước QR",
+                "bank": "Ngân hàng",
+                "account": "Số tài khoản",
+                "holder": "Chủ tài khoản",
+                "content": "Nội dung booking",
+                "empty": "Nhập mã ngân hàng, số tài khoản và tên chủ tài khoản để xem trước QR."
+            },
+            "messages": {
+                "missing-fields": "Số tài khoản và tên chủ tài khoản là bắt buộc.",
+                "save-success": "Lưu cấu hình thanh toán thành công.",
+                "save-failed": "Lưu cấu hình thanh toán thất bại."
+            }
+        }
+    },
+    "doctor": {
+        "manage-schedule": {
+            "subtitle": "Xem thông tin phòng khám, mở lịch trực và theo dõi bệnh nhân đã đặt lịch theo từng ngày.",
+            "cards": {
+                "doctor-label": "Tài khoản bác sĩ",
+                "doctor-note": "Chỉ tài khoản bác sĩ hiện tại mới được tạo và xem lịch của chính mình.",
+                "clinic-label": "Phòng khám",
+                "clinic-empty": "Chưa cập nhật địa chỉ phòng khám.",
+                "date-label": "Ngày đang chọn",
+                "date-note": "Danh sách bệnh nhân bên dưới sẽ tự động cập nhật theo ngày bạn chọn."
+            },
+            "form": {
+                "title": "Mở lịch khám tại phòng khám",
+                "subtitle": "Chọn ngày và các khung giờ mà bạn muốn mở cho bệnh nhân đặt lịch.",
+                "doctor": "Bác sĩ"
+            },
+            "table": {
+                "title": "Bệnh nhân đã đặt lịch với bạn",
+                "subtitle": "Tất cả lịch hẹn ở đây chỉ thuộc về tài khoản bác sĩ hiện tại trong ngày đã chọn.",
+                "patient": "Bệnh nhân",
+                "email": "Email",
+                "phone": "Số điện thoại",
+                "time": "Giờ khám",
+                "status": "Trạng thái",
+                "action": "Thao tác",
+                "empty": "Không có bệnh nhân đặt lịch trong ngày này.",
+                "patient-fallback": "Bệnh nhân"
+            },
+            "status": {
+                "pending": "Chờ xác nhận",
+                "confirmed": "Đã xác nhận",
+                "examined": "Đã khám"
+            },
+            "actions": {
+                "save-schedule": "Lưu lịch khám",
+                "complete": "Đã khám xong",
+                "updating": "Đang cập nhật...",
+                "waiting": "Chờ xác nhận",
+                "done": "Hoàn tất"
+            },
+            "messages": {
+                "invalid-doctor": "Cần đăng nhập bằng tài khoản bác sĩ.",
+                "invalid-date": "Ngày không hợp lệ.",
+                "save-success": "Lưu lịch khám thành công.",
+                "save-failed": "Không thể lưu lịch khám.",
+                "complete-success": "Cập nhật đã khám xong thành công.",
+                "complete-failed": "Không thể cập nhật lịch khám."
+            }
+        },
+        "medical-records": {
+            "eyebrow": "Hồ sơ bác sĩ",
+            "title": "Hồ sơ khám bệnh",
+            "subtitle": "Lưu ghi chú khám bệnh cho bệnh nhân và xem lại lịch sử những ca đã khám của chính bác sĩ này.",
+            "loading": "Đang tải hồ sơ khám bệnh...",
+            "form": {
+                "title": "Tạo hồ sơ khám",
+                "subtitle": "Chọn lịch đã xác nhận, ghi thông tin khám và đánh dấu lịch hẹn đã hoàn thành.",
+                "booking": "Lịch cần khám",
+                "choose-booking": "Chọn lịch đã xác nhận",
+                "patient": "Bệnh nhân",
+                "time": "Thời gian khám",
+                "description": "Nội dung hồ sơ",
+                "description-placeholder": "Nhập chẩn đoán, hướng dẫn điều trị, đơn thuốc hoặc các ghi chú quan trọng sau khi khám.",
+                "save": "Lưu hồ sơ khám",
+                "no-pending": "Hiện không có lịch đã xác nhận nào đang chờ lưu hồ sơ."
+            },
+            "summary": {
+                "pending": "Chờ lưu hồ sơ",
+                "examined": "Đã lưu hồ sơ"
+            },
+            "table": {
+                "title": "Lịch sử bệnh nhân đã khám",
+                "subtitle": "Danh sách dưới đây chỉ gồm các hồ sơ do tài khoản bác sĩ hiện tại tạo ra.",
+                "patient": "Bệnh nhân",
+                "phone": "Số điện thoại",
+                "exam-date": "Ngày lưu",
+                "description": "Nội dung hồ sơ",
+                "empty": "Chưa có hồ sơ bệnh nhân đã khám"
+            },
+            "messages": {
+                "invalid-doctor": "Cần đăng nhập bằng tài khoản bác sĩ để vào trang này.",
+                "load-error": "Không tải được hồ sơ khám bệnh.",
+                "select-booking": "Vui lòng chọn lịch khám trước khi lưu hồ sơ.",
+                "missing-description": "Vui lòng nhập nội dung khám bệnh trước khi lưu.",
+                "save-success": "Lưu hồ sơ khám thành công.",
+                "save-failed": "Lưu hồ sơ khám thất bại."
+            }
+        },
+        "profile": {
+            "eyebrow": "Thông tin bác sĩ",
+            "title": "Thông tin cá nhân",
+            "subtitle": "Cập nhật thông tin cá nhân để bệnh nhân và phòng khám luôn thấy được dữ liệu mới nhất của bác sĩ.",
+            "loading": "Đang tải thông tin bác sĩ...",
+            "form": {
+                "image": "Tải ảnh đại diện",
+                "first-name": "Tên",
+                "last-name": "Họ",
+                "email": "Email",
+                "phone": "Số điện thoại",
+                "address": "Địa chỉ",
+                "gender": "Giới tính",
+                "choose-gender": "Chọn giới tính",
+                "save": "Lưu thông tin"
+            },
+            "messages": {
+                "missing-fields": "Vui lòng nhập đầy đủ các trường bắt buộc.",
+                "save-success": "Cập nhật thông tin thành công.",
+                "save-failed": "Cập nhật thông tin thất bại."
+            }
         }
     }
 }
-
-
-

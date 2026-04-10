@@ -36,6 +36,15 @@ class DetailDoctor extends Component {
         }
     }
 
+    componentDidUpdate(prevProps) {
+        const prevId = prevProps.match?.params?.id;
+        const currentId = this.props.match?.params?.id;
+
+        if (currentId && currentId !== prevId) {
+            this.componentDidMount();
+        }
+    }
+
     render() {
         let { language } = this.props;
         let { detailDoctor } = this.state;

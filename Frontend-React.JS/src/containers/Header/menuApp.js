@@ -1,10 +1,41 @@
 export const adminMenu = [
     {
+        name: 'menu.admin.dashboard',
+        menus: [
+            {
+                name: 'menu.admin.dashboard',
+                link: '/system/revenue-dashboard'
+            }
+        ]
+    },
+    {
         name: 'menu.admin.manage-user',
         menus: [
             {
                 name: 'menu.admin.crud',
                 link: '/system/user-manage'
+            }
+        ]
+    },
+    {
+        name: 'menu.admin.booking',
+        menus: [
+            {
+                name: 'menu.admin.manage-booking',
+                link: '/system/manage-booking'
+            }
+        ]
+    },
+    {
+        name: 'menu.admin.payment',
+        menus: [
+            {
+                name: 'menu.admin.manage-payment',
+                link: '/system/manage-payment'
+            },
+            {
+                name: 'menu.admin.payment-config',
+                link: '/system/payment-config'
             }
         ]
     },
@@ -57,6 +88,14 @@ export const doctorMenu = [
             {
                 name: 'menu.doctor.manage-schedule',
                 link: '/doctor/manage-schedule'
+            },
+            {
+                name: 'menu.doctor.medical-records',
+                link: '/doctor/medical-records'
+            },
+            {
+                name: 'menu.doctor.profile',
+                link: '/doctor/profile'
             },
             {
                 name: 'menu.doctor.payment-qr',

@@ -1,13 +1,13 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import db from "../models/index.js";
+import emailVerificationService from './emailVerificationService.js';
 
 
 const salt = bcrypt.genSaltSync(10);
 
 const normalizeEmail = (email) => {
-    if (!email || typeof email !== 'string') return '';
-    return email.trim().toLowerCase();
+    return emailVerificationService.normalizeEmail(email);
 };
 
 const findOrCreateOAuthUser = async ({
@@ -103,8 +103,8 @@ const handleUserLogin = async (email, password) => {
 
         let user = await db.User.findOne({
             where: { email: normalizedEmail },
-            attributes: ['id', 'email', 'roleId', 'password', 'firstName', 'lastName'],
-            raw: true
+            attributes: ['id', 'email', 'roleId', 'password', 'firstName', 'lastName', 'phoneNumber', 'address', 'gender'],
+            raw: false
         });
 
         if (!user) {
@@ -114,7 +114,15 @@ const handleUserLogin = async (email, password) => {
             };
         }
 
-        let check = bcrypt.compareSync(password, user.password);
+        const passwordHash = typeof user.password === 'string' ? user.password : '';
+        if (!passwordHash) {
+            return {
+                errCode: 2,
+                errMessage: 'This account cannot log in with password'
+            };
+        }
+
+        let check = bcrypt.compareSync(password, passwordHash);
 
         if (!check) {
             return {
@@ -123,12 +131,13 @@ const handleUserLogin = async (email, password) => {
             };
         }
 
-        delete user.password;
+        const safeUser = user.get ? user.get({ plain: true }) : user;
+        delete safeUser.password;
 
         return {
             errCode: 0,
             errMessage: 'OK',
-            user: user
+            user: safeUser
         };
 
     } catch (error) {
@@ -179,12 +188,20 @@ const createNewUser = async (data) => {
 const registerNewPatient = async (data) => {
     const normalizedEmail = normalizeEmail(data.email);
 
-    if (!data.email || !data.password || !data.firstName || !data.lastName) {
+    if (!data.email || !data.password || !data.firstName || !data.lastName || !data.verificationToken) {
         return {
             errCode: 1,
             errMessage: 'Missing required parameters'
         };
     }
+
+    if (!emailVerificationService.isValidGmail(normalizedEmail)) {
+        return {
+            errCode: 3,
+            errMessage: 'Please use a valid Gmail address'
+        };
+    }
+
     let isExist = await checkUserEmail(normalizedEmail);
 
     if (isExist) {
@@ -192,6 +209,16 @@ const registerNewPatient = async (data) => {
             errCode: 2,
             errMessage: 'Email already exists'
         };
+    }
+
+    const verificationResult = await emailVerificationService.consumeVerifiedToken({
+        email: normalizedEmail,
+        purpose: 'register',
+        verificationToken: data.verificationToken
+    });
+
+    if (verificationResult.errCode !== 0) {
+        return verificationResult;
     }
 
     let hashPasswordFromBcrypt = hashUserPassword(data.password);
@@ -218,10 +245,17 @@ const registerNewPatient = async (data) => {
 const forgotPassword = async (data) => {
     const normalizedEmail = normalizeEmail(data.email);
 
-    if (!data.email || !data.newPassword) {
+    if (!data.email || !data.newPassword || !data.verificationToken) {
         return {
             errCode: 1,
             errMessage: 'Missing required parameters'
+        };
+    }
+
+    if (!emailVerificationService.isValidGmail(normalizedEmail)) {
+        return {
+            errCode: 3,
+            errMessage: 'Please use a valid Gmail address'
         };
     }
 
@@ -237,6 +271,16 @@ const forgotPassword = async (data) => {
         };
     }
 
+    const verificationResult = await emailVerificationService.consumeVerifiedToken({
+        email: normalizedEmail,
+        purpose: 'forgot_password',
+        verificationToken: data.verificationToken
+    });
+
+    if (verificationResult.errCode !== 0) {
+        return verificationResult;
+    }
+
     user.password = hashUserPassword(data.newPassword);
     await user.save();
 
@@ -244,6 +288,14 @@ const forgotPassword = async (data) => {
         errCode: 0,
         errMessage: 'Password updated successfully'
     };
+};
+
+const sendEmailOtp = async (data) => {
+    return emailVerificationService.sendOtp(data);
+};
+
+const verifyEmailOtp = async (data) => {
+    return emailVerificationService.verifyOtp(data);
 };
 
 const getAllUsers = async (userId) => {
@@ -351,8 +403,13 @@ let getAllCodeService = (typeInput) => {
                 });
 
                 // Fallback dữ liệu cho ManageDoctor khi DB chưa seed đủ allcode
-                if ((!allcode || allcode.length === 0) && ['TIME', 'PRICE', 'PAYMENT', 'PROVINCE'].includes(typeInput)) {
+                if ((!allcode || allcode.length === 0) && ['GENDER', 'TIME', 'PRICE', 'PAYMENT', 'PROVINCE'].includes(typeInput)) {
                     const fallbackMap = {
+                        GENDER: [
+                            { keyMap: 'M', type: 'GENDER', valueEn: 'Male', valueVi: 'Nam' },
+                            { keyMap: 'F', type: 'GENDER', valueEn: 'Female', valueVi: 'Nu' },
+                            { keyMap: 'O', type: 'GENDER', valueEn: 'Other', valueVi: 'Khac' },
+                        ],
                         TIME: [
                             { keyMap: 'T1', type: 'TIME', valueEn: '08:00', valueVi: '08:00' },
                             { keyMap: 'T2', type: 'TIME', valueEn: '09:00', valueVi: '09:00' },
@@ -396,6 +453,8 @@ let getAllCodeService = (typeInput) => {
 export default {
     handleUserLogin,
     findOrCreateOAuthUser,
+    sendEmailOtp,
+    verifyEmailOtp,
     getAllUsers,
     createNewUser,
     registerNewPatient,

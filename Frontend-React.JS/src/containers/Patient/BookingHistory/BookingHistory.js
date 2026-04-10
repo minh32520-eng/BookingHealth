@@ -2,16 +2,18 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import moment from 'moment';
+import { toast } from 'react-toastify';
 import HomeHeader from '../../HomePage/HomeHeader';
 import { LANGUAGES, path } from '../../../utils';
-import { getBookingHistoryByPatient } from '../../../services/userService';
+import { createVnpayPayment, getBookingHistoryByPatient } from '../../../services/userService';
 import './BookingHistory.scss';
 
 class BookingHistory extends Component {
     state = {
         bookings: [],
         loading: true,
-        error: ''
+        error: '',
+        paymentLoadingId: null
     };
 
     async componentDidMount() {
@@ -20,7 +22,26 @@ class BookingHistory extends Component {
             history.push(path.LOGIN);
             return;
         }
+        this.handlePaymentResult();
         await this.loadHistory();
+    }
+
+    handlePaymentResult = () => {
+        const params = new URLSearchParams(this.props.location.search);
+        const paymentStatus = params.get('vnpay');
+        if (!paymentStatus) return;
+
+        if (paymentStatus === 'success') {
+            toast.success('Thanh toan VNPAY thanh cong');
+        } else if (paymentStatus === 'failed') {
+            toast.error('Thanh toan VNPAY that bai');
+        } else if (paymentStatus === 'invalid-signature') {
+            toast.error('Chu ky thanh toan khong hop le');
+        } else if (paymentStatus === 'not-found') {
+            toast.error('Khong tim thay booking de thanh toan');
+        }
+
+        this.props.history.replace(path.PATIENT_BOOKING_HISTORY);
     }
 
     loadHistory = async () => {
@@ -70,13 +91,42 @@ class BookingHistory extends Component {
             : booking.statusData.valueEn;
     };
 
+    getPaymentStatusLabel = (booking) => {
+        if (booking?.paymentStatus === 'paid') return 'Da thanh toan';
+        if (booking?.paymentStatus === 'failed') return 'Thanh toan that bai';
+        return 'Chua thanh toan';
+    };
+
     formatDate = (date) => {
         if (!date) return '--';
         return moment(Number(date)).format('DD/MM/YYYY');
     };
 
+    handlePayWithVnpay = async (bookingId) => {
+        const { userInfo, language } = this.props;
+        this.setState({ paymentLoadingId: bookingId });
+        try {
+            const res = await createVnpayPayment({
+                bookingId,
+                patientId: userInfo.id,
+                language
+            });
+
+            if (res && res.errCode === 0 && res.data?.paymentUrl) {
+                window.location.href = res.data.paymentUrl;
+                return;
+            }
+
+            toast.error(res?.errMessage || 'Khong tao duoc link thanh toan VNPAY');
+        } catch (error) {
+            toast.error('Khong tao duoc link thanh toan VNPAY');
+        } finally {
+            this.setState({ paymentLoadingId: null });
+        }
+    };
+
     renderContent = () => {
-        const { bookings, loading, error } = this.state;
+        const { bookings, loading, error, paymentLoadingId } = this.state;
 
         if (loading) {
             return <div className="booking-history-state">Dang tai lich su dat lich...</div>;
@@ -98,7 +148,9 @@ class BookingHistory extends Component {
                             <th>Bac sy</th>
                             <th>Ngay kham</th>
                             <th>Gio kham</th>
-                            <th>Trang thai</th>
+                            <th>Trang thai lich</th>
+                            <th>Trang thai thanh toan</th>
+                            <th>Thanh toan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -111,6 +163,25 @@ class BookingHistory extends Component {
                                     <span className={`status-badge status-${(item.statusId || '').toLowerCase()}`}>
                                         {this.getStatusLabel(item)}
                                     </span>
+                                </td>
+                                <td>
+                                    <span className={`status-badge payment-${(item.paymentStatus || 'pending').toLowerCase()}`}>
+                                        {this.getPaymentStatusLabel(item)}
+                                    </span>
+                                </td>
+                                <td>
+                                    {item.paymentStatus !== 'paid' && item.statusId !== 'S3' ? (
+                                        <button
+                                            type="button"
+                                            className="pay-vnpay-btn"
+                                            onClick={() => this.handlePayWithVnpay(item.id)}
+                                            disabled={paymentLoadingId === item.id}
+                                        >
+                                            {paymentLoadingId === item.id ? 'Dang tao link...' : 'Thanh toan VNPAY'}
+                                        </button>
+                                    ) : (
+                                        <span className="payment-done">Da xu ly</span>
+                                    )}
                                 </td>
                             </tr>
                         ))}

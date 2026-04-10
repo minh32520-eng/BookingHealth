@@ -32,14 +32,16 @@ class DetailHandBook extends Component {
         }
     }
 
+    buildImageSrc = (image) => {
+        if (!image) return '';
+        return image.startsWith('data:image') ? image : `data:image/jpeg;base64,${image}`;
+    }
+
     render() {
         let { dataDetail } = this.state;
         const { intl } = this.props;
 
-        let imageBase64 = '';
-        if (dataDetail && dataDetail.image) {
-            imageBase64 = `data:image/jpeg;base64,${dataDetail.image}`;
-        }
+        let imageBase64 = this.buildImageSrc(dataDetail?.image);
 
         return (
             <div className="blog-wrapper">

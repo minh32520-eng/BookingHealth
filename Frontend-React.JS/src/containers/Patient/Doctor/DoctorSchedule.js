@@ -15,6 +15,7 @@ class DoctorSchedule extends Component {
         this.state = {
             allDays: [],
             allAvailableTime: [],
+            selectedDate: '',
             isOpenModalBooking: false,
             dataScheduleTimeModal: {}
         }
@@ -26,6 +27,7 @@ class DoctorSchedule extends Component {
 
         this.setState({
             allDays: allDays,
+            selectedDate: allDays[0]?.value || '',
         });
 
 
@@ -41,7 +43,8 @@ class DoctorSchedule extends Component {
             let allDays = this.getArrDays(this.props.language);
 
             this.setState({
-                allDays: allDays
+                allDays: allDays,
+                selectedDate: allDays[0]?.value || ''
             });
         }
 
@@ -132,6 +135,10 @@ class DoctorSchedule extends Component {
         let { doctorIdFromParent } = this.props;
         let date = event.target.value;
 
+        this.setState({
+            selectedDate: date
+        });
+
         if (doctorIdFromParent && doctorIdFromParent !== -1) {
             await this.fetchSchedule(doctorIdFromParent, date);
         }
@@ -154,10 +161,58 @@ class DoctorSchedule extends Component {
 
     }
 
+    reloadCurrentSchedule = async () => {
+        const { doctorIdFromParent } = this.props;
+        const { selectedDate } = this.state;
+
+        if (!doctorIdFromParent || doctorIdFromParent === -1 || !selectedDate) {
+            return;
+        }
+
+        await this.fetchSchedule(doctorIdFromParent, selectedDate);
+    }
+
+    parseScheduleStart = (value = '') => {
+        const normalized = String(value).trim().toUpperCase();
+        const match = normalized.match(/(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/);
+
+        if (!match) {
+            return null;
+        }
+
+        let hours = Number(match[1]);
+        const minutes = Number(match[2]);
+        const meridiem = match[3];
+
+        if (meridiem === 'AM' && hours === 12) hours = 0;
+        if (meridiem === 'PM' && hours < 12) hours += 12;
+
+        return { hours, minutes };
+    }
+
+    getScheduleStartTimestamp = (schedule) => {
+        const parsed =
+            this.parseScheduleStart(schedule?.timeTypeData?.valueEn) ||
+            this.parseScheduleStart(schedule?.timeTypeData?.valueVi);
+
+        if (!parsed) {
+            return moment(Number(schedule?.date)).valueOf();
+        }
+
+        return moment(Number(schedule?.date))
+            .startOf('day')
+            .hour(parsed.hours)
+            .minute(parsed.minutes)
+            .second(0)
+            .millisecond(0)
+            .valueOf();
+    }
+
     render() {
 
-        let { allDays, allAvailableTime } = this.state;
+        let { allDays, allAvailableTime, selectedDate } = this.state;
         let { language } = this.props;
+        const filteredTimes = (allAvailableTime || []).filter((item) => this.getScheduleStartTimestamp(item) > moment().valueOf());
 
         return (
             <>
@@ -165,7 +220,7 @@ class DoctorSchedule extends Component {
 
                     <div className="all-schedule">
 
-                        <select onChange={this.handleOnChangeSelect}>
+                        <select value={selectedDate} onChange={this.handleOnChangeSelect}>
                             {allDays && allDays.length > 0 &&
                                 allDays.map((item, index) => (
                                     <option value={item.value} key={index}>
@@ -190,8 +245,8 @@ class DoctorSchedule extends Component {
                         <div className="time-content-btns">
 
                             {
-                                allAvailableTime && allAvailableTime.length > 0 ? (
-                                    allAvailableTime.map((item, index) => {
+                                filteredTimes && filteredTimes.length > 0 ? (
+                                    filteredTimes.map((item, index) => {
 
                                         let timeDisplay = language === LANGUAGES.VI
                                             ? item.timeTypeData.valueVi
@@ -232,6 +287,7 @@ class DoctorSchedule extends Component {
                     isOpenModal={this.state.isOpenModalBooking}
                     closeBookingClose={this.closeBookingClose}
                     dataTime={this.state.dataScheduleTimeModal}
+                    reloadSchedule={this.reloadCurrentSchedule}
                 />
             </>
         );

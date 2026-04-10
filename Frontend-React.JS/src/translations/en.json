@@ -27,6 +27,9 @@
         "admin": {
             "dashboard": "Dashboard",
             "manage-user": "Users System",
+            "payment": "Payments",
+            "manage-payment": "Manage payments",
+            "payment-config": "Payment config",
             "manage-doctor": "Manage doctors",
             "manage-admin": "Manage admins",
             "crud": "CRUD user",
@@ -36,13 +39,17 @@
             "specialty": "Specialties",
             "manage-specialty": "Manage specialties",
             "handbook": "Handbook",
-            "manage-handbook": "Manage handbook"
+            "manage-handbook": "Manage handbook",
+            "booking": "Bookings",
+            "manage-booking": "Manage bookings"
         },
         "doctor": {
             "manage-schedule": "Manage Doctor's schedule",
             "workspace": "Doctor workspace",
             "home": "Homepage",
-            "payment-qr": "Payment QR"
+            "payment-qr": "Payment QR",
+            "medical-records": "Medical records",
+            "profile": "My profile"
         }
     },
     "manage-user": {
@@ -140,6 +147,44 @@
         }
     },
     "admin": {
+        "revenue-dashboard": {
+            "eyebrow": "Admin analytics",
+            "title": "Revenue dashboard",
+            "subtitle": "Track total revenue, visit volume, and monthly revenue trends.",
+            "loading": "Loading revenue data...",
+            "month-prefix": "Month",
+            "filters": {
+                "doctor": "Filter by doctor",
+                "clinic": "Filter by clinic",
+                "all-doctors": "All doctors",
+                "all-clinics": "All clinics"
+            },
+            "actions": {
+                "export-excel": "Export Excel",
+                "export-pdf": "Export PDF"
+            },
+            "stats": {
+                "total-revenue": "Total revenue",
+                "total-bookings": "Confirmed visits",
+                "avg-booking": "Average per visit",
+                "best-month": "Top month"
+            },
+            "charts": {
+                "revenue-title": "Revenue by month",
+                "revenue-subtitle": "Calculated only from successfully confirmed bookings.",
+                "bookings-title": "Visits by month",
+                "bookings-subtitle": "Line chart for the total number of confirmed bookings."
+            },
+            "table": {
+                "title": "Monthly details",
+                "month": "Month",
+                "bookings": "Visits",
+                "revenue": "Revenue"
+            },
+            "pdf": {
+                "subtitle": "Statistics based on the current filters."
+            }
+        },
         "manage-doctor": {
             "title": "Create doctor information",
             "select-doctor": "Select doctor",
@@ -151,7 +196,337 @@
             "province": "Province",
             "nameClinic": "Clinic's name",
             "addressClinic": "Clinic's address",
-            "note": "Note"
+            "note": "Note",
+            "clinic": "Clinic",
+            "upload-image": "Upload image",
+            "cancel": "Cancel",
+            "list-title": "Doctor information list",
+            "table": {
+                "id": "ID",
+                "doctor": "Doctor",
+                "intro": "Intro",
+                "clinic": "Clinic",
+                "price": "Price",
+                "note": "Note",
+                "actions": "Actions",
+                "empty": "No data yet"
+            },
+            "messages": {
+                "missing-fields": "Missing required fields!",
+                "delete-confirm": "Delete saved doctor information of",
+                "delete-success": "Doctor information deleted successfully!",
+                "delete-failed": "Failed to delete doctor information"
+            }
+        },
+        "manage-clinic": {
+            "title": "Manage clinics",
+            "form": {
+                "name": "Clinic name",
+                "address": "Address",
+                "description": "Description",
+                "image": "Clinic image"
+            },
+            "actions": {
+                "save": "Save",
+                "update": "Update",
+                "cancel": "Cancel"
+            },
+            "list": {
+                "title": "Clinic list"
+            },
+            "table": {
+                "id": "ID",
+                "name": "Name",
+                "address": "Address",
+                "description": "Description",
+                "actions": "Actions",
+                "empty": "No data yet"
+            },
+            "messages": {
+                "load-error": "Unable to load clinic list",
+                "create-success": "Clinic created successfully",
+                "update-success": "Clinic updated successfully",
+                "save-failed": "Failed to save clinic",
+                "delete-confirm": "Delete clinic",
+                "delete-success": "Clinic deleted successfully",
+                "delete-failed": "Failed to delete clinic",
+                "delete-network": "Unable to delete clinic"
+            }
+        },
+        "manage-specialty": {
+            "title": "Manage specialties",
+            "form": {
+                "name": "Specialty name",
+                "image": "Specialty image"
+            },
+            "actions": {
+                "save": "Save",
+                "update": "Update",
+                "cancel": "Cancel"
+            },
+            "list": {
+                "title": "Specialty list"
+            },
+            "table": {
+                "id": "ID",
+                "name": "Name",
+                "description": "Description",
+                "actions": "Actions",
+                "empty": "No data yet"
+            },
+            "messages": {
+                "create-success": "Specialty created successfully",
+                "update-success": "Specialty updated successfully",
+                "save-failed": "Failed to save specialty",
+                "delete-confirm": "Delete specialty",
+                "delete-success": "Specialty deleted successfully",
+                "delete-failed": "Failed to delete specialty"
+            }
+        },
+        "manage-handbook": {
+            "title": "Manage handbook",
+            "form": {
+                "title": "Title",
+                "image": "Handbook image",
+                "content": "Content"
+            },
+            "actions": {
+                "save": "Save",
+                "update": "Update",
+                "cancel": "Cancel"
+            },
+            "list": {
+                "title": "Handbook list"
+            },
+            "table": {
+                "id": "ID",
+                "title": "Title",
+                "content": "Content",
+                "actions": "Actions",
+                "empty": "No data yet"
+            },
+            "messages": {
+                "load-error": "Unable to load handbook list",
+                "create-success": "Handbook created successfully",
+                "update-success": "Handbook updated successfully",
+                "save-failed": "Failed to save handbook",
+                "delete-confirm": "Delete handbook",
+                "delete-success": "Handbook deleted successfully",
+                "delete-failed": "Failed to delete handbook",
+                "delete-network": "Unable to delete handbook"
+            }
+        },
+        "manage-booking": {
+            "eyebrow": "Admin booking control",
+            "title": "Manage bookings",
+            "subtitle": "Review appointment progress separately from payment progress.",
+            "filter-label": "Filter group",
+            "loading": "Loading booking list...",
+            "list-title": "Appointment list",
+            "total-suffix": "appointments",
+            "filters": {
+                "all": "All",
+                "unpaid": "Unpaid",
+                "paid": "Paid",
+                "examined": "Examined"
+            },
+            "status": {
+                "pending-confirm": "Pending confirmation",
+                "confirmed": "Confirmed",
+                "examined": "Examined"
+            },
+            "payment": {
+                "pending": "Unpaid",
+                "paid": "Paid",
+                "failed": "Payment failed"
+            },
+            "table": {
+                "id": "ID",
+                "patient": "Patient",
+                "doctor": "Doctor",
+                "date": "Date",
+                "time": "Time",
+                "status": "Booking status",
+                "payment-status": "Payment status",
+                "amount": "Amount",
+                "empty": "No bookings found"
+            },
+            "messages": {
+                "load-error": "Unable to load booking list"
+            }
+        },
+        "manage-payment": {
+            "eyebrow": "Payment control",
+            "title": "Manage payments",
+            "subtitle": "Track booking payments by status and preview the QR transfer data generated for each booking.",
+            "filter-label": "Filter payment status",
+            "loading": "Loading payment list...",
+            "list-title": "Payment list",
+            "total-suffix": "payments",
+            "filters": {
+                "all": "All payment statuses",
+                "pending": "Pending",
+                "paid": "Paid",
+                "failed": "Failed"
+            },
+            "table": {
+                "booking": "Booking",
+                "patient": "Patient",
+                "doctor": "Doctor",
+                "schedule": "Schedule",
+                "amount": "Amount",
+                "status": "Payment status",
+                "reference": "Transfer content / ref",
+                "empty": "No payment records found"
+            },
+            "qr-empty": "Set up the payment configuration first to preview booking QR codes.",
+            "messages": {
+                "load-error": "Unable to load payment list"
+            }
+        },
+        "payment-config": {
+            "eyebrow": "Banking setup",
+            "title": "Payment configuration",
+            "subtitle": "Save the bank account used for transfers and define the default booking transfer content used to generate QR codes.",
+            "loading": "Loading payment configuration...",
+            "form": {
+                "title": "Transfer account information",
+                "bank-code": "Bank code",
+                "bank-name": "Bank name",
+                "account-number": "Account number",
+                "account-name": "Account holder",
+                "default-content": "Default transfer content",
+                "qr-provider": "QR provider",
+                "active": "Enable this payment configuration"
+            },
+            "actions": {
+                "save": "Save payment config",
+                "saving": "Saving..."
+            },
+            "preview": {
+                "title": "QR preview",
+                "bank": "Bank",
+                "account": "Account number",
+                "holder": "Account holder",
+                "content": "Booking transfer content",
+                "empty": "Enter bank code, account number, and account holder to generate the QR preview."
+            },
+            "messages": {
+                "missing-fields": "Account number and account holder are required.",
+                "save-success": "Payment configuration saved successfully.",
+                "save-failed": "Failed to save payment configuration."
+            }
+        }
+    },
+    "doctor": {
+        "manage-schedule": {
+            "subtitle": "Review your clinic information, open available slots, and track patients who booked you for each day.",
+            "cards": {
+                "doctor-label": "Doctor account",
+                "doctor-note": "Only the current doctor account can create and review its own schedule.",
+                "clinic-label": "Clinic",
+                "clinic-empty": "Clinic address has not been updated yet.",
+                "date-label": "Selected date",
+                "date-note": "The patient list below refreshes automatically after you change the date."
+            },
+            "form": {
+                "title": "Open clinic schedule",
+                "subtitle": "Choose the date and time slots you want patients to book at your clinic.",
+                "doctor": "Doctor"
+            },
+            "table": {
+                "title": "Patients booked with you",
+                "subtitle": "Appointments shown here belong only to the current doctor account on the selected date.",
+                "patient": "Patient",
+                "email": "Email",
+                "phone": "Phone",
+                "time": "Time",
+                "status": "Status",
+                "action": "Action",
+                "empty": "No patient bookings for this date.",
+                "patient-fallback": "Patient"
+            },
+            "status": {
+                "pending": "Pending",
+                "confirmed": "Confirmed",
+                "examined": "Examined"
+            },
+            "actions": {
+                "save-schedule": "Save schedule",
+                "complete": "Mark examined",
+                "updating": "Updating...",
+                "waiting": "Waiting confirmation",
+                "done": "Done"
+            },
+            "messages": {
+                "invalid-doctor": "A doctor account is required.",
+                "invalid-date": "Invalid date.",
+                "save-success": "Schedule saved successfully.",
+                "save-failed": "Unable to save schedule.",
+                "complete-success": "Appointment marked as examined successfully.",
+                "complete-failed": "Unable to update appointment status."
+            }
+        },
+        "medical-records": {
+            "eyebrow": "Doctor records",
+            "title": "Medical records",
+            "subtitle": "Save examination notes for your patients and review the treatment history you have completed.",
+            "loading": "Loading medical records...",
+            "form": {
+                "title": "Create examination record",
+                "subtitle": "Select a confirmed booking, add examination notes, and mark the appointment as completed.",
+                "booking": "Booking to examine",
+                "choose-booking": "Choose a confirmed booking",
+                "patient": "Patient",
+                "time": "Appointment time",
+                "description": "Examination notes",
+                "description-placeholder": "Enter diagnosis, prescription notes, follow-up advice, or important clinical findings.",
+                "save": "Save medical record",
+                "no-pending": "There are no confirmed bookings waiting for examination records."
+            },
+            "summary": {
+                "pending": "Pending records",
+                "examined": "Saved records"
+            },
+            "table": {
+                "title": "Examined patient history",
+                "subtitle": "The list below only contains records created by the current doctor account.",
+                "patient": "Patient",
+                "phone": "Phone",
+                "exam-date": "Recorded at",
+                "description": "Record details",
+                "empty": "No examined patient records yet"
+            },
+            "messages": {
+                "invalid-doctor": "A doctor account is required to access this page.",
+                "load-error": "Unable to load medical records.",
+                "select-booking": "Please choose a booking to save the examination record.",
+                "missing-description": "Please enter examination notes before saving.",
+                "save-success": "Medical record saved successfully.",
+                "save-failed": "Failed to save medical record."
+            }
+        },
+        "profile": {
+            "eyebrow": "Doctor profile",
+            "title": "My profile",
+            "subtitle": "Update your personal information so patients and clinic operations always see the latest doctor details.",
+            "loading": "Loading profile...",
+            "form": {
+                "image": "Upload avatar",
+                "first-name": "First name",
+                "last-name": "Last name",
+                "email": "Email",
+                "phone": "Phone number",
+                "address": "Address",
+                "gender": "Gender",
+                "choose-gender": "Choose gender",
+                "save": "Save profile"
+            },
+            "messages": {
+                "missing-fields": "Please fill in the required profile fields.",
+                "save-success": "Profile updated successfully.",
+                "save-failed": "Failed to update profile."
+            }
         }
     }
 }

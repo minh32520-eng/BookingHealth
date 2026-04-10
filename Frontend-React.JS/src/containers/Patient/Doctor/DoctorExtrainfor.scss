@@ -1,60 +1,141 @@
 .doctor-extra-infor-container {
-    padding-left: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    height: 100%;
+}
 
-    .content-up {
-        margin-bottom: 10px;
+.doctor-extra-infor-container .content-up {
+    padding: 18px 20px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #f8fdff 0%, #eef9fc 100%);
+    border: 1px solid #d8edf3;
+}
 
-        .text-address {
-            text-transform: uppercase;
-            color: #333;
-        }
+.doctor-extra-infor-container .text-address {
+    margin-bottom: 8px;
+    color: #658090;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
 
-        .name-clinic {
-            padding: 5px 0;
-            font-weight: 600;
-            color: #333;
-        }
+.doctor-extra-infor-container .name-clinic {
+    margin-bottom: 8px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #173247;
+    line-height: 1.4;
+}
 
-        .detail-address {
-            font-weight: 600;
-            color: #333;
-        }
+.doctor-extra-infor-container .detail-address {
+    color: #526777;
+    line-height: 1.7;
+}
+
+.doctor-extra-infor-container .content-down {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.doctor-extra-infor-container .short-infor,
+.doctor-extra-infor-container .detail-infor {
+    border-radius: 20px;
+    border: 1px solid #d9edf3;
+    background: #fbfeff;
+}
+
+.doctor-extra-infor-container .short-infor {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 16px 18px;
+    color: #365064;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.doctor-extra-infor-container .currency {
+    font-weight: 700;
+    color: #173247;
+}
+
+.doctor-extra-infor-container .detail-toggle,
+.doctor-extra-infor-container .hide-price button {
+    align-self: flex-start;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 1px solid #d5e7ed;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #168197;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(73, 191, 199, 0.15);
+    }
+}
+
+.doctor-extra-infor-container .title-price {
+    color: #173247;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.doctor-extra-infor-container .detail-infor {
+    padding: 16px 18px;
+}
+
+.doctor-extra-infor-container .price {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #e4f0f5;
+
+    .left {
+        color: #365064;
+        font-weight: 700;
     }
 
-    .content-down {
+    .right {
+        color: #173247;
+        font-weight: 700;
+        text-align: right;
+    }
+}
 
-        .short-infor {
-            span {
-                cursor: pointer;
-                color: rgb(38, 160, 231);
-            }
+.doctor-extra-infor-container .note {
+    margin-bottom: 14px;
+    color: #526777;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.doctor-extra-infor-container .payment {
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: #f4fbff;
+    color: #365064;
+    line-height: 1.7;
+}
+
+@media (max-width: 767px) {
+    .doctor-extra-infor-container .price {
+        flex-direction: column;
+        align-items: flex-start;
+
+        .right {
+            text-align: left;
         }
-
-        .title-price {
-            margin-bottom: 10px;
-        }
-
-        .detail-infor {
-            border: 1px solid #ddd;
-            padding: 5px;
-            background-color: #f8f8f8;
-
-            .price {
-                padding-bottom: 5px;
-
-                .right {
-                    float: right;
-                }
-
-                .note {}
-
-                .payment {
-                    border: 1px solid #ddd;
-                    padding: 5px;
-                    background-color: #eee;
-                }
-            }
-        }
-
     }
 }

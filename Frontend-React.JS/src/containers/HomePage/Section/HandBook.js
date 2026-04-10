@@ -38,6 +38,11 @@ class HandBook extends Component {
         this.props.history?.push('/handbook');
     };
 
+    buildImageSrc = (image) => {
+        if (!image) return '';
+        return image.startsWith('data:image') ? image : `data:image/jpeg;base64,${image}`;
+    };
+
     render() {
         const { arrHandbooks } = this.state;
         const { settings } = this.props;
@@ -65,10 +70,7 @@ class HandBook extends Component {
                                 {arrHandbooks.map((item) => {
 
                                     // xử lý ảnh base64 nếu có
-                                    let imageBase64 = '';
-                                    if (item.image) {
-                                        imageBase64 = `data:image/jpeg;base64,${item.image}`;
-                                    }
+                                    let imageBase64 = this.buildImageSrc(item.image);
 
                                     return (
                                         <div

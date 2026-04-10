@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import './SpecialtyPage.scss';
 import { getAllSpecialty } from '../../../services/userService';
 import { path } from '../../../utils';
+import CommonUtils from '../../../utils/CommonUtils';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 class SpecialtyPage extends Component {
 
@@ -27,6 +28,10 @@ class SpecialtyPage extends Component {
         this.props.history.push(path.HOMEPAGE);
     }
 
+    buildImageSrc = (image) => {
+        return CommonUtils.buildImageSrc(image);
+    }
+
     render() {
         const { dataSpecialty } = this.state;
 
@@ -45,10 +50,7 @@ class SpecialtyPage extends Component {
                 <div className="specialty-list">
                     {dataSpecialty && dataSpecialty.map((item, index) => {
 
-                        let imageBase64 = '';
-                        if (item.image) {
-                            imageBase64 = `data:image/jpeg;base64,${item.image}`;
-                        }
+                        let imageBase64 = this.buildImageSrc(item.image);
 
                         return (
                             <div

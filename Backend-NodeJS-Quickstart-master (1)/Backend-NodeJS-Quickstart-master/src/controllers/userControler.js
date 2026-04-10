@@ -94,6 +94,30 @@ let handleForgotPassword = async (req, res) => {
     }
 };
 
+let handleSendEmailOtp = async (req, res) => {
+    try {
+        let message = await userService.sendEmailOtp(req.body);
+        return res.status(200).json(message);
+    } catch (e) {
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        });
+    }
+};
+
+let handleVerifyEmailOtp = async (req, res) => {
+    try {
+        let message = await userService.verifyEmailOtp(req.body);
+        return res.status(200).json(message);
+    } catch (e) {
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        });
+    }
+};
+
 let handleDeleteUser = async (req, res) => {
     try {
         if (!req.body.id) {
@@ -145,6 +169,8 @@ module.exports = {
     handleCreateNewUser,
     handleRegister,
     handleForgotPassword,
+    handleSendEmailOtp,
+    handleVerifyEmailOtp,
     handleEditUser,
     handleDeleteUser,
     getAllCode,

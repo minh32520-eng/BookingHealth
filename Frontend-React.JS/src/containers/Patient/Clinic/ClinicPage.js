@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import './ClinicPage.scss';
 import { getAllClinic } from '../../../services/userService';
 import { path } from '../../../utils';
+import CommonUtils from '../../../utils/CommonUtils';
 
 class ClinicPage extends Component {
 
@@ -27,6 +28,10 @@ class ClinicPage extends Component {
         this.props.history.push(path.HOMEPAGE);
     }
 
+    buildImageSrc = (image) => {
+        return CommonUtils.buildImageSrc(image);
+    }
+
     render() {
         const { dataClinic } = this.state;
 
@@ -45,10 +50,7 @@ class ClinicPage extends Component {
                 <div className="clinic-list">
                     {dataClinic && dataClinic.map((item, index) => {
 
-                        let imageBase64 = '';
-                        if (item.image) {
-                            imageBase64 = `data:image/jpeg;base64,${item.image}`;
-                        }
+                        let imageBase64 = this.buildImageSrc(item.image);
 
                         return (
                             <div

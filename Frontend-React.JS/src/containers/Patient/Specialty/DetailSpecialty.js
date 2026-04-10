@@ -25,6 +25,16 @@ class DetailSpecialty extends Component {
         );
     }
 
+    buildImageSrc = (image) => {
+        if (!image) return '';
+        return image.startsWith('data:image') ? image : `data:image/jpeg;base64,${image}`;
+    }
+
+    handleViewClinic = (clinicId) => {
+        if (!clinicId) return;
+        this.props.history.push(`/detail-clinic/${clinicId}`);
+    }
+
     async loadSpecialtyDetail() {
         const id = this.getSpecialtyId();
 
@@ -105,6 +115,7 @@ class DetailSpecialty extends Component {
             specialty.descriptionHTML ||
             specialty.description ||
             `<p>${intl.formatMessage({ id: 'patient.detail-specialty.no-description' })}</p>`;
+        const relatedClinics = Array.isArray(specialty.relatedClinics) ? specialty.relatedClinics : [];
 
         const errorMessageIdMap = {
             missing_specialty_id: 'patient.detail-specialty.missing-id',
@@ -151,7 +162,7 @@ class DetailSpecialty extends Component {
                                     className="detail-specialty-cover"
                                     style={{
                                         backgroundImage: specialty.image
-                                            ? `url(${specialty.image})`
+                                            ? `url(${this.buildImageSrc(specialty.image)})`
                                             : undefined
                                     }}
                                 />
@@ -169,6 +180,47 @@ class DetailSpecialty extends Component {
                                     className="detail-specialty-content markdown-body"
                                     dangerouslySetInnerHTML={{ __html: html }}
                                 />
+                            </section>
+
+                            <section className="detail-specialty-section detail-specialty-section-related">
+                                <div className="detail-specialty-section-content">
+                                    <div className="detail-specialty-related-head">
+                                        <div className="detail-specialty-label">
+                                            <FormattedMessage id="patient.detail-specialty.related-clinics-label" defaultMessage="Phòng khám liên quan" />
+                                        </div>
+                                        <h2 className="detail-specialty-related-title">
+                                            <FormattedMessage id="patient.detail-specialty.related-clinics-title" defaultMessage="Một vài phòng khám phù hợp với chuyên khoa này" />
+                                        </h2>
+                                    </div>
+
+                                    <div className="detail-specialty-related-grid">
+                                        {relatedClinics.length > 0 ? relatedClinics.map((clinic) => (
+                                            <button
+                                                key={clinic.id}
+                                                type="button"
+                                                className="related-clinic-card"
+                                                onClick={() => this.handleViewClinic(clinic.id)}
+                                            >
+                                                <div
+                                                    className="related-clinic-image"
+                                                    style={{
+                                                        backgroundImage: clinic.image
+                                                            ? `url(${this.buildImageSrc(clinic.image)})`
+                                                            : undefined
+                                                    }}
+                                                />
+                                                <div className="related-clinic-info">
+                                                    <div className="related-clinic-name">{clinic.name}</div>
+                                                    <div className="related-clinic-address">{clinic.address}</div>
+                                                </div>
+                                            </button>
+                                        )) : (
+                                            <div className="detail-specialty-related-empty">
+                                                <FormattedMessage id="patient.detail-specialty.related-clinics-empty" defaultMessage="Chưa có phòng khám liên quan cho chuyên khoa này." />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </section>
                         </div>
                     )}

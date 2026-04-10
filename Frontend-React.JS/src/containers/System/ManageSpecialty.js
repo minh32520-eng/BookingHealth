@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import './ManageSpecialty.scss';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
@@ -56,6 +57,11 @@ class ManageSpecialty extends Component {
         this.setState({ imageBase64: base64 });
     }
 
+    normalizeImageSrc = (value) => {
+        if (!value) return '';
+        return value.startsWith('data:image') ? value : `data:image/jpeg;base64,${value}`;
+    }
+
     resetForm = () => {
         this.setState({
             editingSpecialtyId: null,
@@ -74,11 +80,15 @@ class ManageSpecialty extends Component {
             : await createNewSpecialty(payload);
 
         if (res && res.errCode === 0) {
-            toast.success(editingSpecialtyId ? 'Update specialty succeeds!' : 'Add new specialty succeeds!');
+            toast.success(this.props.intl.formatMessage({
+                id: editingSpecialtyId
+                    ? 'admin.manage-specialty.messages.update-success'
+                    : 'admin.manage-specialty.messages.create-success'
+            }));
             this.resetForm();
             await this.loadSpecialties();
         } else {
-            toast.error((res && res.errMessage) || 'Something wrongs....');
+            toast.error((res && res.errMessage) || this.props.intl.formatMessage({ id: 'admin.manage-specialty.messages.save-failed' }));
         }
     }
 
@@ -97,17 +107,17 @@ class ManageSpecialty extends Component {
     }
 
     handleDeleteSpecialty = async (specialty) => {
-        if (!window.confirm(`Delete specialty "${specialty.name}"?`)) return;
+        if (!window.confirm(`${this.props.intl.formatMessage({ id: 'admin.manage-specialty.messages.delete-confirm' })} "${specialty.name}"?`)) return;
 
         const res = await deleteSpecialty(specialty.id);
         if (res && res.errCode === 0) {
-            toast.success('Delete specialty succeeds!');
+            toast.success(this.props.intl.formatMessage({ id: 'admin.manage-specialty.messages.delete-success' }));
             if (this.state.editingSpecialtyId === specialty.id) {
                 this.resetForm();
             }
             await this.loadSpecialties();
         } else {
-            toast.error((res && res.errMessage) || 'Delete specialty failed');
+            toast.error((res && res.errMessage) || this.props.intl.formatMessage({ id: 'admin.manage-specialty.messages.delete-failed' }));
         }
     }
 
@@ -115,9 +125,7 @@ class ManageSpecialty extends Component {
         const { imageBase64 } = this.state;
         if (!imageBase64) return null;
 
-        const src = imageBase64.startsWith('data:image')
-            ? imageBase64
-            : `data:image/jpeg;base64,${imageBase64}`;
+        const src = this.normalizeImageSrc(imageBase64);
 
         return (
             <div className="ms-preview">
@@ -131,10 +139,10 @@ class ManageSpecialty extends Component {
 
         return (
             <div className="manage-specialty-container">
-                <div className="ms-title">Quan ly chuyen khoa</div>
+                <div className="ms-title"><FormattedMessage id="admin.manage-specialty.title" /></div>
                 <div className="add-new-specialty row">
                     <div className="col-6 form-group">
-                        <label>Ten chuyen khoa</label>
+                        <label><FormattedMessage id="admin.manage-specialty.form.name" /></label>
                         <input
                             className="form-control"
                             type="text"
@@ -144,7 +152,7 @@ class ManageSpecialty extends Component {
                     </div>
 
                     <div className="col-6 form-group">
-                        <label>Anh chuyen khoa</label>
+                        <label><FormattedMessage id="admin.manage-specialty.form.image" /></label>
                         <input
                             className="form-control-file"
                             type="file"
@@ -165,26 +173,24 @@ class ManageSpecialty extends Component {
                             className="btn-save-specialty"
                             onClick={() => this.handleSaveNewSpecialty()}
                         >
-                            {editingSpecialtyId ? 'Update' : 'Save'}
+                            <FormattedMessage id={editingSpecialtyId ? 'admin.manage-specialty.actions.update' : 'admin.manage-specialty.actions.save'} />
                         </button>
                         {editingSpecialtyId && (
-                            <button className="btn-cancel-specialty" onClick={this.resetForm}>
-                                Cancel
-                            </button>
+                            <button className="btn-cancel-specialty" onClick={this.resetForm}><FormattedMessage id="admin.manage-specialty.actions.cancel" /></button>
                         )}
                     </div>
                 </div>
 
                 <div className="ms-list mt-4">
-                    <h5>Danh sach chuyen khoa</h5>
+                    <h5><FormattedMessage id="admin.manage-specialty.list.title" /></h5>
                     <div className="table-responsive admin-table-wrap">
                         <table className="table admin-info-table">
                             <thead>
                                 <tr>
-                                    <th style={{ width: '70px' }}>ID</th>
-                                    <th style={{ width: '220px' }}>Ten</th>
-                                    <th>Mo ta</th>
-                                    <th style={{ width: '120px' }}>Actions</th>
+                                    <th style={{ width: '70px' }}><FormattedMessage id="admin.manage-specialty.table.id" /></th>
+                                    <th style={{ width: '220px' }}><FormattedMessage id="admin.manage-specialty.table.name" /></th>
+                                    <th><FormattedMessage id="admin.manage-specialty.table.description" /></th>
+                                    <th style={{ width: '120px' }}><FormattedMessage id="admin.manage-specialty.table.actions" /></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -207,7 +213,7 @@ class ManageSpecialty extends Component {
                                 ))}
                                 {specialties.length === 0 && (
                                     <tr>
-                                        <td colSpan="4" className="text-center empty-row">Chua co du lieu</td>
+                                        <td colSpan="4" className="text-center empty-row"><FormattedMessage id="admin.manage-specialty.table.empty" /></td>
                                     </tr>
                                 )}
                             </tbody>
@@ -229,4 +235,4 @@ const mapDispatchToProps = dispatch => {
     };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ManageSpecialty);
+export default injectIntl(connect(mapStateToProps, mapDispatchToProps)(ManageSpecialty));

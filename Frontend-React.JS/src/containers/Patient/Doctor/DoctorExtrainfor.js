@@ -16,6 +16,12 @@ class DoctorExtrainfor extends Component {
         }
     }
 
+    componentDidMount() {
+        if (this.props.doctorIdFromParent) {
+            this.fetchExtraInfor(this.props.doctorIdFromParent);
+        }
+    }
+
     componentDidUpdate(prevProps) {
         if (this.props.doctorIdFromParent !== prevProps.doctorIdFromParent) {
 
@@ -105,12 +111,13 @@ class DoctorExtrainfor extends Component {
 
                             </div>
 
-                            <span
-                                className="detail"
+                            <button
+                                type="button"
+                                className="detail-toggle"
                                 onClick={() => this.showHideDetailInfor(true)}
                             >
                                 <FormattedMessage id="patient.extra-infor-doctor.detail" />
-                            </span>
+                            </button>
                         </>
                     }
 
@@ -174,9 +181,9 @@ class DoctorExtrainfor extends Component {
                             </div>
 
                             <div className="hide-price">
-                                <span onClick={() => this.showHideDetailInfor(false)}>
+                                <button type="button" onClick={() => this.showHideDetailInfor(false)}>
                                     <FormattedMessage id="patient.extra-infor-doctor.hide-price" />
-                                </span>
+                                </button>
                             </div>
 
                         </>

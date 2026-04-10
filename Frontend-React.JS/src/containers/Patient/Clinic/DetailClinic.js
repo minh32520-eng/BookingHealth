@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import HomeHeader from '../../HomePage/HomeHeader';
 import { getDetailClinicById } from '../../../services/userService';
+import CommonUtils from '../../../utils/CommonUtils';
 import { path } from '../../../utils';
 import './DetailClinic.scss';
 
@@ -23,9 +24,12 @@ class DetailClinic extends Component {
     }
 
     buildClinicImage = (image) => {
-        if (!image) return '';
-        if (image.startsWith('data:image')) return image;
-        return `data:image/jpeg;base64,${image}`;
+        return CommonUtils.buildImageSrc(image);
+    }
+
+    handleViewSpecialty = (specialtyId) => {
+        if (!specialtyId) return;
+        this.props.history.push(`/detail-specialty/${specialtyId}`);
     }
 
     loadClinicDetail = async () => {
@@ -118,6 +122,9 @@ class DetailClinic extends Component {
             dataDetailClinic?.descriptionMarkdown ||
             dataDetailClinic?.description ||
             '';
+        const relatedSpecialties = Array.isArray(dataDetailClinic?.relatedSpecialties)
+            ? dataDetailClinic.relatedSpecialties
+            : [];
 
         const errorMessageIdMap = {
             missing_clinic_id: 'patient.detail-clinic.missing-id',
@@ -180,6 +187,44 @@ class DetailClinic extends Component {
                             <div className="clinic-doctor-list">
                                 <div className="clinic-section-title"><FormattedMessage id="patient.detail-clinic.doctors-title" /></div>
                                 {this.renderDoctors(dataDetailClinic.doctorClinic)}
+                            </div>
+
+                            <div className="clinic-related-specialties">
+                                <div className="clinic-section-title">
+                                    <FormattedMessage
+                                        id="patient.detail-clinic.related-specialties-title"
+                                        defaultMessage="Clinic specialties"
+                                    />
+                                </div>
+
+                                <div className="clinic-related-grid">
+                                    {relatedSpecialties.length > 0 ? relatedSpecialties.map((specialty) => (
+                                        <button
+                                            key={specialty.id}
+                                            type="button"
+                                            className="clinic-related-card"
+                                            onClick={() => this.handleViewSpecialty(specialty.id)}
+                                        >
+                                            <div className="clinic-related-card-image-wrap">
+                                                <img
+                                                    src={this.buildClinicImage(specialty.image) || '/default-specialty.jpg'}
+                                                    alt={specialty.name || 'specialty'}
+                                                    className="clinic-related-card-image"
+                                                />
+                                            </div>
+                                            <div className="clinic-related-card-body">
+                                                <div className="clinic-related-card-title">{specialty.name}</div>
+                                            </div>
+                                        </button>
+                                    )) : (
+                                        <div className="clinic-related-empty">
+                                            <FormattedMessage
+                                                id="patient.detail-clinic.related-specialties-empty"
+                                                defaultMessage="No specialties linked to this clinic yet."
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </>
                     )}

@@ -5,6 +5,7 @@ import './Specialty.scss';
 import Slider from 'react-slick';
 import { getAllSpecialty } from '../../../services/userService';
 import { path } from '../../../utils';
+import CommonUtils from '../../../utils/CommonUtils';
 
 class Specialty extends Component {
     constructor(props) {
@@ -40,6 +41,10 @@ class Specialty extends Component {
             });
         }
     }
+
+    buildImageSrc = (image) => {
+        return CommonUtils.buildImageSrc(image);
+    };
 
     render() {
         const { listSpecialty, loading, loadError } = this.state;
@@ -80,12 +85,12 @@ class Specialty extends Component {
                                             >
                                                 <div
                                                     className="bg-image section-specialty specialty-card-bg"
-                                                    style={{
-                                                        backgroundImage: item.image
-                                                            ? `url(${item.image})`
-                                                            : undefined
-                                                    }}
                                                 >
+                                                    <img
+                                                        src={this.buildImageSrc(item.image) || '/default-specialty.jpg'}
+                                                        alt={item.name || 'specialty'}
+                                                        className="section-image-el"
+                                                    />
                                                     <div className="specialty-card-title">
                                                         {item.name}
                                                     </div>

@@ -5,7 +5,7 @@ import { withRouter } from 'react-router-dom';
 import * as actions from '../../store/actions';
 import './Login.scss';
 import { Label } from 'reactstrap';
-import { handleLoginApi, registerApi, forgotPasswordApi } from '../../services/userService';
+import { handleLoginApi, registerApi, forgotPasswordApi, sendEmailOtpApi, verifyEmailOtpApi } from '../../services/userService';
 import CommonUtils from '../../utils/CommonUtils';
 import { USER_ROLE } from '../../utils';
 import { FaFacebookF } from "react-icons/fa";
@@ -14,6 +14,7 @@ import { FaInstagram } from "react-icons/fa";
 import { FaGithub } from "react-icons/fa";
 
 const getBackendUrl = () => process.env.REACT_APP_BACKEND_URL || 'http://localhost:6969';
+const AUTH_STORAGE_KEY = 'bookingcare_user_session';
 
 const getRedirectPathByRole = (user) => {
     if (!user || !user.roleId) return '/home';
@@ -54,12 +55,22 @@ class Login extends Component {
                 firstName: '',
                 lastName: '',
                 phoneNumber: '',
-                address: ''
+                address: '',
+                otpCode: '',
+                verificationToken: '',
+                otpVerified: false,
+                otpSending: false,
+                otpVerifying: false
             },
             forgotForm: {
                 email: '',
                 newPassword: '',
-                confirmPassword: ''
+                confirmPassword: '',
+                otpCode: '',
+                verificationToken: '',
+                otpVerified: false,
+                otpSending: false,
+                otpVerifying: false
             }
         };
     }
@@ -74,6 +85,12 @@ class Login extends Component {
             const token = params.get('token');
             const user = token ? CommonUtils.userInfoFromOAuthToken(token) : null;
             if (user) {
+                try {
+                    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
+                        isLoggedIn: true,
+                        userInfo: user
+                    }));
+                } catch (error) { }
                 this.props.userLoginSuccess(user);
                 this.props.history.replace({ pathname: getRedirectPathByRole(user) });
             } else {
@@ -112,7 +129,10 @@ class Login extends Component {
         this.setState(prevState => ({
             registerForm: {
                 ...prevState.registerForm,
-                [field]: value
+                [field]: value,
+                ...(field === 'email'
+                    ? { otpCode: '', verificationToken: '', otpVerified: false }
+                    : {})
             }
         }));
     }
@@ -122,9 +142,113 @@ class Login extends Component {
         this.setState(prevState => ({
             forgotForm: {
                 ...prevState.forgotForm,
-                [field]: value
+                [field]: value,
+                ...(field === 'email'
+                    ? { otpCode: '', verificationToken: '', otpVerified: false }
+                    : {})
             }
         }));
+    }
+
+    sendOtp = async (formKey, purpose) => {
+        const form = this.state[formKey];
+        const email = (form.email || '').trim().toLowerCase();
+
+        if (!email) {
+            this.setState({ errMessage: 'Vui long nhap email Gmail truoc khi gui OTP' });
+            return;
+        }
+
+        this.setState(prevState => ({
+            errMessage: '',
+            successMessage: '',
+            [formKey]: {
+                ...prevState[formKey],
+                otpSending: true
+            }
+        }));
+
+        try {
+            const res = await sendEmailOtpApi({ email, purpose });
+            if (res && res.errCode === 0) {
+                this.setState(prevState => ({
+                    successMessage: 'Ma OTP da duoc gui ve Gmail cua ban.',
+                    [formKey]: {
+                        ...prevState[formKey],
+                        otpSending: false
+                    }
+                }));
+                return;
+            }
+
+            this.setState(prevState => ({
+                errMessage: res?.errMessage || 'Khong gui duoc ma OTP',
+                [formKey]: {
+                    ...prevState[formKey],
+                    otpSending: false
+                }
+            }));
+        } catch (error) {
+            this.setState(prevState => ({
+                errMessage: error?.response?.data?.errMessage || 'Khong gui duoc ma OTP',
+                [formKey]: {
+                    ...prevState[formKey],
+                    otpSending: false
+                }
+            }));
+        }
+    }
+
+    verifyOtp = async (formKey, purpose) => {
+        const form = this.state[formKey];
+        const email = (form.email || '').trim().toLowerCase();
+        const otpCode = (form.otpCode || '').trim();
+
+        if (!email || !otpCode) {
+            this.setState({ errMessage: 'Vui long nhap email va ma OTP' });
+            return;
+        }
+
+        this.setState(prevState => ({
+            errMessage: '',
+            successMessage: '',
+            [formKey]: {
+                ...prevState[formKey],
+                otpVerifying: true
+            }
+        }));
+
+        try {
+            const res = await verifyEmailOtpApi({ email, purpose, otpCode });
+            if (res && res.errCode === 0) {
+                this.setState(prevState => ({
+                    successMessage: 'Xac minh email thanh cong.',
+                    [formKey]: {
+                        ...prevState[formKey],
+                        otpVerifying: false,
+                        otpVerified: true,
+                        verificationToken: res?.data?.verificationToken || ''
+                    }
+                }));
+                return;
+            }
+
+            this.setState(prevState => ({
+                errMessage: res?.errMessage || 'Xac minh OTP that bai',
+                [formKey]: {
+                    ...prevState[formKey],
+                    otpVerifying: false
+                }
+            }));
+        } catch (error) {
+            this.setState(prevState => ({
+                errMessage: error?.response?.data?.errMessage || 'Xac minh OTP that bai',
+                [formKey]: {
+                    ...prevState[formKey],
+                    otpVerifying: false
+                }
+            }));
+        }
     }
 
     handelLogin = async () => {
@@ -181,6 +305,11 @@ class Login extends Component {
             return;
         }
 
+        if (!registerForm.otpVerified || !registerForm.verificationToken) {
+            this.setState({ errMessage: 'Vui long xac minh OTP truoc khi dang ky' });
+            return;
+        }
+
         if (registerForm.password !== registerForm.confirmPassword) {
             this.setState({ errMessage: 'Mat khau xac nhan khong khop' });
             return;
@@ -193,7 +322,8 @@ class Login extends Component {
                 firstName: registerForm.firstName,
                 lastName: registerForm.lastName,
                 phoneNumber: registerForm.phoneNumber,
-                address: registerForm.address
+                address: registerForm.address,
+                verificationToken: registerForm.verificationToken
             });
 
             if (res && res.errCode === 0) {
@@ -209,7 +339,12 @@ class Login extends Component {
                         firstName: '',
                         lastName: '',
                         phoneNumber: '',
-                        address: ''
+                        address: '',
+                        otpCode: '',
+                        verificationToken: '',
+                        otpVerified: false,
+                        otpSending: false,
+                        otpVerifying: false
                     }
                 });
             } else {
@@ -229,6 +364,11 @@ class Login extends Component {
             return;
         }
 
+        if (!forgotForm.otpVerified || !forgotForm.verificationToken) {
+            this.setState({ errMessage: 'Vui long xac minh OTP truoc khi doi mat khau' });
+            return;
+        }
+
         if (forgotForm.newPassword !== forgotForm.confirmPassword) {
             this.setState({ errMessage: 'Mat khau xac nhan khong khop' });
             return;
@@ -237,7 +377,8 @@ class Login extends Component {
         try {
             const res = await forgotPasswordApi({
                 email: forgotForm.email.trim().toLowerCase(),
-                newPassword: forgotForm.newPassword
+                newPassword: forgotForm.newPassword,
+                verificationToken: forgotForm.verificationToken
             });
 
             if (res && res.errCode === 0) {
@@ -249,7 +390,12 @@ class Login extends Component {
                     forgotForm: {
                         email: '',
                         newPassword: '',
-                        confirmPassword: ''
+                        confirmPassword: '',
+                        otpCode: '',
+                        verificationToken: '',
+                        otpVerified: false,
+                        otpSending: false,
+                        otpVerifying: false
                     }
                 });
             } else {
@@ -342,6 +488,21 @@ class Login extends Component {
                     <Label>Email</Label>
                     <input type="text" className="form-control" value={registerForm.email} onChange={(e) => this.onChangeRegisterField(e, 'email')} />
                 </div>
+                <div className="col-8 form-group login-input compact-input">
+                    <Label>OTP</Label>
+                    <input type="text" className="form-control" value={registerForm.otpCode} onChange={(e) => this.onChangeRegisterField(e, 'otpCode')} />
+                </div>
+                <div className="col-4 form-group login-input compact-input otp-action-cell">
+                    <Label>&nbsp;</Label>
+                    <button type="button" className="btn-otp-action" onClick={() => this.sendOtp('registerForm', 'register')} disabled={registerForm.otpSending}>
+                        {registerForm.otpSending ? 'Sending...' : 'Send OTP'}
+                    </button>
+                </div>
+                <div className="col-12 auth-inline-actions otp-inline">
+                    <button type="button" className="link-button" onClick={() => this.verifyOtp('registerForm', 'register')}>
+                        {registerForm.otpVerifying ? 'Verifying...' : registerForm.otpVerified ? 'OTP verified' : 'Verify OTP'}
+                    </button>
+                </div>
                 <div className="col-6 form-group login-input compact-input">
                     <Label>Password</Label>
                     <input type="password" className="form-control" value={registerForm.password} onChange={(e) => this.onChangeRegisterField(e, 'password')} />
@@ -377,6 +538,21 @@ class Login extends Component {
                 <div className="col-12 form-group login-input">
                     <Label>Email</Label>
                     <input type="text" className="form-control" value={forgotForm.email} onChange={(e) => this.onChangeForgotField(e, 'email')} />
+                </div>
+                <div className="col-8 form-group login-input compact-input">
+                    <Label>OTP</Label>
+                    <input type="text" className="form-control" value={forgotForm.otpCode} onChange={(e) => this.onChangeForgotField(e, 'otpCode')} />
+                </div>
+                <div className="col-4 form-group login-input compact-input otp-action-cell">
+                    <Label>&nbsp;</Label>
+                    <button type="button" className="btn-otp-action" onClick={() => this.sendOtp('forgotForm', 'forgot_password')} disabled={forgotForm.otpSending}>
+                        {forgotForm.otpSending ? 'Sending...' : 'Send OTP'}
+                    </button>
+                </div>
+                <div className="col-12 auth-inline-actions otp-inline">
+                    <button type="button" className="link-button" onClick={() => this.verifyOtp('forgotForm', 'forgot_password')}>
+                        {forgotForm.otpVerifying ? 'Verifying...' : forgotForm.otpVerified ? 'OTP verified' : 'Verify OTP'}
+                    </button>
                 </div>
                 <div className="col-12 form-group login-input">
                     <Label>New password</Label>

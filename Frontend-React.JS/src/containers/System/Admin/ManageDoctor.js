@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import { connect } from 'react-redux';
 import './TableManageUser.scss';
 import * as actions from "../../../store/actions";
@@ -198,7 +198,7 @@ class ManageDoctor extends Component {
             !this.state.selectedPayment ||
             !this.state.selectedProvince
         ) {
-            alert("Missing required fields!");
+            alert(this.props.intl.formatMessage({ id: 'admin.manage-doctor.messages.missing-fields' }));
             return;
         }
 
@@ -286,17 +286,17 @@ class ManageDoctor extends Component {
     }
 
     handleDeleteDoctorInfor = async (doctor) => {
-        if (!window.confirm(`Delete saved info of doctor "${doctor.lastName || ''} ${doctor.firstName || ''}"?`)) return;
+        if (!window.confirm(`${this.props.intl.formatMessage({ id: 'admin.manage-doctor.messages.delete-confirm' })} "${doctor.lastName || ''} ${doctor.firstName || ''}"?`)) return;
 
         const res = await deleteDoctorInforService(doctor.id);
         if (res && res.errCode === 0) {
-            toast.success('Delete doctor info succeeds!');
+            toast.success(this.props.intl.formatMessage({ id: 'admin.manage-doctor.messages.delete-success' }));
             if (this.state.selectedDoctor?.value === doctor.id) {
                 this.resetDoctorForm();
             }
             await this.props.fetchAllDoctors();
         } else {
-            toast.error((res && res.errMessage) || 'Delete doctor info failed');
+            toast.error((res && res.errMessage) || this.props.intl.formatMessage({ id: 'admin.manage-doctor.messages.delete-failed' }));
         }
     }
 
@@ -362,7 +362,7 @@ class ManageDoctor extends Component {
 
                 <div className="row more-infor-extra">
                     <div className="col-4 form-group">
-                        <label>Clinic</label>
+                        <label><FormattedMessage id="admin.manage-doctor.clinic" /></label>
                         <Select
                             value={this.state.selectedClinic}
                             onChange={this.handleClinicSelection}
@@ -371,7 +371,7 @@ class ManageDoctor extends Component {
                     </div>
 
                     <div className="col-4 form-group">
-                        <label>Upload Image</label>
+                        <label><FormattedMessage id="admin.manage-doctor.upload-image" /></label>
                         <input type="file" onChange={this.handleOnChangeImage} />
 
                         {this.state.previewImgURL &&
@@ -436,26 +436,26 @@ class ManageDoctor extends Component {
                         onClick={this.handleSaveDoctorInformation}
                         className={hasExistingData ? "save-content-doctor" : "create-content-doctor"}
                     >
-                        {hasExistingData ? "Save" : "Add"}
+                        <FormattedMessage id={hasExistingData ? "admin.manage-doctor.save" : "admin.manage-doctor.add"} />
                     </button>
                     {(this.state.selectedDoctor || hasExistingData) && (
-                        <button onClick={this.resetDoctorForm} className="btn-cancel-doctor">Cancel</button>
+                        <button onClick={this.resetDoctorForm} className="btn-cancel-doctor"><FormattedMessage id="admin.manage-doctor.cancel" /></button>
                     )}
                 </div>
 
                 <div className="doctor-info-list mt-4">
-                    <h5>Danh sach thong tin bac si</h5>
+                    <h5><FormattedMessage id="admin.manage-doctor.list-title" /></h5>
                     <div className="table-responsive admin-table-wrap">
                         <table className="table admin-info-table">
                             <thead>
                                 <tr>
-                                    <th style={{ width: '70px' }}>ID</th>
-                                    <th style={{ width: '220px' }}>Doctor</th>
-                                    <th>Intro</th>
-                                    <th style={{ width: '200px' }}>Clinic</th>
-                                    <th style={{ width: '160px' }}>Price</th>
-                                    <th style={{ width: '160px' }}>Note</th>
-                                    <th style={{ width: '120px' }}>Actions</th>
+                                    <th style={{ width: '70px' }}><FormattedMessage id="admin.manage-doctor.table.id" /></th>
+                                    <th style={{ width: '220px' }}><FormattedMessage id="admin.manage-doctor.table.doctor" /></th>
+                                    <th><FormattedMessage id="admin.manage-doctor.table.intro" /></th>
+                                    <th style={{ width: '200px' }}><FormattedMessage id="admin.manage-doctor.table.clinic" /></th>
+                                    <th style={{ width: '160px' }}><FormattedMessage id="admin.manage-doctor.table.price" /></th>
+                                    <th style={{ width: '160px' }}><FormattedMessage id="admin.manage-doctor.table.note" /></th>
+                                    <th style={{ width: '120px' }}><FormattedMessage id="admin.manage-doctor.table.actions" /></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -490,7 +490,7 @@ class ManageDoctor extends Component {
                                 })}
                                 {doctorRows.length === 0 && (
                                     <tr>
-                                        <td colSpan="7" className="text-center empty-row">Chua co du lieu</td>
+                                        <td colSpan="7" className="text-center empty-row"><FormattedMessage id="admin.manage-doctor.table.empty" /></td>
                                     </tr>
                                 )}
                             </tbody>
@@ -514,4 +514,4 @@ const mapDispatchToProps = dispatch => ({
     saveDetailDoctor: (data) => dispatch(actions.saveDetailDoctor(data))
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ManageDoctor);
+export default injectIntl(connect(mapStateToProps, mapDispatchToProps)(ManageDoctor));

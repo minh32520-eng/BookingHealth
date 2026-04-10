@@ -1,5 +1,6 @@
 const db = require('../models');
 const { Op } = require('sequelize');
+const { normalizeBase64Image } = require('../utils/image');
 
 const getAllClinics = async () => {
     try {
@@ -68,6 +69,30 @@ const getDetailClinicById = async (id) => {
             nest: true,
         });
 
+        const specialtyLinks = await db.DoctorClinicSpecialty.findAll({
+            where: { clinicId: id },
+            include: [
+                {
+                    model: db.Specialty,
+                    as: 'specialtyData',
+                    attributes: ['id', 'name', 'image']
+                }
+            ],
+            raw: false,
+            nest: true,
+        });
+
+        const relatedSpecialtiesMap = new Map();
+        specialtyLinks.forEach((item) => {
+            const specialty = item?.specialtyData?.get
+                ? item.specialtyData.get({ plain: true })
+                : item?.specialtyData;
+
+            if (specialty && specialty.id && !relatedSpecialtiesMap.has(specialty.id)) {
+                relatedSpecialtiesMap.set(specialty.id, specialty);
+            }
+        });
+
         const data = {
             ...clinic,
             doctorClinic: doctorClinicInfor.map((item) => {
@@ -77,6 +102,7 @@ const getDetailClinicById = async (id) => {
                     doctorData: plainItem.User
                 };
             }),
+            relatedSpecialties: Array.from(relatedSpecialtiesMap.values()),
         };
 
         return {
@@ -102,7 +128,7 @@ const createClinic = async (payload) => {
             name: payload.name,
             address: payload.address,
             description: payload.description,
-            image: payload.imageBase64,
+            image: normalizeBase64Image(payload.imageBase64),
         });
 
         return {
@@ -140,7 +166,7 @@ const updateClinic = async (payload) => {
         clinic.description = payload.description;
 
         if (payload.imageBase64) {
-            clinic.image = payload.imageBase64;
+            clinic.image = normalizeBase64Image(payload.imageBase64);
         }
 
         await clinic.save();

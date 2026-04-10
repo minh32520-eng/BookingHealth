@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import { toast } from 'react-toastify';
 import { CommonUtils } from '../../utils';
 import { createNewClinic, deleteClinic, editClinic, getAllClinic } from '../../services/userService';
@@ -26,7 +27,7 @@ class ManageClinic extends Component {
                 this.setState({ clinics: res.data || [] });
             }
         } catch (e) {
-            toast.error('Khong tai duoc danh sach phong kham');
+            toast.error(this.props.intl.formatMessage({ id: 'admin.manage-clinic.messages.load-error' }));
         }
     };
 
@@ -39,6 +40,11 @@ class ManageClinic extends Component {
         if (!file) return;
         const base64 = await CommonUtils.getBase64(file);
         this.setState({ imageBase64: base64 });
+    };
+
+    normalizeImageSrc = (value) => {
+        if (!value) return '';
+        return value.startsWith('data:image') ? value : `data:image/jpeg;base64,${value}`;
     };
 
     resetForm = () => {
@@ -59,11 +65,15 @@ class ManageClinic extends Component {
             : await createNewClinic(payload);
 
         if (res && res.errCode === 0) {
-            toast.success(editingClinicId ? 'Cap nhat phong kham thanh cong' : 'Tao phong kham thanh cong');
+            toast.success(this.props.intl.formatMessage({
+                id: editingClinicId
+                    ? 'admin.manage-clinic.messages.update-success'
+                    : 'admin.manage-clinic.messages.create-success'
+            }));
             this.resetForm();
             await this.loadClinics();
         } else {
-            toast.error((res && res.errMessage) || 'Luu phong kham that bai');
+            toast.error((res && res.errMessage) || this.props.intl.formatMessage({ id: 'admin.manage-clinic.messages.save-failed' }));
         }
     };
 
@@ -78,21 +88,21 @@ class ManageClinic extends Component {
     };
 
     handleDeleteClinic = async (clinic) => {
-        if (!window.confirm(`Xoa phong kham "${clinic.name}"?`)) return;
+        if (!window.confirm(`${this.props.intl.formatMessage({ id: 'admin.manage-clinic.messages.delete-confirm' })} "${clinic.name}"?`)) return;
 
         try {
             const res = await deleteClinic(clinic.id);
             if (res && res.errCode === 0) {
-                toast.success('Xoa phong kham thanh cong');
+                toast.success(this.props.intl.formatMessage({ id: 'admin.manage-clinic.messages.delete-success' }));
                 if (this.state.editingClinicId === clinic.id) {
                     this.resetForm();
                 }
                 await this.loadClinics();
             } else {
-                toast.error((res && res.errMessage) || 'Xoa phong kham that bai');
+                toast.error((res && res.errMessage) || this.props.intl.formatMessage({ id: 'admin.manage-clinic.messages.delete-failed' }));
             }
         } catch (e) {
-            toast.error('Khong the xoa phong kham');
+            toast.error(this.props.intl.formatMessage({ id: 'admin.manage-clinic.messages.delete-network' }));
         }
     };
 
@@ -100,9 +110,7 @@ class ManageClinic extends Component {
         const { imageBase64 } = this.state;
         if (!imageBase64) return null;
 
-        const src = imageBase64.startsWith('data:image')
-            ? imageBase64
-            : `data:image/jpeg;base64,${imageBase64}`;
+        const src = this.normalizeImageSrc(imageBase64);
 
         return (
             <div className="mc-preview">
@@ -116,11 +124,11 @@ class ManageClinic extends Component {
 
         return (
             <div className="manage-clinic-container">
-                <div className="mc-title">Quan ly phong kham</div>
+                <div className="mc-title"><FormattedMessage id="admin.manage-clinic.title" /></div>
 
                 <div className="add-new-clinic row">
                     <div className="col-6 form-group">
-                        <label>Ten phong kham</label>
+                        <label><FormattedMessage id="admin.manage-clinic.form.name" /></label>
                         <input
                             className="form-control"
                             value={name}
@@ -129,7 +137,7 @@ class ManageClinic extends Component {
                     </div>
 
                     <div className="col-6 form-group">
-                        <label>Dia chi</label>
+                        <label><FormattedMessage id="admin.manage-clinic.form.address" /></label>
                         <input
                             className="form-control"
                             value={address}
@@ -138,7 +146,7 @@ class ManageClinic extends Component {
                     </div>
 
                     <div className="col-12 form-group">
-                        <label>Mo ta</label>
+                        <label><FormattedMessage id="admin.manage-clinic.form.description" /></label>
                         <textarea
                             className="form-control"
                             rows="4"
@@ -148,7 +156,7 @@ class ManageClinic extends Component {
                     </div>
 
                     <div className="col-12 form-group">
-                        <label>Anh phong kham</label>
+                        <label><FormattedMessage id="admin.manage-clinic.form.image" /></label>
                         <input
                             className="form-control-file"
                             type="file"
@@ -159,27 +167,25 @@ class ManageClinic extends Component {
 
                     <div className="col-12 form-actions">
                         <button className="btn-save-clinic" onClick={this.handleSave}>
-                            {editingClinicId ? 'Update' : 'Save'}
+                            <FormattedMessage id={editingClinicId ? 'admin.manage-clinic.actions.update' : 'admin.manage-clinic.actions.save'} />
                         </button>
                         {editingClinicId && (
-                            <button className="btn-cancel-clinic" onClick={this.resetForm}>
-                                Cancel
-                            </button>
+                            <button className="btn-cancel-clinic" onClick={this.resetForm}><FormattedMessage id="admin.manage-clinic.actions.cancel" /></button>
                         )}
                     </div>
                 </div>
 
                 <div className="mc-list mt-4">
-                    <h5>Danh sach phong kham</h5>
+                    <h5><FormattedMessage id="admin.manage-clinic.list.title" /></h5>
                     <div className="table-responsive admin-table-wrap">
                         <table className="table admin-info-table">
                             <thead>
                                 <tr>
-                                    <th style={{ width: '70px' }}>ID</th>
-                                    <th>Ten</th>
-                                    <th>Dia chi</th>
-                                    <th>Mo ta</th>
-                                    <th style={{ width: '120px' }}>Actions</th>
+                                    <th style={{ width: '70px' }}><FormattedMessage id="admin.manage-clinic.table.id" /></th>
+                                    <th><FormattedMessage id="admin.manage-clinic.table.name" /></th>
+                                    <th><FormattedMessage id="admin.manage-clinic.table.address" /></th>
+                                    <th><FormattedMessage id="admin.manage-clinic.table.description" /></th>
+                                    <th style={{ width: '120px' }}><FormattedMessage id="admin.manage-clinic.table.actions" /></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -209,7 +215,7 @@ class ManageClinic extends Component {
                                 ))}
                                 {clinics.length === 0 && (
                                     <tr>
-                                        <td colSpan="5" className="text-center empty-row">Chua co du lieu</td>
+                                        <td colSpan="5" className="text-center empty-row"><FormattedMessage id="admin.manage-clinic.table.empty" /></td>
                                     </tr>
                                 )}
                             </tbody>
@@ -222,4 +228,4 @@ class ManageClinic extends Component {
 }
 
 const mapStateToProps = (state) => ({ language: state.app.language });
-export default connect(mapStateToProps)(ManageClinic);
+export default injectIntl(connect(mapStateToProps)(ManageClinic));

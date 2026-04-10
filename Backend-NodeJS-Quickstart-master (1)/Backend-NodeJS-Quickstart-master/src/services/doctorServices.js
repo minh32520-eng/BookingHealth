@@ -13,6 +13,42 @@ const convertImage = (image) => {
     return image || "";
 };
 
+const parseScheduleStart = (value = "") => {
+    const normalized = String(value).trim().toUpperCase();
+    const match = normalized.match(/(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/);
+
+    if (!match) {
+        return null;
+    }
+
+    let hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    const meridiem = match[3];
+
+    if (meridiem === "AM" && hours === 12) hours = 0;
+    if (meridiem === "PM" && hours < 12) hours += 12;
+
+    return { hours, minutes };
+};
+
+const getScheduleStartTimestamp = (dateValue, timeTypeData) => {
+    const parsed =
+        parseScheduleStart(timeTypeData?.valueEn) ||
+        parseScheduleStart(timeTypeData?.valueVi);
+
+    if (!parsed) {
+        return moment(Number(dateValue)).valueOf();
+    }
+
+    return moment(Number(dateValue))
+        .startOf("day")
+        .hour(parsed.hours)
+        .minute(parsed.minutes)
+        .second(0)
+        .millisecond(0)
+        .valueOf();
+};
+
 // ================== GET TOP DOCTOR ==================
 let getTopDoctorHome = (limitInput) => {
     return new Promise(async (resolve, reject) => {
@@ -380,9 +416,16 @@ let getScheduleByDate = (doctorId, date) => {
                 nest: true,
             });
 
+            const now = moment().valueOf();
+            const filteredData = (data || []).filter((item) => {
+                const schedule = item.get ? item.get({ plain: true }) : item;
+                const startTimestamp = getScheduleStartTimestamp(schedule.date, schedule.timeTypeData);
+                return startTimestamp > now;
+            });
+
             resolve({
                 errCode: 0,
-                data: data,
+                data: filteredData,
             });
 
         } catch (e) {
@@ -603,6 +646,268 @@ let getProfileDoctorById = (doctorId) => {
     });
 };
 
+let getDoctorMedicalRecords = (doctorId, statusId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!doctorId) {
+                return resolve({
+                    errCode: 1,
+                    errMessage: "Missing required parameter!",
+                    data: {
+                        pendingAppointments: [],
+                        historyRecords: [],
+                    },
+                });
+            }
+
+            const bookingWhere = { doctorId };
+            if (statusId) {
+                bookingWhere.statusId = statusId;
+            } else {
+                bookingWhere.statusId = {
+                    [Op.in]: ["S2", "S3"],
+                };
+            }
+
+            const [bookings, histories] = await Promise.all([
+                db.Booking.findAll({
+                    where: bookingWhere,
+                    raw: true,
+                    order: [["date", "DESC"], ["createdAt", "DESC"]],
+                }),
+                db.History.findAll({
+                    where: { doctorId },
+                    raw: true,
+                    order: [["createdAt", "DESC"]],
+                }),
+            ]);
+
+            const patientIds = [...new Set([
+                ...(bookings || []).map(item => item.patientId),
+                ...(histories || []).map(item => item.patientId),
+            ].filter(Boolean))];
+            const timeTypes = [...new Set((bookings || []).map(item => item.timeType).filter(Boolean))];
+
+            const [patients, timeCodes] = await Promise.all([
+                patientIds.length > 0
+                    ? db.User.findAll({
+                        where: { id: patientIds },
+                        attributes: ["id", "email", "firstName", "lastName", "phoneNumber", "address", "gender"],
+                        raw: true,
+                    })
+                    : [],
+                timeTypes.length > 0
+                    ? db.Allcode.findAll({
+                        where: { keyMap: timeTypes },
+                        attributes: ["keyMap", "valueEn", "valueVi"],
+                        raw: true,
+                    })
+                    : [],
+            ]);
+
+            const patientMap = new Map((patients || []).map(item => [String(item.id), item]));
+            const timeMap = new Map((timeCodes || []).map(item => [item.keyMap, item]));
+
+            const pendingAppointments = (bookings || [])
+                .filter(item => item.statusId === "S2")
+                .map(item => ({
+                    ...item,
+                    patientData: patientMap.get(String(item.patientId)) || null,
+                    timeTypeData: timeMap.get(item.timeType) || null,
+                }));
+
+            const historyRecords = (histories || []).map(item => ({
+                ...item,
+                patientData: patientMap.get(String(item.patientId)) || null,
+            }));
+
+            resolve({
+                errCode: 0,
+                data: {
+                    pendingAppointments,
+                    historyRecords,
+                },
+            });
+        } catch (e) {
+            console.log("ERROR getDoctorMedicalRecords:", e);
+            reject(e);
+        }
+    });
+};
+
+let saveDoctorMedicalRecord = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.doctorId || !data.patientId || !data.bookingId || !data.description) {
+                return resolve({
+                    errCode: 1,
+                    errMessage: "Missing required parameter!",
+                });
+            }
+
+            const booking = await db.Booking.findOne({
+                where: {
+                    id: data.bookingId,
+                    doctorId: data.doctorId,
+                    patientId: data.patientId,
+                },
+                raw: false,
+            });
+
+            if (!booking) {
+                return resolve({
+                    errCode: 2,
+                    errMessage: "Booking not found",
+                });
+            }
+
+            await db.History.create({
+                doctorId: data.doctorId,
+                patientId: data.patientId,
+                description: data.description,
+                files: data.files || "",
+            });
+
+            booking.statusId = "S3";
+            await booking.save();
+
+            resolve({
+                errCode: 0,
+                errMessage: "Save medical record succeed",
+            });
+        } catch (e) {
+            console.log("ERROR saveDoctorMedicalRecord:", e);
+            reject(e);
+        }
+    });
+};
+
+let confirmFinishedBooking = (doctorId, bookingId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!doctorId || !bookingId) {
+                return resolve({
+                    errCode: 1,
+                    errMessage: "Missing required parameter!",
+                });
+            }
+
+            const booking = await db.Booking.findOne({
+                where: {
+                    id: bookingId,
+                    doctorId
+                },
+                raw: false,
+            });
+
+            if (!booking) {
+                return resolve({
+                    errCode: 2,
+                    errMessage: "Booking not found",
+                });
+            }
+
+            if (booking.statusId === "S3") {
+                return resolve({
+                    errCode: 0,
+                    errMessage: "Booking already completed",
+                });
+            }
+
+            if (booking.statusId !== "S2") {
+                return resolve({
+                    errCode: 3,
+                    errMessage: "Only confirmed bookings can be marked as examined",
+                });
+            }
+
+            booking.statusId = "S3";
+            await booking.save();
+
+            return resolve({
+                errCode: 0,
+                errMessage: "Confirm examined succeed",
+            });
+        } catch (e) {
+            console.log("ERROR confirmFinishedBooking:", e);
+            reject(e);
+        }
+    });
+};
+
+let updateDoctorProfile = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id || !data.firstName || !data.lastName || !data.email) {
+                return resolve({
+                    errCode: 1,
+                    errMessage: "Missing required parameter!",
+                });
+            }
+
+            const doctor = await db.User.findOne({
+                where: { id: data.id, roleId: "R2" },
+                raw: false,
+            });
+
+            if (!doctor) {
+                return resolve({
+                    errCode: 2,
+                    errMessage: "Doctor not found",
+                });
+            }
+
+            doctor.firstName = data.firstName;
+            doctor.lastName = data.lastName;
+            doctor.address = data.address || "";
+            doctor.phoneNumber = data.phoneNumber || "";
+            doctor.gender = data.gender || doctor.gender;
+
+            if (data.image && data.image.length > 0) {
+                const imageBase64 = data.image.includes(",")
+                    ? data.image.split(",")[1]
+                    : data.image;
+                doctor.image = Buffer.from(imageBase64, "base64");
+            }
+
+            await doctor.save();
+
+            const updatedDoctor = await db.User.findOne({
+                where: { id: data.id },
+                attributes: { exclude: ["password"] },
+                include: [
+                    {
+                        model: db.Allcode,
+                        as: "positionData",
+                        attributes: ["valueEn", "valueVi"],
+                    },
+                    {
+                        model: db.Allcode,
+                        as: "genderData",
+                        attributes: ["valueEn", "valueVi"],
+                    },
+                ],
+                raw: false,
+                nest: true,
+            });
+
+            const plainDoctor = updatedDoctor ? updatedDoctor.get({ plain: true }) : null;
+            if (plainDoctor) {
+                plainDoctor.image = convertImage(plainDoctor.image);
+            }
+
+            resolve({
+                errCode: 0,
+                errMessage: "Update profile succeed",
+                data: plainDoctor,
+            });
+        } catch (e) {
+            console.log("ERROR updateDoctorProfile:", e);
+            reject(e);
+        }
+    });
+};
+
 // ================== EXPORT ==================
 module.exports = {
     getTopDoctorHome,
@@ -614,5 +919,9 @@ module.exports = {
     getListPatientForDoctor,
     getExraInforDoctorById,
     getProfileDoctorById,
-    deleteDoctorInfor
+    deleteDoctorInfor,
+    getDoctorMedicalRecords,
+    saveDoctorMedicalRecord,
+    confirmFinishedBooking,
+    updateDoctorProfile
 };

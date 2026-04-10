@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
 import './ManageSchedule.scss';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import * as actions from "../../../store/actions";
 import { LANGUAGES, USER_ROLE } from '../../../utils';
 import DatePicker from '../../../components/Input/DatePicker';
 import moment from 'moment';
 import { toast } from 'react-toastify';
-import { saveBulkScheduleDoctor, getExtraInforDoctorById, getListPatientForDoctor, getScheduleDoctorByDate } from '../../../services/userService';
+import { saveBulkScheduleDoctor, getExtraInforDoctorById, getListPatientForDoctor, getScheduleDoctorByDate, confirmFinishedBooking } from '../../../services/userService';
 
 class ManageSchedule extends Component {
 
@@ -17,7 +17,8 @@ class ManageSchedule extends Component {
             currentDate: new Date(),
             rangeTime: [],
             doctorExtraInfo: null,
-            patientBookings: []
+            patientBookings: [],
+            completingBookingId: null
         }
     }
 
@@ -147,12 +148,12 @@ class ManageSchedule extends Component {
         const doctorId = this.getDoctorId();
 
         if (!doctorId) {
-            toast.error("Doctor account is required!");
+            toast.error(this.props.intl.formatMessage({ id: 'doctor.manage-schedule.messages.invalid-doctor' }));
             return;
         }
 
         if (!currentDate) {
-            toast.error("Invalid date!");
+            toast.error(this.props.intl.formatMessage({ id: 'doctor.manage-schedule.messages.invalid-date' }));
             return;
         }
 
@@ -184,34 +185,66 @@ class ManageSchedule extends Component {
         })
 
         if (res && res.errCode === 0) {
-            toast.success("Save Infor succeed!");
+            toast.success(this.props.intl.formatMessage({ id: 'doctor.manage-schedule.messages.save-success' }));
             await this.loadExistingSchedule(currentDate);
             await this.loadPatientBookings(currentDate);
         } else {
-            toast.error("error saveBulkScheduleDoctor");
+            toast.error(this.props.intl.formatMessage({ id: 'doctor.manage-schedule.messages.save-failed' }));
             console.log("error saveBulkScheduleDoctor >>> res: ", res);
         }
     }
 
+    handleConfirmFinished = async (bookingId) => {
+        const doctorId = this.getDoctorId();
+        if (!doctorId || !bookingId) return;
+
+        this.setState({ completingBookingId: bookingId });
+        try {
+            const res = await confirmFinishedBooking({
+                doctorId,
+                bookingId
+            });
+
+            if (res && res.errCode === 0) {
+                toast.success(this.props.intl.formatMessage({ id: 'doctor.manage-schedule.messages.complete-success' }));
+                await this.loadPatientBookings(this.state.currentDate);
+                return;
+            }
+
+            toast.error(res?.errMessage || this.props.intl.formatMessage({ id: 'doctor.manage-schedule.messages.complete-failed' }));
+        } catch (error) {
+            toast.error(this.props.intl.formatMessage({ id: 'doctor.manage-schedule.messages.complete-failed' }));
+        } finally {
+            this.setState({ completingBookingId: null });
+        }
+    }
+
     renderBookingRows = () => {
-        const { patientBookings } = this.state;
+        const { patientBookings, completingBookingId } = this.state;
         const { language } = this.props;
 
         if (!patientBookings || patientBookings.length === 0) {
             return (
                 <tr>
-                    <td colSpan="5" className="empty-booking-row">No patient bookings for this date.</td>
+                    <td colSpan="6" className="empty-booking-row">
+                        <FormattedMessage id="doctor.manage-schedule.table.empty" />
+                    </td>
                 </tr>
             );
         }
 
         return patientBookings.map((item, index) => {
             const patient = item.patientData || {};
-            const fullName = [patient.lastName, patient.firstName].filter(Boolean).join(' ').trim() || 'Patient';
+            const fullName = [patient.lastName, patient.firstName].filter(Boolean).join(' ').trim()
+                || this.props.intl.formatMessage({ id: 'doctor.manage-schedule.table.patient-fallback' });
             const timeLabel = language === LANGUAGES.VI
                 ? item.timeTypeDataPatient?.valueVi
                 : item.timeTypeDataPatient?.valueEn;
-            const statusLabel = item.statusId === 'S2' ? 'Confirmed' : 'Pending';
+            const statusLabel = item.statusId === 'S3'
+                ? this.props.intl.formatMessage({ id: 'doctor.manage-schedule.status.examined' })
+                : item.statusId === 'S2'
+                    ? this.props.intl.formatMessage({ id: 'doctor.manage-schedule.status.confirmed' })
+                    : this.props.intl.formatMessage({ id: 'doctor.manage-schedule.status.pending' });
 
             return (
                 <tr key={`${item.patientId}-${item.timeType}-${index}`}>
@@ -220,9 +253,43 @@ class ManageSchedule extends Component {
                     <td>{patient.phoneNumber || '--'}</td>
                     <td>{timeLabel || item.timeType}</td>
                     <td>
-                        <span className={item.statusId === 'S2' ? 'booking-status confirmed' : 'booking-status pending'}>
+                        <span className={
+                            item.statusId === 'S3'
+                                ? 'booking-status examined'
+                                : item.statusId === 'S2'
+                                    ? 'booking-status confirmed'
+                                    : 'booking-status pending'
+                        }>
                             {statusLabel}
                         </span>
+                    </td>
+                    <td>
+                        {item.statusId === 'S2' ? (
+                            <button
+                                type="button"
+                                className="btn-finish-booking"
+                                onClick={() => this.handleConfirmFinished(item.id)}
+                                disabled={completingBookingId === item.id}
+                            >
+                                {completingBookingId === item.id
+                                    ? this.props.intl.formatMessage({ id: 'doctor.manage-schedule.actions.updating' })
+                                    : this.props.intl.formatMessage({ id: 'doctor.manage-schedule.actions.complete' })}
+                            </button>
+                        ) : item.statusId === 'S1' ? (
+                            <button
+                                type="button"
+                                className="btn-finish-booking waiting"
+                                disabled
+                            >
+                                <FormattedMessage id="doctor.manage-schedule.actions.waiting" />
+                            </button>
+                        ) : item.statusId === 'S3' ? (
+                            <span className="booking-action-done">
+                                <FormattedMessage id="doctor.manage-schedule.actions.done" />
+                            </span>
+                        ) : (
+                            <span className="booking-action-done">--</span>
+                        )}
                     </td>
                 </tr>
             );
@@ -248,38 +315,38 @@ class ManageSchedule extends Component {
                                 <FormattedMessage id="manage-schedule.title" />
                             </div>
                             <div className="schedule-subtitle">
-                                Review your clinic information, open your available hours, and see which patients booked you on each day.
+                                <FormattedMessage id="doctor.manage-schedule.subtitle" />
                             </div>
                         </div>
                     </div>
 
                     <div className="schedule-top-grid">
                         <div className="schedule-info-card doctor-card">
-                            <span className="card-label">Doctor account</span>
+                            <span className="card-label"><FormattedMessage id="doctor.manage-schedule.cards.doctor-label" /></span>
                             <strong>{doctorName || '--'}</strong>
-                            <p>Only this doctor account can create and review its own schedule.</p>
+                            <p><FormattedMessage id="doctor.manage-schedule.cards.doctor-note" /></p>
                         </div>
                         <div className="schedule-info-card clinic-card">
-                            <span className="card-label">Clinic</span>
+                            <span className="card-label"><FormattedMessage id="doctor.manage-schedule.cards.clinic-label" /></span>
                             <strong>{doctorExtraInfo?.nameClinic || '--'}</strong>
-                            <p>{doctorExtraInfo?.addressClinic || 'Clinic address is not updated yet.'}</p>
+                            <p>{doctorExtraInfo?.addressClinic || this.props.intl.formatMessage({ id: 'doctor.manage-schedule.cards.clinic-empty' })}</p>
                         </div>
                         <div className="schedule-info-card date-card">
-                            <span className="card-label">Selected date</span>
+                            <span className="card-label"><FormattedMessage id="doctor.manage-schedule.cards.date-label" /></span>
                             <strong>{selectedDateLabel}</strong>
-                            <p>Bookings below will refresh after you pick a date.</p>
+                            <p><FormattedMessage id="doctor.manage-schedule.cards.date-note" /></p>
                         </div>
                     </div>
 
                     <div className="schedule-config-card">
                         <div className="card-head">
-                            <h3>Open clinic schedule</h3>
-                            <p>Choose the date and time slots you want patients to book at your clinic.</p>
+                            <h3><FormattedMessage id="doctor.manage-schedule.form.title" /></h3>
+                            <p><FormattedMessage id="doctor.manage-schedule.form.subtitle" /></p>
                         </div>
 
                         <div className="schedule-form-grid">
                             <div className="form-group full-width read-only-field">
-                                <label>Doctor</label>
+                                <label><FormattedMessage id="doctor.manage-schedule.form.doctor" /></label>
                                 <div className="static-field">{doctorName || '--'}</div>
                             </div>
 
@@ -321,26 +388,27 @@ class ManageSchedule extends Component {
                                 className="btn btn-primary btn-save-schedule"
                                 onClick={this.handleSaveSchedule}
                             >
-                                Save schedule
+                                <FormattedMessage id="doctor.manage-schedule.actions.save-schedule" />
                             </button>
                         </div>
                     </div>
 
                     <div className="booking-table-card">
                         <div className="card-head">
-                            <h3>Patients booked with you</h3>
-                            <p>Appointments shown here belong only to the current doctor account on the selected date.</p>
+                            <h3><FormattedMessage id="doctor.manage-schedule.table.title" /></h3>
+                            <p><FormattedMessage id="doctor.manage-schedule.table.subtitle" /></p>
                         </div>
 
                         <div className="booking-table-wrap">
                             <table className="doctor-booking-table">
                                 <thead>
                                     <tr>
-                                        <th>Patient</th>
-                                        <th>Email</th>
-                                        <th>Phone</th>
-                                        <th>Time</th>
-                                        <th>Status</th>
+                                        <th><FormattedMessage id="doctor.manage-schedule.table.patient" /></th>
+                                        <th><FormattedMessage id="doctor.manage-schedule.table.email" /></th>
+                                        <th><FormattedMessage id="doctor.manage-schedule.table.phone" /></th>
+                                        <th><FormattedMessage id="doctor.manage-schedule.table.time" /></th>
+                                        <th><FormattedMessage id="doctor.manage-schedule.table.status" /></th>
+                                        <th><FormattedMessage id="doctor.manage-schedule.table.action" /></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -371,4 +439,4 @@ const mapDispatchToProps = dispatch => {
     };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ManageSchedule);
+export default injectIntl(connect(mapStateToProps, mapDispatchToProps)(ManageSchedule));

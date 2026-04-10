@@ -8,6 +8,8 @@ export const path = {
     SPECIALTY: '/specialty',
     DOCTOR: '/doctor',
     DOCTOR_PAYMENT_QR: '/doctor/payment-qr',
+    DOCTOR_MEDICAL_RECORDS: '/doctor/medical-records',
+    DOCTOR_PROFILE: '/doctor/profile',
     PATIENT_BOOKING_HISTORY: '/patient/booking-history',
     DETAIL_DOCTOR: '/detail-doctor/:id',
     DETAIL_SPECIALTY: '/detail-specialty/:id',

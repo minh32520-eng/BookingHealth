@@ -1,4 +1,23 @@
 class CommonUtils {
+    static buildImageSrc(image) {
+        if (!image || typeof image !== 'string') return '';
+
+        const trimmed = image.trim();
+        if (!trimmed) return '';
+        if (trimmed.startsWith('data:image')) return trimmed;
+
+        const mimeType = (() => {
+            if (trimmed.startsWith('/9j/')) return 'image/jpeg';
+            if (trimmed.startsWith('iVBORw0KGgo')) return 'image/png';
+            if (trimmed.startsWith('R0lGOD')) return 'image/gif';
+            if (trimmed.startsWith('UklGR')) return 'image/webp';
+            if (trimmed.startsWith('PHN2Zy') || trimmed.startsWith('PD94bWwg') || trimmed.startsWith('PHN2Z')) return 'image/svg+xml';
+            return 'image/jpeg';
+        })();
+
+        return `data:${mimeType};base64,${trimmed}`;
+    }
+
     static parseJwtPayload(token) {
         if (!token || typeof token !== 'string') return null;
         try {

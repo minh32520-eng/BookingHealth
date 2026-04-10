@@ -6,6 +6,9 @@ import patientController from '../controllers/patientController';
 import specialtyController from '../controllers/specialtyController.js';
 import clinicController from '../controllers/clinicController.js';
 import handbookController from '../controllers/handbookController.js';
+import dashboardController from '../controllers/dashboardController.js';
+import bookingController from '../controllers/bookingController.js';
+import paymentController from '../controllers/paymentController.js';
 let router = express.Router();
 
 let initWebRoutes = (app) => {
@@ -20,11 +23,18 @@ let initWebRoutes = (app) => {
     router.post('/api/login', userControler.handleLogin);
     router.post('/api/register', userControler.handleRegister);
     router.post('/api/forgot-password', userControler.handleForgotPassword);
+    router.post('/api/send-email-otp', userControler.handleSendEmailOtp);
+    router.post('/api/verify-email-otp', userControler.handleVerifyEmailOtp);
     router.put('/api/edit-user', userControler.handleEditUser);
     router.delete('/api/delete-user', userControler.handleDeleteUser);
     router.get('/api/get-all-users', userControler.handleGetAllUsers);
     router.post('/api/create-new-user', userControler.handleCreateNewUser)
     router.get('/api/allcode', userControler.getAllCode);
+    router.get('/api/admin/revenue-dashboard', dashboardController.getRevenueDashboard);
+    router.get('/api/admin/bookings', bookingController.getAllBookingsForAdmin);
+    router.get('/api/admin/payments', bookingController.getAllPaymentsForAdmin);
+    router.get('/api/admin/payment-config', paymentController.getPaymentConfig);
+    router.put('/api/admin/payment-config', paymentController.savePaymentConfig);
     router.get('/api/top-doctor-home', doctorController.getTopDoctorHome);
     router.get('/api/get-alll-doctor', doctorController.getAllDoctors);
     // alias đúng chính tả để tương thích frontend cũ/mới
@@ -39,8 +49,15 @@ let initWebRoutes = (app) => {
     router.get('/api/get-list-patient-for-doctor', doctorController.getListPatientForDoctor);
     router.get('/api/get-extra-infor-doctor-by-id', doctorController.getExraInforDoctorById);
     router.get('/api/get-profile-doctor-by-id', doctorController.getProfileDoctorById);
+    router.get('/api/get-doctor-medical-records', doctorController.getDoctorMedicalRecords);
+    router.post('/api/save-doctor-medical-record', doctorController.postDoctorMedicalRecord);
+    router.put('/api/confirm-finished-booking', doctorController.putConfirmFinishedBooking);
+    router.put('/api/update-doctor-profile', doctorController.putDoctorProfile);
     router.post('/api/patient-book-appointment', patientController.postBookAppointment);
     router.get('/api/get-booking-history-by-patient', patientController.getBookingHistoryByPatient);
+    router.post('/api/create-vnpay-payment', patientController.createVnpayPaymentUrl);
+    router.get('/api/vnpay-return', patientController.handleVnpayReturn);
+    router.get('/api/vnpay-ipn', patientController.handleVnpayIpn);
     router.get('/api/get-specialty', specialtyController.getAllSpecialties);
     router.get(
         '/api/get-detail-specialty-by-id',

@@ -159,6 +159,61 @@ let deleteDoctorInfor = async (req, res) => {
     }
 }
 
+let getDoctorMedicalRecords = async (req, res) => {
+    try {
+        let response = await doctorService.getDoctorMedicalRecords(
+            req.query.doctorId,
+            req.query.statusId
+        );
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Error from the server'
+        });
+    }
+}
+
+let postDoctorMedicalRecord = async (req, res) => {
+    try {
+        let response = await doctorService.saveDoctorMedicalRecord(req.body);
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Error from the server'
+        });
+    }
+}
+
+let putConfirmFinishedBooking = async (req, res) => {
+    try {
+        let response = await doctorService.confirmFinishedBooking(req.body.doctorId, req.body.bookingId);
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Error from the server'
+        });
+    }
+}
+
+let putDoctorProfile = async (req, res) => {
+    try {
+        let response = await doctorService.updateDoctorProfile(req.body);
+        return res.status(200).json(response);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Error from the server'
+        });
+    }
+}
+
 module.exports = {
     getTopDoctorHome,
     getAllDoctors,
@@ -169,5 +224,9 @@ module.exports = {
     getListPatientForDoctor,
     getExraInforDoctorById,
     getProfileDoctorById,
-    deleteDoctorInfor
+    deleteDoctorInfor,
+    getDoctorMedicalRecords,
+    postDoctorMedicalRecord,
+    putConfirmFinishedBooking,
+    putDoctorProfile
 };

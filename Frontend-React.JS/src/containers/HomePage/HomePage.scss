@@ -35,11 +35,10 @@
 }
 
 .section-share {
-    &.section-specialty {
-        background: #f5f5f5;
-    }
-
-    &.section-outstanding-doctor {
+    &.section-specialty,
+    &.section-outstanding-doctor,
+    &.section-medical-facility,
+    &.section-handbook {
         background: #f5f5f5;
     }
 
@@ -52,33 +51,60 @@
 
     .section-body {
         .section-customize {
+            padding: 8px 10px 16px;
+            cursor: pointer;
+
+            .customize-border {
+                background: #fff;
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: 0 10px 24px rgba(17, 38, 146, 0.08);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                min-height: 250px;
+
+                &:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 16px 30px rgba(17, 38, 146, 0.14);
+                }
+            }
+
             .bg-image {
-                width: 278px;
-                height: 150px;
-                background: url('../../../src/assets/specialty/quy-trinh-kham-benh-va-nhung-dieu-can-luu-y-2.jpg');
+                width: 100%;
+                height: 170px;
+                overflow: hidden;
                 background-position: center center;
                 background-repeat: no-repeat;
                 background-size: cover;
-                background-color: #eee;
+                background-color: #eef3f7;
 
-                &.section-specialty {}
+                .section-image-el {
+                    width: 100%;
+                    height: 100%;
+                    display: block;
+                    object-fit: cover;
+                    object-position: center;
+                }
 
-                &.section-medical-facility {}
+                &.section-specialty,
+                &.section-medical-facility,
+                &.section-handbook {
+                    border-bottom: 1px solid #edf2f7;
+                }
 
                 &.section-outstanding-doctor {
                     width: 120px;
                     height: 120px;
                     border-radius: 50%;
+                    margin: 24px auto 14px;
+                    border: 6px solid #f3f8fb;
                 }
-
-                &.section-handbook {}
             }
         }
     }
 }
 
 .section-share {
-    height: 330px;
+    min-height: 390px;
 }
 
 .section-container {
@@ -113,23 +139,71 @@
             }
         }
 
-        .section-outstanding-doctor {
-            .outer-bg {
-                display: flex;
-                justify-content: center;
-                margin-bottom: 10px;
-            }
+    }
+}
 
-            .section-customize {
-                padding: 5px;
-                cursor: pointer;
+.section-specialty {
+    .specialty-card-bg {
+        min-height: 250px;
+    }
+}
 
-                .customize-border {
-                    border: 1px solid orange;
-                    padding: 20px;
-                }
-            }
-        }
+.section-medical-facility {
+    .clinic-name {
+        padding: 14px 16px 6px;
+        font-size: 20px;
+        font-weight: 700;
+        color: #1f2d3d;
+        line-height: 1.35;
+    }
+
+    .clinic-address {
+        padding: 0 16px 18px;
+        font-size: 16px;
+        line-height: 1.5;
+        color: #5c6f82;
+    }
+}
+
+.section-outstanding-doctor {
+    .section-customize {
+        padding: 8px 10px 16px;
+    }
+
+    .customize-border {
+        min-height: 250px;
+        padding: 0 18px 22px;
+        text-align: center;
+    }
+
+    .outer-bg {
+        display: flex;
+        justify-content: center;
+    }
+
+    .position {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1.45;
+        color: #1f2d3d;
+        padding: 0 8px;
+    }
+}
+
+.section-handbook {
+    .handbook-name {
+        padding: 14px 16px 8px;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.35;
+        color: #1f2d3d;
+    }
+
+    .handbook-content {
+        padding: 0 16px 18px;
+        font-size: 15px;
+        line-height: 1.55;
+        color: #5c6f82;
     }
 }
 

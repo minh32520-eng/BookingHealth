@@ -1,4 +1,5 @@
 const db = require('../models');
+const { normalizeBase64Image } = require('../utils/image');
 
 let getAllSpecialties = async () => {
     try {
@@ -37,10 +38,38 @@ let getDetailSpecialtyById = async (id) => {
             };
         }
 
+        const clinicLinks = await db.DoctorClinicSpecialty.findAll({
+            where: { specialtyId: id },
+            attributes: ['clinicId'],
+            include: [
+                {
+                    model: db.Clininc,
+                    as: 'clinicData',
+                    attributes: ['id', 'name', 'address', 'image']
+                }
+            ],
+            raw: false,
+            nest: true
+        });
+
+        const uniqueClinics = [];
+        const seenClinicIds = new Set();
+
+        clinicLinks.forEach((item) => {
+            const plain = item.get({ plain: true });
+            const clinic = plain.clinicData;
+            if (!clinic || !clinic.id || seenClinicIds.has(clinic.id)) return;
+            seenClinicIds.add(clinic.id);
+            uniqueClinics.push(clinic);
+        });
+
         return {
             errCode: 0,
             errMessage: 'ok',
-            data
+            data: {
+                ...data,
+                relatedClinics: uniqueClinics
+            }
         };
     } catch (e) {
         throw e;
@@ -62,7 +91,7 @@ let createSpecialty = async (data) => {
 
         await db.Specialty.create({
             name: data.name,
-            image: data.imageBase64,
+            image: normalizeBase64Image(data.imageBase64),
             descriptionHTML: data.descriptionHTML,
             descriptionMarkdown: data.descriptionMarkdown
         });
@@ -103,7 +132,7 @@ let updateSpecialty = async (data) => {
         specialty.descriptionMarkdown = data.descriptionMarkdown;
 
         if (data.imageBase64) {
-            specialty.image = data.imageBase64;
+            specialty.image = normalizeBase64Image(data.imageBase64);
         }
 
         await specialty.save();

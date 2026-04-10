@@ -1,29 +1,51 @@
 .profile-doctor-container {
     .intro-doctor {
         display: flex;
+        align-items: center;
+        gap: 16px;
 
-        .content_left {
+        .content-left {
             background-size: cover;
             background-repeat: no-repeat;
             background-position: center;
             width: 80px;
+            min-width: 80px;
             height: 80px;
             border-radius: 50%;
+            background-color: #eef6fa;
+            border: 3px solid #f6fbfe;
+            box-shadow: inset 0 0 0 1px rgba(73, 191, 199, 0.16);
         }
 
         .content-right {
-            width: calc(100% - 80px);
+            width: calc(100% - 96px);
             display: flex;
             flex-direction: column;
-            padding-left: 10px;
+            gap: 8px;
 
             .up {
                 font-weight: 600;
+                color: #18384f;
+                line-height: 1.4;
             }
 
             .down {
-                text-align: justify;
+                color: #567080;
+                line-height: 1.7;
             }
+        }
+    }
+
+    .price {
+        margin-top: 14px;
+        color: #365064;
+        font-weight: 600;
+        line-height: 1.7;
+
+        .currency {
+            margin-left: 6px;
+            color: #173247;
+            font-weight: 700;
         }
     }
 }

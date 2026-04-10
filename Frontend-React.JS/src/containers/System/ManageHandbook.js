@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import { toast } from 'react-toastify';
+import { CommonUtils } from '../../utils';
 import { createNewHandbook, deleteHandbook, editHandbook, getAllHandbook } from '../../services/userService';
 import './ManageHandbook.scss';
 
@@ -9,6 +11,7 @@ class ManageHandbook extends Component {
         editingHandbookId: null,
         title: '',
         content: '',
+        imageBase64: '',
         handbooks: [],
     };
 
@@ -23,7 +26,7 @@ class ManageHandbook extends Component {
                 this.setState({ handbooks: res.data || [] });
             }
         } catch (e) {
-            toast.error('Khong tai duoc danh sach cam nang');
+            toast.error(this.props.intl.formatMessage({ id: 'admin.manage-handbook.messages.load-error' }));
         }
     };
 
@@ -31,27 +34,44 @@ class ManageHandbook extends Component {
         this.setState({ [key]: e.target.value });
     };
 
+    handleOnchangeImage = async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const base64 = await CommonUtils.getBase64(file);
+        this.setState({ imageBase64: base64 });
+    };
+
+    normalizeImageSrc = (value) => {
+        if (!value) return '';
+        return value.startsWith('data:image') ? value : `data:image/jpeg;base64,${value}`;
+    };
+
     resetForm = () => {
         this.setState({
             editingHandbookId: null,
             title: '',
             content: '',
+            imageBase64: '',
         });
     };
 
     handleSave = async () => {
-        const { editingHandbookId, title, content } = this.state;
-        const payload = { id: editingHandbookId, title, content };
+        const { editingHandbookId, title, content, imageBase64 } = this.state;
+        const payload = { id: editingHandbookId, title, content, imageBase64 };
         const res = editingHandbookId
             ? await editHandbook(payload)
             : await createNewHandbook(payload);
 
         if (res && res.errCode === 0) {
-            toast.success(editingHandbookId ? 'Cap nhat cam nang thanh cong' : 'Tao cam nang thanh cong');
+            toast.success(this.props.intl.formatMessage({
+                id: editingHandbookId
+                    ? 'admin.manage-handbook.messages.update-success'
+                    : 'admin.manage-handbook.messages.create-success'
+            }));
             this.resetForm();
             await this.loadHandbooks();
         } else {
-            toast.error((res && res.errMessage) || 'Luu cam nang that bai');
+            toast.error((res && res.errMessage) || this.props.intl.formatMessage({ id: 'admin.manage-handbook.messages.save-failed' }));
         }
     };
 
@@ -60,26 +80,38 @@ class ManageHandbook extends Component {
             editingHandbookId: handbook.id,
             title: handbook.title || '',
             content: handbook.content || '',
+            imageBase64: handbook.image || '',
         });
     };
 
     handleDeleteHandbook = async (handbook) => {
-        if (!window.confirm(`Xoa cam nang "${handbook.title}"?`)) return;
+        if (!window.confirm(`${this.props.intl.formatMessage({ id: 'admin.manage-handbook.messages.delete-confirm' })} "${handbook.title}"?`)) return;
 
         try {
             const res = await deleteHandbook(handbook.id);
             if (res && res.errCode === 0) {
-                toast.success('Xoa cam nang thanh cong');
+                toast.success(this.props.intl.formatMessage({ id: 'admin.manage-handbook.messages.delete-success' }));
                 if (this.state.editingHandbookId === handbook.id) {
                     this.resetForm();
                 }
                 await this.loadHandbooks();
             } else {
-                toast.error((res && res.errMessage) || 'Xoa cam nang that bai');
+                toast.error((res && res.errMessage) || this.props.intl.formatMessage({ id: 'admin.manage-handbook.messages.delete-failed' }));
             }
         } catch (e) {
-            toast.error('Khong the xoa cam nang');
+            toast.error(this.props.intl.formatMessage({ id: 'admin.manage-handbook.messages.delete-network' }));
         }
+    };
+
+    renderPreviewImage = () => {
+        const src = this.normalizeImageSrc(this.state.imageBase64);
+        if (!src) return null;
+
+        return (
+            <div className="mh-preview">
+                <img src={src} alt="handbook preview" />
+            </div>
+        );
     };
 
     render() {
@@ -87,11 +119,11 @@ class ManageHandbook extends Component {
 
         return (
             <div className="manage-handbook-container">
-                <div className="mh-title">Quan ly cam nang</div>
+                <div className="mh-title"><FormattedMessage id="admin.manage-handbook.title" /></div>
 
                 <div className="row">
                     <div className="col-12 form-group">
-                        <label>Tieu de</label>
+                        <label><FormattedMessage id="admin.manage-handbook.form.title" /></label>
                         <input
                             className="form-control"
                             value={title}
@@ -99,7 +131,16 @@ class ManageHandbook extends Component {
                         />
                     </div>
                     <div className="col-12 form-group">
-                        <label>Noi dung</label>
+                        <label><FormattedMessage id="admin.manage-handbook.form.image" /></label>
+                        <input
+                            className="form-control-file"
+                            type="file"
+                            onChange={this.handleOnchangeImage}
+                        />
+                        {this.renderPreviewImage()}
+                    </div>
+                    <div className="col-12 form-group">
+                        <label><FormattedMessage id="admin.manage-handbook.form.content" /></label>
                         <textarea
                             className="form-control"
                             rows="8"
@@ -109,26 +150,24 @@ class ManageHandbook extends Component {
                     </div>
                     <div className="col-12 form-actions">
                         <button className="btn-save-handbook" onClick={this.handleSave}>
-                            {editingHandbookId ? 'Update' : 'Save'}
+                            <FormattedMessage id={editingHandbookId ? 'admin.manage-handbook.actions.update' : 'admin.manage-handbook.actions.save'} />
                         </button>
                         {editingHandbookId && (
-                            <button className="btn-cancel-handbook" onClick={this.resetForm}>
-                                Cancel
-                            </button>
+                            <button className="btn-cancel-handbook" onClick={this.resetForm}><FormattedMessage id="admin.manage-handbook.actions.cancel" /></button>
                         )}
                     </div>
                 </div>
 
                 <div className="mh-list mt-4">
-                    <h5>Danh sach cam nang</h5>
+                    <h5><FormattedMessage id="admin.manage-handbook.list.title" /></h5>
                     <div className="table-responsive admin-table-wrap">
                         <table className="table admin-info-table">
                             <thead>
                                 <tr>
-                                    <th style={{ width: '70px' }}>ID</th>
-                                    <th style={{ width: '220px' }}>Tieu de</th>
-                                    <th>Noi dung</th>
-                                    <th style={{ width: '120px' }}>Actions</th>
+                                    <th style={{ width: '70px' }}><FormattedMessage id="admin.manage-handbook.table.id" /></th>
+                                    <th style={{ width: '220px' }}><FormattedMessage id="admin.manage-handbook.table.title" /></th>
+                                    <th><FormattedMessage id="admin.manage-handbook.table.content" /></th>
+                                    <th style={{ width: '120px' }}><FormattedMessage id="admin.manage-handbook.table.actions" /></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -157,7 +196,7 @@ class ManageHandbook extends Component {
                                 ))}
                                 {handbooks.length === 0 && (
                                     <tr>
-                                        <td colSpan="4" className="text-center empty-row">Chua co du lieu</td>
+                                        <td colSpan="4" className="text-center empty-row"><FormattedMessage id="admin.manage-handbook.table.empty" /></td>
                                     </tr>
                                 )}
                             </tbody>
@@ -170,4 +209,4 @@ class ManageHandbook extends Component {
 }
 
 const mapStateToProps = (state) => ({ language: state.app.language });
-export default connect(mapStateToProps)(ManageHandbook);
+export default injectIntl(connect(mapStateToProps)(ManageHandbook));
