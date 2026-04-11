@@ -21,12 +21,14 @@ class ManagePayment extends Component {
     };
 
     componentDidMount() {
+        // Load the first payment snapshot immediately when the admin opens the screen.
         this.loadPayments();
     }
 
     loadPayments = async () => {
         this.setState({ loading: true, error: '' });
         try {
+            // Ask the backend for one filtered payment snapshot instead of filtering after download.
             const res = await getAdminPayments(this.state.selectedStatus);
             if (res && res.errCode === 0) {
                 this.setState({
@@ -49,6 +51,7 @@ class ManagePayment extends Component {
     };
 
     handleFilterChange = (event) => {
+        // The payment list reloads every time the status filter changes.
         this.setState({ selectedStatus: event.target.value }, this.loadPayments);
     };
 
@@ -63,6 +66,7 @@ class ManagePayment extends Component {
     };
 
     getPaymentStatusLabel = (status) => {
+        // Keep UI labels derived from the raw payment status so table and QR cards stay consistent.
         if (status === 'pending') return this.props.intl.formatMessage({ id: 'admin.manage-payment.filters.pending' });
         if (status === 'paid') return this.props.intl.formatMessage({ id: 'admin.manage-payment.filters.paid' });
         if (status === 'failed') return this.props.intl.formatMessage({ id: 'admin.manage-payment.filters.failed' });
@@ -170,6 +174,7 @@ class ManagePayment extends Component {
 
                             <div className="payment-side">
                                 {payments.slice(0, 6).map((item) => (
+                                    // Show a short QR preview list so admins can quickly inspect recent payment instructions.
                                     <div className="payment-qr-card" key={`qr-${item.id}`}>
                                         <div className="payment-qr-header">
                                             <div>

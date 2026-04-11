@@ -23,12 +23,14 @@ class DoctorProfile extends Component {
     };
 
     async componentDidMount() {
+        // Load static select data first, then hydrate the doctor profile bound to the logged-in account.
         await this.loadGenderOptions();
         await this.loadProfile();
     }
 
     getDoctorId = () => {
         const { userInfo } = this.props;
+        // This page is doctor-only, so always resolve the active profile from the logged-in doctor account.
         if (userInfo && userInfo.roleId === USER_ROLE.DOCTOR) {
             return userInfo.id;
         }
@@ -36,6 +38,7 @@ class DoctorProfile extends Component {
     }
 
     loadGenderOptions = async () => {
+        // Gender options still come from the shared allcode table to stay consistent with the rest of the app.
         const res = await getAllCodeService('GENDER');
         if (res && res.errCode === 0) {
             this.setState({
@@ -56,6 +59,7 @@ class DoctorProfile extends Component {
             const res = await getProfileDoctorById(doctorId);
             if (res && res.errCode === 0) {
                 const data = res.data || {};
+                // Convert the stored base64 avatar into a browser-friendly preview URL for the profile card.
                 const image = data.image ? `data:image/jpeg;base64,${data.image}` : '';
                 this.setState({
                     loading: false,
@@ -77,6 +81,7 @@ class DoctorProfile extends Component {
     }
 
     handleOnChangeInput = (event, field) => {
+        // A generic handler is enough because the form fields map directly to state keys.
         this.setState({
             [field]: event.target.value
         });
@@ -86,6 +91,7 @@ class DoctorProfile extends Component {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
 
+        // Keep both base64 and object URL: base64 for saving, object URL for instant local preview.
         const base64 = await CommonUtils.getBase64(file);
         const objectUrl = URL.createObjectURL(file);
 
@@ -106,6 +112,7 @@ class DoctorProfile extends Component {
 
         this.setState({ saving: true });
         try {
+            // Update the backend profile, then mirror the essential fields into the auth user snapshot.
             const res = await updateDoctorProfile({
                 id: doctorId,
                 firstName,
@@ -125,6 +132,7 @@ class DoctorProfile extends Component {
                     email: res.data?.email || email,
                     image: res.data?.image || image
                 };
+                // Refresh Redux auth data so headers and account widgets immediately show the new profile info.
                 this.props.userLoginSuccess(userPayload);
                 toast.success(this.props.intl.formatMessage({ id: 'doctor.profile.messages.save-success' }));
                 await this.loadProfile();

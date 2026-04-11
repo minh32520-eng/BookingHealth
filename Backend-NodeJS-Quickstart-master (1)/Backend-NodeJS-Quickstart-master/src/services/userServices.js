@@ -18,6 +18,8 @@ const findOrCreateOAuthUser = async ({
     lastName,
     image
 }) => {
+    // Social login always lands in the same user table.
+    // First try the provider account, then reuse an existing local account by email.
     const defaultRole = process.env.OAUTH_DEFAULT_ROLE_ID || 'R3';
 
     const socialUser = await db.User.findOne({
@@ -37,6 +39,7 @@ const findOrCreateOAuthUser = async ({
             raw: false
         });
         if (byEmail) {
+            // Link the existing account to the provider instead of creating a duplicate user.
             byEmail.authProvider = provider;
             byEmail.socialId = String(socialId);
             if (image) byEmail.image = image;
@@ -114,6 +117,7 @@ const handleUserLogin = async (email, password) => {
             };
         }
 
+        // OAuth-only accounts may not have a usable password for classic login.
         const passwordHash = typeof user.password === 'string' ? user.password : '';
         if (!passwordHash) {
             return {
@@ -211,6 +215,7 @@ const registerNewPatient = async (data) => {
         };
     }
 
+    // Consume the verification token here so one verified OTP cannot be reused for many accounts.
     const verificationResult = await emailVerificationService.consumeVerifiedToken({
         email: normalizedEmail,
         purpose: 'register',
@@ -271,6 +276,7 @@ const forgotPassword = async (data) => {
         };
     }
 
+    // The OTP token is single-use, so password reset only succeeds once per verified session.
     const verificationResult = await emailVerificationService.consumeVerifiedToken({
         email: normalizedEmail,
         purpose: 'forgot_password',

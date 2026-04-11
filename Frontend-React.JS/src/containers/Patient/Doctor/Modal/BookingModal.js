@@ -33,9 +33,7 @@ class BookingModal extends Component {
             reason: '',
             birthday: '',
             selectedGender: null,
-            doctorId: '',
-            genders: [],
-            timeType: ''
+            genders: []
         }
     }
 
@@ -78,13 +76,12 @@ class BookingModal extends Component {
         let language = this.props.language;
 
         if (data && data.length > 0) {
-            data.map(item => {
-                let object = {};
-                object.label = language === LANGUAGES.VI ? item.valueVi : item.valueEn;
-                object.value = item.keyMap;
-                result.push(object);
-                return object;
-            })
+            data.forEach(item => {
+                result.push({
+                    label: language === LANGUAGES.VI ? item.valueVi : item.valueEn,
+                    value: item.keyMap
+                });
+            });
         }
 
         return result;
@@ -116,30 +113,12 @@ class BookingModal extends Component {
             })
         }
 
-        if (this.props.dataTime !== prevProps.dataTime) {
-            if (this.props.dataTime && !_.isEmpty(this.props.dataTime)) {
-
-                let doctorId = this.props.dataTime.doctorId;
-                let timeType = this.props.dataTime.timeType;
-
-                this.setState({
-                    doctorId: doctorId,
-                    timeType: timeType
-                })
-            }
-        }
     }
 
     handleOnchangeInput = (event, id) => {
 
-        let valueInput = event.target.value;
-
-        let stateCopy = { ...this.state };
-
-        stateCopy[id] = valueInput;
-
         this.setState({
-            ...stateCopy
+            [id]: event.target.value
         })
     }
 
@@ -156,6 +135,7 @@ class BookingModal extends Component {
             selectedGender: selectedOption
         });
     }
+
     buildTimeBooking = (dataTime) => {
         let { language } = this.props;
 
@@ -174,6 +154,7 @@ class BookingModal extends Component {
 
         return '';
     }
+
     buildDoctorName = (dataTime) => {
         let { language } = this.props;
 
@@ -181,19 +162,17 @@ class BookingModal extends Component {
             const firstName = dataTime.doctorData.firstName || '';
             const lastName = dataTime.doctorData.lastName || '';
 
-            let name = language === LANGUAGES.VI
+            return language === LANGUAGES.VI
                 ? `${lastName} ${firstName}`.trim()
                 : `${firstName} ${lastName}`.trim();
-
-            return name;
         }
 
         return language === LANGUAGES.VI ? DEFAULT_DOCTOR_NAME.vi : DEFAULT_DOCTOR_NAME.en;
     }
     handleConfirmBooking = async () => {
         const currentDataTime = this.props.dataTime || {};
-        const doctorId = currentDataTime.doctorId || this.state.doctorId;
-        const timeType = currentDataTime.timeType || this.state.timeType;
+        const doctorId = currentDataTime.doctorId;
+        const timeType = currentDataTime.timeType;
 
         if (!this.state.fullName || !this.state.phoneNumber || !this.state.email || !this.state.address || !this.state.reason) {
             toast.error('Please fill in all required information!');
@@ -215,10 +194,8 @@ class BookingModal extends Component {
             return;
         }
 
-        let birthday = new Date(this.state.birthday).getTime();
         let scheduleDate = currentDataTime.date;
         let timeString = this.buildTimeBooking(currentDataTime);
-        let doctorName = this.buildDoctorName(currentDataTime)
 
         if (!timeString) {
             toast.error('Schedule information is missing!');
@@ -231,21 +208,20 @@ class BookingModal extends Component {
         }
 
         let res = await postPatientBookAppointment({
-
             patientId: this.props.userInfo?.id,
             fullName: this.state.fullName,
             phoneNumber: this.state.phoneNumber,
             email: this.state.email.trim().toLowerCase(),
             address: this.state.address,
             reason: this.state.reason,
-            birthday: birthday,
+            birthday: new Date(this.state.birthday).getTime(),
             date: scheduleDate,
             selectedGender: this.state.selectedGender?.value,
             doctorId: doctorId,
             timeType: timeType,
             language: this.props.language,
             timeString: timeString,
-            doctorName: doctorName
+            doctorName: this.buildDoctorName(currentDataTime)
         });
 
         if (res && res.errCode === 0) {
@@ -261,7 +237,8 @@ class BookingModal extends Component {
 
             if (
                 errMessage === 'Selected schedule is not available' ||
-                errMessage === 'Cannot book past schedules'
+                errMessage === 'Cannot book past schedules' ||
+                errMessage === 'This schedule is fully booked'
             ) {
                 toast.error('This schedule is no longer available. Please choose another time slot.');
 

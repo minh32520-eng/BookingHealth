@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { connect } from 'react-redux';
-import './TableManageUser.scss';
 import * as actions from "../../../store/actions";
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
@@ -102,6 +101,7 @@ class ManageDoctor extends Component {
 
         if (type === 'DOCTOR') {
             inputData.forEach(doctor => {
+                // Build display labels once here so the select can be safely rebuilt on language changes.
                 result.push({
                     label: language === LANGUAGES.VI
                         ? `${doctor.lastName || ''} ${doctor.firstName || ''}`
@@ -145,6 +145,7 @@ class ManageDoctor extends Component {
     }
 
     resetDoctorForm = () => {
+        // Reset the editor and all related doctor metadata when the admin clears the form.
         this.setState({
             contentMarkdown: '',
             contentHTML: '',
@@ -203,6 +204,7 @@ class ManageDoctor extends Component {
         }
 
         await this.props.saveDetailDoctor({
+            // The backend uses action to decide whether it should create or update doctor content.
             contentHTML: this.state.contentHTML,
             contentMarkdown: this.state.contentMarkdown,
             description: this.state.description,
@@ -233,6 +235,7 @@ class ManageDoctor extends Component {
         const response = await getDetailInforDoctor(selectedDoctor.value);
 
         if (response && response.errCode === 0 && response.data) {
+            // Map raw backend ids back into react-select option objects before pushing data into the form.
             const doctorInfo = response.data.Doctor_Infor || {};
 
             const selectedPrice = this.state.priceOptions.find(
@@ -326,6 +329,7 @@ class ManageDoctor extends Component {
             doctors = doctors?.data || doctors?.doctors || [];
         }
 
+        // Only show doctors that already have saved markdown or extra doctor info in the summary table.
         return doctors.filter((item) => item?.Doctor_Infor || item?.Markdown);
     }
 

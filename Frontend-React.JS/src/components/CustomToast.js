@@ -44,15 +44,4 @@ class CustomToast extends Component {
     }
 }
 
-export class CustomToastCloseButton extends Component {
-
-    render() {
-        return (
-            <button type="button" className="toast-close" onClick={this.props.closeToast}>
-                <i className="fa fa-fw fa-times-circle" />
-            </button>
-        );
-    }
-}
-
 export default CustomToast;

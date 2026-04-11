@@ -23,6 +23,7 @@ class ManageSchedule extends Component {
     }
 
     async componentDidMount() {
+        // Load time slots first, then hydrate doctor-specific data for the currently logged-in doctor.
         this.props.fetchAllScheduleTime();
         await this.loadDoctorExtraInfo();
         await this.loadPatientBookings(new Date());
@@ -33,6 +34,7 @@ class ManageSchedule extends Component {
             let data = this.props.allScheduleTime;
 
             if (data && data.length > 0) {
+                // Add a local UI-only flag so each server time slot can be toggled in the grid.
                 data = data.map(item => ({
                     ...item,
                     isSelected: false
@@ -42,17 +44,20 @@ class ManageSchedule extends Component {
             this.setState({
                 rangeTime: data || []
             }, () => {
+                // Once the slot list exists locally, merge it with already-saved schedule data for this date.
                 this.loadExistingSchedule(this.state.currentDate);
             })
         }
 
         if (prevProps.userInfo?.id !== this.props.userInfo?.id && this.props.userInfo?.roleId === USER_ROLE.DOCTOR) {
+            // When the logged-in doctor changes, reload every doctor-bound section from scratch.
             await this.loadDoctorExtraInfo();
             await this.loadExistingSchedule(this.state.currentDate);
             await this.loadPatientBookings(this.state.currentDate);
         }
 
         if (prevState.currentDate !== this.state.currentDate) {
+            // Changing the date affects both saved slots and booked patients for that day.
             await this.loadExistingSchedule(this.state.currentDate);
             await this.loadPatientBookings(this.state.currentDate);
         }
@@ -60,6 +65,7 @@ class ManageSchedule extends Component {
 
     getDoctorId = () => {
         const { userInfo } = this.props;
+        // This screen is doctor-only, so always resolve the doctor id from the logged-in account.
         if (userInfo && userInfo.roleId === USER_ROLE.DOCTOR) {
             return userInfo.id;
         }
@@ -70,6 +76,7 @@ class ManageSchedule extends Component {
         const doctorId = this.getDoctorId();
         if (!doctorId) return;
 
+        // Extra info keeps the header cards in sync with the doctor's own clinic/profile metadata.
         const res = await getExtraInforDoctorById(doctorId);
         if (res && res.errCode === 0) {
             this.setState({
@@ -88,6 +95,7 @@ class ManageSchedule extends Component {
 
         const dateValue = new Date(dateInput).getTime();
         const res = await getScheduleDoctorByDate(doctorId, dateValue);
+        // Convert the saved schedule array into a lookup set so slot selection can be rebuilt quickly.
         const activeTimeTypes = new Set((res?.data || []).map(item => item.timeType));
 
         this.setState({
@@ -107,6 +115,7 @@ class ManageSchedule extends Component {
         }
 
         const dateValue = new Date(dateInput).getTime();
+        // The booking table only shows patients for the current doctor and selected date.
         const res = await getListPatientForDoctor(doctorId, dateValue);
         if (res && res.errCode === 0) {
             this.setState({
@@ -129,6 +138,7 @@ class ManageSchedule extends Component {
             rangeTime = rangeTime.map(item => {
 
                 if (item.id === time.id) {
+                    // Toggle only the clicked slot and keep the rest untouched.
                     item.isSelected = !item.isSelected;
                 }
 
@@ -161,6 +171,7 @@ class ManageSchedule extends Component {
 
         if (rangeTime && rangeTime.length > 0) {
 
+            // Only selected slots should be sent back to the bulk save API.
             let selectedTime = rangeTime.filter(item => item.isSelected === true);
 
             if (selectedTime && selectedTime.length > 0) {
@@ -173,6 +184,7 @@ class ManageSchedule extends Component {
                     object.date = formatedDate;
                     object.timeType = schedule.keyMap;
 
+                    // Keep each payload entry minimal because the backend rebuilds the rest from ids.
                     result.push(object);
                 })
             }
@@ -198,6 +210,7 @@ class ManageSchedule extends Component {
         const doctorId = this.getDoctorId();
         if (!doctorId || !bookingId) return;
 
+        // Track the row being updated so only one "complete" action shows a loading state.
         this.setState({ completingBookingId: bookingId });
         try {
             const res = await confirmFinishedBooking({
@@ -235,11 +248,13 @@ class ManageSchedule extends Component {
 
         return patientBookings.map((item, index) => {
             const patient = item.patientData || {};
+            // Build a readable fallback name because some legacy patient records may miss one side of the name.
             const fullName = [patient.lastName, patient.firstName].filter(Boolean).join(' ').trim()
                 || this.props.intl.formatMessage({ id: 'doctor.manage-schedule.table.patient-fallback' });
             const timeLabel = language === LANGUAGES.VI
                 ? item.timeTypeDataPatient?.valueVi
                 : item.timeTypeDataPatient?.valueEn;
+            // Booking status drives both the badge label and the action column state.
             const statusLabel = item.statusId === 'S3'
                 ? this.props.intl.formatMessage({ id: 'doctor.manage-schedule.status.examined' })
                 : item.statusId === 'S2'

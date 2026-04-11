@@ -2,6 +2,7 @@ const paymentService = require('../services/paymentServices');
 
 let getPaymentConfig = async (req, res) => {
     try {
+        // Payment config screen always reads the latest saved config from the service.
         const response = await paymentService.getPaymentConfig();
         return res.status(200).json(response);
     } catch (e) {
@@ -15,6 +16,7 @@ let getPaymentConfig = async (req, res) => {
 
 let savePaymentConfig = async (req, res) => {
     try {
+        // Save receives the whole admin payment config form in req.body.
         const response = await paymentService.savePaymentConfig(req.body);
         return res.status(200).json(response);
     } catch (e) {

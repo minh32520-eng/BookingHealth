@@ -21,12 +21,14 @@ class ManageBooking extends Component {
     };
 
     componentDidMount() {
+        // Load the first booking snapshot as soon as the admin screen opens.
         this.loadBookings();
     }
 
     loadBookings = async () => {
         this.setState({ loading: true, error: '' });
         try {
+            // Send the current UI filter to the backend so the server can return only the relevant rows.
             const res = await getAdminBookings(this.state.selectedStatus);
             if (res && res.errCode === 0) {
                 this.setState({
@@ -48,10 +50,12 @@ class ManageBooking extends Component {
     };
 
     handleFilterChange = (event) => {
+        // Reuse one small handler because the filter always follows "update state then reload data".
         this.setState({ selectedStatus: event.target.value }, this.loadBookings);
     };
 
     getBookingStatusLabel = (statusId) => {
+        // Booking status and payment status are different concepts, so keep their labels separate.
         if (statusId === 'S1') return this.props.intl.formatMessage({ id: 'admin.manage-booking.status.pending-confirm' });
         if (statusId === 'S2') return this.props.intl.formatMessage({ id: 'admin.manage-booking.status.confirmed' });
         if (statusId === 'S3') return this.props.intl.formatMessage({ id: 'admin.manage-booking.status.examined' });
@@ -59,6 +63,7 @@ class ManageBooking extends Component {
     };
 
     getPaymentStatusLabel = (paymentStatus) => {
+        // Default to pending when paymentStatus is missing because unpaid is the safest interpretation.
         if (paymentStatus === 'paid') return this.props.intl.formatMessage({ id: 'admin.manage-booking.payment.paid' });
         if (paymentStatus === 'failed') return this.props.intl.formatMessage({ id: 'admin.manage-booking.payment.failed' });
         return this.props.intl.formatMessage({ id: 'admin.manage-booking.payment.pending' });
@@ -86,6 +91,7 @@ class ManageBooking extends Component {
     };
 
     formatAmount = (amount) => {
+        // Format every amount from the current language so the table stays readable for VI and EN admins.
         const value = Number(amount || 0);
         return new Intl.NumberFormat(this.props.language === 'vi' ? 'vi-VN' : 'en-US', {
             style: 'currency',
@@ -144,6 +150,7 @@ class ManageBooking extends Component {
                                     <tbody>
                                         {bookings.map((item) => (
                                             <tr key={item.id}>
+                                                {/* Each row merges booking data with patient, doctor and time labels that were resolved in the backend. */}
                                                 <td>{item.id}</td>
                                                 <td>
                                                     <div className="name-cell">{this.getPatientName(item)}</div>

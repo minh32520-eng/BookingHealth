@@ -3,6 +3,7 @@ const { normalizeBase64Image } = require('../utils/image');
 
 let getAllSpecialties = async () => {
     try {
+        // Return only the fields needed by homepage cards, admin tables and detail pages.
         let data = await db.Specialty.findAll({
             attributes: ['id', 'name', 'image', 'descriptionMarkdown', 'descriptionHTML'],
             order: [['id', 'ASC']],
@@ -58,6 +59,7 @@ let getDetailSpecialtyById = async (id) => {
         clinicLinks.forEach((item) => {
             const plain = item.get({ plain: true });
             const clinic = plain.clinicData;
+            // Deduplicate clinics because several doctor-clinic-specialty rows can point to the same clinic.
             if (!clinic || !clinic.id || seenClinicIds.has(clinic.id)) return;
             seenClinicIds.add(clinic.id);
             uniqueClinics.push(clinic);
@@ -91,6 +93,7 @@ let createSpecialty = async (data) => {
 
         await db.Specialty.create({
             name: data.name,
+            // Normalize uploaded base64 before saving so specialty images stay renderable across the app.
             image: normalizeBase64Image(data.imageBase64),
             descriptionHTML: data.descriptionHTML,
             descriptionMarkdown: data.descriptionMarkdown

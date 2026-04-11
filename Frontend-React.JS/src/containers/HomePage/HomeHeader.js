@@ -1,8 +1,8 @@
-
+﻿
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import './HomeHeader.scss';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, injectIntl } from 'react-intl';
 import { LANGUAGES, path } from '../../utils';
 import { changeLanguageApp, processLogout } from '../../store/actions';
 import { withRouter } from 'react-router';
@@ -91,7 +91,6 @@ class HomeHeader extends Component {
                 <div className="home-header-container">
                     <div className="home-header-content">
 
-                        {/* LEFT */}
                         <div className="left-content">
                             <i className="fas fa-bars"></i>
                             <div
@@ -101,7 +100,6 @@ class HomeHeader extends Component {
                             />
                         </div>
 
-                        {/* CENTER */}
                         <div className="center-content">
 
                             <div className="child-content" onClick={() => this.goToPage(path.SPECIALTY)}>
@@ -142,7 +140,6 @@ class HomeHeader extends Component {
 
                         </div>
 
-                        {/* RIGHT */}
                         <div className="right-content">
                             <div className="support">
                                 <i className="fas fa-question"></i>
@@ -180,11 +177,11 @@ class HomeHeader extends Component {
                                         <div className="account-dropdown">
                                             <button type="button" onClick={this.goToBookingHistory}>
                                                 <i className="far fa-calendar-check"></i>
-                                                <span>Lich su dat kham</span>
+                                                <span><FormattedMessage id="homeheader.booking-history" /></span>
                                             </button>
                                             <button type="button" onClick={this.handleLogout}>
                                                 <i className="fas fa-sign-out-alt"></i>
-                                                <span>Dang xuat</span>
+                                                <span><FormattedMessage id="homeheader.logout" /></span>
                                             </button>
                                         </div>
                                     )}
@@ -209,7 +206,6 @@ class HomeHeader extends Component {
                     </div>
                 </div>
 
-                {/* BANNER */}
                 {this.props.isShowBanner === true &&
                     <div className="home-header-banner">
 
@@ -225,7 +221,7 @@ class HomeHeader extends Component {
                                 <i className="fas fa-search"></i>
                                 <input
                                     type="text"
-                                    placeholder="Tìm chuyên gia khám bệnh"
+                                    placeholder={this.props.intl ? this.props.intl.formatMessage({ id: 'banner.search' }) : 'Find a medical specialist'}
                                 />
                             </div>
                         </div>
@@ -308,5 +304,13 @@ const mapDispatchToProps = (dispatch) => ({
     processLogoutRedux: () => dispatch(processLogout())
 });
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(HomeHeader));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(injectIntl(HomeHeader)));
+
+
+
+
+
+
+
+
 

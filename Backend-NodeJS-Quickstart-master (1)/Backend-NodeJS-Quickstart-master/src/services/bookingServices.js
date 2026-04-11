@@ -2,6 +2,7 @@ const db = require('../models');
 const { Op } = require('sequelize');
 
 const parsePriceValue = (value) => {
+    // Remove formatting characters because price allcodes can be stored as display strings.
     if (value === undefined || value === null) return 0;
     const numeric = String(value).replace(/[^\d]/g, '');
     return Number(numeric || 0);
@@ -11,16 +12,19 @@ const getAllBookingsForAdmin = async (statusFilter) => {
     try {
         const where = {};
         if (statusFilter === 'unpaid') {
+            // "Unpaid" means not examined yet and payment not marked as paid.
             where.statusId = { [Op.ne]: 'S3' };
             where.paymentStatus = { [Op.ne]: 'paid' };
         }
 
         if (statusFilter === 'paid') {
+            // "Paid" stays in the active booking list until the doctor marks the visit as examined.
             where.statusId = { [Op.ne]: 'S3' };
             where.paymentStatus = 'paid';
         }
 
         if (statusFilter === 'examined') {
+            // Examined bookings are shown regardless of whether payment happened earlier or later.
             where.statusId = 'S3';
         }
 
@@ -44,6 +48,7 @@ const getAllBookingsForAdmin = async (statusFilter) => {
         const timeTypes = [...new Set(bookings.map(item => item.timeType).filter(Boolean))];
 
         const [doctors, patients, times, doctorInfors] = await Promise.all([
+            // Resolve all related display data in parallel because the table needs names, time labels and fallback prices.
             db.User.findAll({
                 where: { id: doctorIds },
                 attributes: ['id', 'firstName', 'lastName', 'email'],
@@ -82,6 +87,7 @@ const getAllBookingsForAdmin = async (statusFilter) => {
             errMessage: 'OK',
             data: bookings.map(item => ({
                 ...item,
+                // Fall back to the doctor's configured consultation price if the booking has no stored payment amount yet.
                 paymentAmount: item.paymentAmount || parsePriceValue(doctorInforMap.get(item.doctorId)?.priceTypeData?.valueVi) || parsePriceValue(doctorInforMap.get(item.doctorId)?.priceTypeData?.valueEn) || 0,
                 doctorData: doctorMap.get(item.doctorId) || null,
                 patientData: patientMap.get(item.patientId) || null,
@@ -96,6 +102,7 @@ const getAllBookingsForAdmin = async (statusFilter) => {
 const getAllPaymentsForAdmin = async (paymentStatus) => {
     const where = {};
     if (paymentStatus) {
+        // Payment management filters only by payment state because booking state is tracked elsewhere.
         where.paymentStatus = paymentStatus;
     }
 
@@ -169,12 +176,14 @@ const getAllPaymentsForAdmin = async (paymentStatus) => {
     );
 
     const data = bookings.map(item => {
+        // Build a predictable transfer text so the admin screen and patient QR flow use the same convention.
         const transferText = `${paymentConfig?.defaultTransferContent || 'BOOKING'} ${item.id}`.trim();
         const doctorInfor = doctorInforMap.get(item.doctorId);
         const fallbackAmount = parsePriceValue(doctorInfor?.priceTypeData?.valueVi) || parsePriceValue(doctorInfor?.priceTypeData?.valueEn);
         const amount = item.paymentAmount || fallbackAmount || 0;
         let qrUrl = '';
 
+        // Generate VietQR only when the payment config is active and complete.
         if (paymentConfig?.isActive !== false && paymentConfig?.bankCode && paymentConfig?.accountNumber && paymentConfig?.accountName) {
             qrUrl = `https://img.vietqr.io/image/${paymentConfig.bankCode}-${paymentConfig.accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferText)}&accountName=${encodeURIComponent(paymentConfig.accountName)}`;
         }

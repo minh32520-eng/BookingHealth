@@ -14,11 +14,12 @@ import ManageHandbook from '../containers/System/ManageHandbook';
 
 class System extends Component {
     render() {
-        const { systemMenuPath, isLoggedIn } = this.props;
+        const { systemMenuPath, isLoggedIn, userInfo } = this.props;
+        const isAdmin = userInfo?.roleId === 'R1';
         return (
             <React.Fragment>
                 {isLoggedIn && <Header />}
-                <div className="system-container">
+                <div className={isAdmin ? "system-container admin-system-layout" : "system-container"}>
                     <div className="system-list">
                         <Switch>
                             <Route path="/system/revenue-dashboard" component={RevenueDashboard} />
@@ -42,7 +43,8 @@ class System extends Component {
 const mapStateToProps = state => {
     return {
         systemMenuPath: state.app.systemMenuPath,
-        isLoggedIn: state.user.isLoggedIn
+        isLoggedIn: state.user.isLoggedIn,
+        userInfo: state.user.userInfo
     };
 };
 

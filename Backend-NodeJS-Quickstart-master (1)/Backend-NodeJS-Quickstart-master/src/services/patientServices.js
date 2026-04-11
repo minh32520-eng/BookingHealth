@@ -4,19 +4,23 @@ import emailService from '../services/email.Service';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import moment from 'moment';
+import { Op } from 'sequelize';
 
 const VNPAY_PAYMENT_URL = process.env.VNPAY_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
 const VNPAY_RETURN_URL = process.env.VNPAY_RETURN_URL || 'http://localhost:6969/api/vnpay-return';
 const VNPAY_IPN_URL = process.env.VNPAY_IPN_URL || 'http://localhost:6969/api/vnpay-ipn';
+const MAX_BOOKINGS_PER_SLOT = 3;
 
 const padNumber = (num) => String(num).padStart(2, '0');
 
 const formatVnpDate = (date = new Date()) => {
+    // VNPAY expects timestamps in YYYYMMDDHHmmss format.
     return `${date.getFullYear()}${padNumber(date.getMonth() + 1)}${padNumber(date.getDate())}${padNumber(date.getHours())}${padNumber(date.getMinutes())}${padNumber(date.getSeconds())}`;
 };
 
 const sortObject = (input) => {
     const sorted = {};
+    // VNPAY signs parameters in sorted key order, so we normalize the object first.
     Object.keys(input).sort().forEach((key) => {
         sorted[key] = input[key];
     });
@@ -24,6 +28,7 @@ const sortObject = (input) => {
 };
 
 const buildSignedQuery = (params) => {
+    // Build the exact query string that VNPAY signs and verifies.
     const sorted = sortObject(params);
     return Object.keys(sorted)
         .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(sorted[key]).replace(/%20/g, '+')}`)
@@ -40,12 +45,14 @@ const signVnpParams = (params) => {
 };
 
 const parsePriceValue = (value) => {
+    // Price allcodes may be stored as formatted strings, so strip everything except digits.
     if (value === undefined || value === null) return 0;
     const numeric = String(value).replace(/[^\d]/g, '');
     return Number(numeric || 0);
 };
 
 const sanitizeVnpText = (value) => {
+    // VNPAY order info works better with plain ASCII text, so normalize and strip accents/special chars.
     return String(value || '')
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
@@ -55,6 +62,7 @@ const sanitizeVnpText = (value) => {
 };
 
 const parseScheduleStart = (value = '') => {
+    // Parse both "08:00" and "8:00 AM" style values coming from allcode labels.
     const normalized = String(value).trim().toUpperCase();
     const match = normalized.match(/(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/);
 
@@ -91,15 +99,18 @@ const getBookingStartTimestamp = (dateValue, timeCode) => {
 };
 
 const getFrontendPaymentResultUrl = (status, bookingId, responseCode = '') => {
+    // Always send payment results back to the patient booking history page in the frontend.
     const clientUrl = process.env.CLIENT_URL || process.env.URL_REACT || 'http://localhost:3000';
     return `${clientUrl}/patient/booking-history?vnpay=${status}&bookingId=${bookingId || ''}&code=${responseCode || ''}`;
 };
 
 let buildUrlEmail = (doctorId, token) => {
+    // Email verification links use the frontend page that confirms a pending booking token.
     return `${process.env.URL_REACT}/verify-booking?token=${token}&doctorId=${doctorId}`;
 }
 
 const mapFullNameToUserFields = (fullName = '') => {
+    // The current user table only has firstName/lastName, so split one free-text name here.
     const parts = String(fullName).trim().split(/\s+/).filter(Boolean);
 
     if (parts.length === 0) {
@@ -125,6 +136,7 @@ const mapFullNameToUserFields = (fullName = '') => {
 let postBookAppointment = (data) => {
     return new Promise(async (resolve) => {
         try {
+            // Validate the minimum booking payload before any DB work or email sending starts.
             if (!data.email || !data.doctorId || !data.timeType || !data.date || !data.fullName) {
                 return resolve({
                     errCode: 1,
@@ -134,6 +146,7 @@ let postBookAppointment = (data) => {
             const normalizedEmail = String(data.email).trim().toLowerCase();
 
             const [timeCode, existedSchedule] = await Promise.all([
+                // Load the selected time label and confirm the schedule slot still exists at booking time.
                 db.Allcode.findOne({
                     where: { keyMap: data.timeType },
                     attributes: ['keyMap', 'valueEn', 'valueVi'],
@@ -156,6 +169,7 @@ let postBookAppointment = (data) => {
                 });
             }
 
+            // Frontend hides expired slots, but the backend still blocks stale or crafted requests.
             const bookingStart = getBookingStartTimestamp(data.date, timeCode);
             if (bookingStart <= moment().valueOf()) {
                 return resolve({
@@ -171,6 +185,7 @@ let postBookAppointment = (data) => {
                 raw: false,
                 nest: true
             });
+            // Snapshot the current consultation price into the booking so later changes do not rewrite history.
             const doctorInforData = doctorInfor ? doctorInfor.get({ plain: true }) : null;
             const paymentAmount = parsePriceValue(doctorInforData?.priceTypeData?.valueVi) || parsePriceValue(doctorInforData?.priceTypeData?.valueEn);
 
@@ -184,6 +199,7 @@ let postBookAppointment = (data) => {
             }
 
             if (!patientRecord) {
+                // Create a patient account lazily when the booking email does not belong to an existing user yet.
                 let user = await db.User.findOrCreate({
                     where: { email: normalizedEmail },
                     defaults: {
@@ -201,6 +217,7 @@ let postBookAppointment = (data) => {
             if (patientRecord) {
                 const mappedName = mapFullNameToUserFields(data.fullName);
 
+                // Refresh the patient profile with the latest info entered in the booking form.
                 await db.User.update(
                     {
                         firstName: mappedName.firstName || patientRecord.firstName || '',
@@ -216,14 +233,72 @@ let postBookAppointment = (data) => {
             }
 
             if (patientRecord) {
-                await db.Booking.findOrCreate({
-                    where: {
-                        patientId: patientRecord.id,
+                const bookingResult = await db.sequelize.transaction(async (transaction) => {
+                    const lockedSchedule = await db.Schedule.findOne({
+                        where: {
+                            doctorId: data.doctorId,
+                            date: data.date,
+                            timeType: data.timeType
+                        },
+                        raw: false,
+                        transaction,
+                        lock: transaction.LOCK.UPDATE
+                    });
+
+                    if (!lockedSchedule) {
+                        return {
+                            errCode: 2,
+                            errMessage: 'Selected schedule is not available'
+                        };
+                    }
+
+                    const slotLimit = MAX_BOOKINGS_PER_SLOT;
+                    const activeBookingWhere = {
                         doctorId: data.doctorId,
                         date: data.date,
-                        timeType: data.timeType
-                    },
-                    defaults: {
+                        timeType: data.timeType,
+                        statusId: {
+                            [Op.in]: ['S1', 'S2', 'S3']
+                        }
+                    };
+
+                    const [activeBookingCount, duplicateBooking] = await Promise.all([
+                        db.Booking.count({
+                            where: activeBookingWhere,
+                            transaction
+                        }),
+                        db.Booking.findOne({
+                            where: {
+                                patientId: patientRecord.id,
+                                doctorId: data.doctorId,
+                                date: data.date,
+                                timeType: data.timeType
+                            },
+                            raw: true,
+                            transaction
+                        })
+                    ]);
+
+                    lockedSchedule.maxNumber = slotLimit;
+                    lockedSchedule.currentNumber = activeBookingCount;
+
+                    if (duplicateBooking) {
+                        await lockedSchedule.save({ transaction });
+                        return {
+                            errCode: 4,
+                            errMessage: 'You have already booked this schedule'
+                        };
+                    }
+
+                    if (activeBookingCount >= slotLimit) {
+                        await lockedSchedule.save({ transaction });
+                        return {
+                            errCode: 5,
+                            errMessage: 'This schedule is fully booked'
+                        };
+                    }
+
+                    await db.Booking.create({
                         statusId: 'S1',
                         paymentStatus: 'pending',
                         paymentMethod: 'VNPAY',
@@ -234,11 +309,26 @@ let postBookAppointment = (data) => {
                         date: data.date,
                         timeType: data.timeType,
                         token: token
-                    }
+                    }, {
+                        transaction
+                    });
+
+                    lockedSchedule.currentNumber = activeBookingCount + 1;
+                    await lockedSchedule.save({ transaction });
+
+                    return {
+                        errCode: 0,
+                        errMessage: 'OK'
+                    };
                 });
+
+                if (bookingResult.errCode !== 0) {
+                    return resolve(bookingResult);
+                }
             }
 
             try {
+                // Send the verification email only after the booking row exists, so the token has something to activate.
                 await emailService.sendSimpleEmail({
                     reciverEmail: data.email,
                     patientName: data.fullName,
@@ -282,6 +372,7 @@ let postVerifyBookAppointment = (data) => {
                     where: {
                         doctorId: data.doctorId,
                         token: data.token,
+                        // Only pending bookings can be activated through the email confirmation link.
                         statusId: 'S1'
                     },
                     raw: false
@@ -340,6 +431,7 @@ let getBookingHistoryByPatient = (patientId) => {
             let statusIds = [...new Set(bookings.map(item => item.statusId).filter(Boolean))];
 
             let [doctors, times, statuses] = await Promise.all([
+                // Resolve all display labels in parallel so the history page needs only one API call.
                 db.User.findAll({
                     where: { id: doctorIds },
                     attributes: ['id', 'firstName', 'lastName'],
@@ -361,6 +453,7 @@ let getBookingHistoryByPatient = (patientId) => {
             let timeMap = new Map(times.map(item => [item.keyMap, item]));
             let statusMap = new Map(statuses.map(item => [item.keyMap, item]));
 
+            // Attach doctor/time/status display data so the history page can render in one request.
             let data = bookings.map(item => ({
                 ...item,
                 doctorData: doctorMap.get(item.doctorId) || null,
@@ -396,6 +489,7 @@ let createVnpayPaymentUrl = (data, ipAddr) => {
             });
 
             if (!booking) {
+                // Only the owner of the booking can request a payment URL for that booking.
                 return resolve({ errCode: 3, errMessage: 'Booking not found' });
             }
 
@@ -403,6 +497,7 @@ let createVnpayPaymentUrl = (data, ipAddr) => {
                 return resolve({ errCode: 4, errMessage: 'Booking has already been paid' });
             }
 
+            // Load doctor identity and pricing together because both are needed to create the order.
             const [doctor, doctorInfor] = await Promise.all([
                 db.User.findOne({
                     where: { id: booking.doctorId },
@@ -432,6 +527,7 @@ let createVnpayPaymentUrl = (data, ipAddr) => {
             const orderInfo = sanitizeVnpText(`Thanh toan lich kham ${booking.id} cho ${doctorName}`);
 
             const vnpParams = {
+                // These are the core VNPAY fields used to create one payment order.
                 vnp_Version: '2.1.0',
                 vnp_Command: 'pay',
                 vnp_TmnCode: process.env.VNPAY_TMN_CODE,
@@ -450,6 +546,8 @@ let createVnpayPaymentUrl = (data, ipAddr) => {
             if (VNPAY_IPN_URL) vnpParams.vnp_IpnUrl = VNPAY_IPN_URL;
             if (data.bankCode) vnpParams.vnp_BankCode = data.bankCode;
 
+            // Save the payment snapshot before redirecting so the order is traceable even
+            // if the user closes the browser before the callback returns.
             await db.Booking.update({
                 paymentStatus: 'pending',
                 paymentMethod: 'VNPAY',
@@ -482,12 +580,14 @@ let handleVnpayReturn = (query) => {
             delete inputData.vnp_SecureHash;
             delete inputData.vnp_SecureHashType;
 
+            // Never trust callback data until the signature matches the secret key.
             const validSignature = signVnpParams(inputData) === vnpSecureHash;
             const txnRef = query.vnp_TxnRef || '';
             const bookingId = txnRef.startsWith('BOOKING_') ? txnRef.replace('BOOKING_', '') : '';
             const responseCode = query.vnp_ResponseCode || '';
 
             if (!validSignature || !bookingId) {
+                // Reject tampered callback data immediately and send the user back with an error state.
                 return resolve({
                     errCode: 1,
                     bookingId,
@@ -511,6 +611,7 @@ let handleVnpayReturn = (query) => {
             booking.paymentStatus = responseCode === '00' ? 'paid' : 'failed';
             booking.paymentPayload = JSON.stringify(query);
 
+            // In the current business flow, a paid booking is also treated as confirmed.
             if (responseCode === '00' && booking.statusId === 'S1') {
                 booking.statusId = 'S2';
             }
@@ -549,6 +650,7 @@ let handleVnpayIpn = (query) => {
             }
 
             if (booking.paymentStatus === 'paid') {
+                // Return the official "already confirmed" response so VNPAY does not keep retrying this order.
                 return resolve({ RspCode: '02', Message: 'Order already confirmed' });
             }
 

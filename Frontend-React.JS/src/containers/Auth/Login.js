@@ -17,9 +17,10 @@ const getBackendUrl = () => process.env.REACT_APP_BACKEND_URL || 'http://localho
 const AUTH_STORAGE_KEY = 'bookingcare_user_session';
 
 const getRedirectPathByRole = (user) => {
+    // Keep one redirect rule for both normal login and OAuth login.
     if (!user || !user.roleId) return '/home';
     if (user.roleId === USER_ROLE.ADMIN) return '/system/user-manage';
-    if (user.roleId === USER_ROLE.DOCTOR) return '/doctor/manage-schedule';
+    if (user.roleId === USER_ROLE.DOCTOR) return '/doctor/dashboard';
     return '/home';
 };
 
@@ -80,12 +81,14 @@ class Login extends Component {
     }
 
     handleOAuthReturn = () => {
+        // OAuth comes back to /login with query params, so this page finishes the login flow.
         const params = new URLSearchParams(this.props.location.search);
         if (params.get('oauth') === 'success') {
             const token = params.get('token');
             const user = token ? CommonUtils.userInfoFromOAuthToken(token) : null;
             if (user) {
                 try {
+                    // Persist the user immediately so a refresh after OAuth still keeps the session.
                     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
                         isLoggedIn: true,
                         userInfo: user
@@ -221,6 +224,8 @@ class Login extends Component {
         try {
             const res = await verifyEmailOtpApi({ email, purpose, otpCode });
             if (res && res.errCode === 0) {
+                // The backend returns a short-lived token so the next submit knows this email
+                // was verified in the current screen.
                 this.setState(prevState => ({
                     successMessage: 'Xac minh email thanh cong.',
                     [formKey]: {
@@ -284,6 +289,7 @@ class Login extends Component {
             }
 
             if (data && data.errCode === 0) {
+                // Normal login stays in-app, so we can dispatch and redirect right away.
                 this.props.userLoginSuccess(data.user);
                 this.props.navigate(getRedirectPathByRole(data.user));
             }
@@ -476,6 +482,7 @@ class Login extends Component {
         const { registerForm } = this.state;
         return (
             <>
+                {/* Register keeps OTP close to the email field so verification happens early. */}
                 <div className="col-6 form-group login-input compact-input">
                     <Label>First name</Label>
                     <input type="text" className="form-control" value={registerForm.firstName} onChange={(e) => this.onChangeRegisterField(e, 'firstName')} />
@@ -535,6 +542,7 @@ class Login extends Component {
         const { forgotForm } = this.state;
         return (
             <>
+                {/* Forgot-password uses the same OTP flow, but with a different backend purpose. */}
                 <div className="col-12 form-group login-input">
                     <Label>Email</Label>
                     <input type="text" className="form-control" value={forgotForm.email} onChange={(e) => this.onChangeForgotField(e, 'email')} />

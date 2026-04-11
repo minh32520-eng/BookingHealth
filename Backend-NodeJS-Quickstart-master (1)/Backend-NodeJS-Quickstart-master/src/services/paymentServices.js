@@ -1,6 +1,7 @@
 const db = require('../models');
 
 const getPaymentConfig = async () => {
+    // Always read the newest config because the admin screen edits a single active payment profile.
     const config = await db.Payment_Config.findOne({
         order: [['updatedAt', 'DESC']],
         raw: true
@@ -14,6 +15,7 @@ const getPaymentConfig = async () => {
 };
 
 const savePaymentConfig = async (inputData) => {
+    // Account number and account name are the absolute minimum required to produce a valid bank transfer target.
     if (!inputData.accountNumber || !inputData.accountName) {
         return {
             errCode: 1,
@@ -27,6 +29,7 @@ const savePaymentConfig = async (inputData) => {
     });
 
     if (!config) {
+        // Create the first config record the first time the admin saves payment settings.
         config = await db.Payment_Config.create({
             bankCode: inputData.bankCode || '',
             bankName: inputData.bankName || '',
@@ -37,6 +40,7 @@ const savePaymentConfig = async (inputData) => {
             isActive: inputData.isActive !== false
         });
     } else {
+        // Update the latest config in place so old booking previews keep using one active source of truth.
         config.bankCode = inputData.bankCode || '';
         config.bankName = inputData.bankName || '';
         config.accountNumber = inputData.accountNumber;

@@ -26,6 +26,7 @@ class DetailSpecialty extends Component {
     }
 
     buildImageSrc = (image) => {
+        // Specialty images can exist as raw base64 or as a full data URL after admin edits.
         if (!image) return '';
         return image.startsWith('data:image') ? image : `data:image/jpeg;base64,${image}`;
     }
@@ -56,6 +57,7 @@ class DetailSpecialty extends Component {
         try {
             const res = await getDetailSpecialtyById(id);
             if (res && res.errCode === 0 && res.data) {
+                // Keep the whole response because this page renders both the specialty body and related clinic cards.
                 this.setState({
                     loading: false,
                     specialty: res.data,
@@ -115,6 +117,7 @@ class DetailSpecialty extends Component {
             specialty.descriptionHTML ||
             specialty.description ||
             `<p>${intl.formatMessage({ id: 'patient.detail-specialty.no-description' })}</p>`;
+        // The related clinic block is optional, so normalize it before mapping in JSX.
         const relatedClinics = Array.isArray(specialty.relatedClinics) ? specialty.relatedClinics : [];
 
         const errorMessageIdMap = {
@@ -195,6 +198,7 @@ class DetailSpecialty extends Component {
 
                                     <div className="detail-specialty-related-grid">
                                         {relatedClinics.length > 0 ? relatedClinics.map((clinic) => (
+                                            // Each card links the current specialty back to a matching clinic detail page.
                                             <button
                                                 key={clinic.id}
                                                 type="button"

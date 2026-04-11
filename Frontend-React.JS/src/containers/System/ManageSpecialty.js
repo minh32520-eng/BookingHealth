@@ -24,6 +24,7 @@ class ManageSpecialty extends Component {
     }
 
     async componentDidMount() {
+        // Load the specialty table before the admin starts creating or editing records.
         await this.loadSpecialties();
     }
 
@@ -37,12 +38,14 @@ class ManageSpecialty extends Component {
     }
 
     handleOnChangeInput = (event, id) => {
+        // Reuse one handler because every plain input just maps directly into component state.
         this.setState({
             [id]: event.target.value
         });
     }
 
     handleEditorChange = ({ html, text }) => {
+        // Keep both HTML and Markdown because the patient pages render HTML while admin edits Markdown.
         this.setState({
             descriptionHTML: html,
             descriptionMarkdown: text,
@@ -53,16 +56,19 @@ class ManageSpecialty extends Component {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
 
+        // Convert uploads to base64 because the backend specialty API stores image data directly.
         const base64 = await CommonUtils.getBase64(file);
         this.setState({ imageBase64: base64 });
     }
 
     normalizeImageSrc = (value) => {
+        // Support both freshly uploaded data URLs and older raw base64 values from the database.
         if (!value) return '';
         return value.startsWith('data:image') ? value : `data:image/jpeg;base64,${value}`;
     }
 
     resetForm = () => {
+        // Clear edit mode and field values after save/cancel so the next create starts clean.
         this.setState({
             editingSpecialtyId: null,
             name: '',
@@ -74,6 +80,7 @@ class ManageSpecialty extends Component {
 
     handleSaveNewSpecialty = async () => {
         const { editingSpecialtyId, name, imageBase64, descriptionHTML, descriptionMarkdown } = this.state;
+        // Use one payload for both create and update so the admin form only has one save flow.
         const payload = { id: editingSpecialtyId, name, imageBase64, descriptionHTML, descriptionMarkdown };
         let res = editingSpecialtyId
             ? await editSpecialty(payload)
@@ -93,6 +100,7 @@ class ManageSpecialty extends Component {
     }
 
     handleEditSpecialty = async (specialty) => {
+        // Load detail by id so the edit form gets the full markdown/html body, not only table summary fields.
         const res = await getDetailSpecialtyById(specialty.id);
         if (res && res.errCode === 0 && res.data) {
             const data = res.data;
@@ -125,6 +133,7 @@ class ManageSpecialty extends Component {
         const { imageBase64 } = this.state;
         if (!imageBase64) return null;
 
+        // Preview the currently selected image before the admin saves the specialty.
         const src = this.normalizeImageSrc(imageBase64);
 
         return (

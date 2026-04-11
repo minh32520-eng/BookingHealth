@@ -3,10 +3,11 @@ import moment from "moment";
 import { Op } from "sequelize";
 require("dotenv").config();
 
-const MAX_NUMBER_SCHEDULE = process.env.MAX_NUMBER_SCHEDULE;
+const MAX_NUMBER_SCHEDULE = 3;
 
 // ================== HELPER: SAFE IMAGE ==================
 const convertImage = (image) => {
+    // Normalize image storage output because MySQL may return image blobs as Buffers.
     if (image && Buffer.isBuffer(image)) {
         return image.toString("base64");
     }
@@ -14,6 +15,7 @@ const convertImage = (image) => {
 };
 
 const parseScheduleStart = (value = "") => {
+    // Parse both "08:00" and "8:00 AM" formats from allcode time labels.
     const normalized = String(value).trim().toUpperCase();
     const match = normalized.match(/(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/);
 
@@ -37,6 +39,7 @@ const getScheduleStartTimestamp = (dateValue, timeTypeData) => {
         parseScheduleStart(timeTypeData?.valueVi);
 
     if (!parsed) {
+        // Fall back to the day timestamp if the readable time label is missing.
         return moment(Number(dateValue)).valueOf();
     }
 
@@ -76,6 +79,7 @@ let getTopDoctorHome = (limitInput) => {
                 nest: true,
             });
 
+            // Convert image buffers once so homepage cards can use a plain base64 string.
             users = users.map((item) => {
                 let doctor = item.get({ plain: true });
                 doctor.image = convertImage(doctor.image);
@@ -139,6 +143,7 @@ let getAllDoctors = () => {
             });
 
             doctors = doctors.map((doctor) => {
+                // Convert doctor images once so admin and patient pages can render them directly.
                 let item = doctor.get({ plain: true });
                 item.image = convertImage(item.image);
                 return item;
@@ -178,6 +183,8 @@ let saveDetailInforDoctor = (inputData) => {
                 });
             }
 
+            // Save article content and pricing/clinic metadata together so the admin form
+            // can treat them as a single doctor profile.
             // ===== MARKDOWN =====
             if (inputData.action === "CREATE") {
                 await db.Markdown.create({
@@ -207,6 +214,7 @@ let saveDetailInforDoctor = (inputData) => {
                 raw: false
             });
 
+            // Doctor_Infor behaves like a per-doctor profile row: update it if it exists, otherwise create it once.
             if (doctorInfor) {
                 doctorInfor.priceId = inputData.priceId;
                 doctorInfor.provinceId = inputData.provinceId;
@@ -235,6 +243,7 @@ let saveDetailInforDoctor = (inputData) => {
                 });
 
                 if (doctor) {
+                    // Strip the data URL prefix if the admin uploaded the image from a browser file input.
                     let imageBase64 = inputData.image.includes(',')
                         ? inputData.image.split(',')[1]
                         : inputData.image;
@@ -323,10 +332,11 @@ let bulkCreateSchedule = (data) => {
                 let selectedTimeTypes = schedule.map(item => item.timeType);
 
                 if (schedule && schedule.length > 0) {
-                    schedule = schedule.map((item) => {
-                        item.maxNumber = MAX_NUMBER_SCHEDULE;
-                        return item;
-                    });
+                    schedule = schedule.map((item) => ({
+                        ...item,
+                        currentNumber: 0,
+                        maxNumber: MAX_NUMBER_SCHEDULE
+                    }));
                 }
 
                 let existing = await db.Schedule.findAll({
@@ -342,11 +352,37 @@ let bulkCreateSchedule = (data) => {
                         doctorId: data.doctorId,
                         date: data.formatedDate,
                     },
-                    attributes: ["timeType"],
+                    attributes: ["timeType", "statusId"],
                     raw: true,
                 });
 
-                let bookedTimeTypes = new Set((bookings || []).map(item => item.timeType));
+                let slotBookingCountMap = new Map();
+                (bookings || []).forEach((item) => {
+                    if (!["S1", "S2", "S3"].includes(item.statusId)) {
+                        return;
+                    }
+
+                    const current = slotBookingCountMap.get(item.timeType) || 0;
+                    slotBookingCountMap.set(item.timeType, current + 1);
+                });
+
+                let bookedTimeTypes = new Set(Array.from(slotBookingCountMap.keys()));
+
+                if (existing.length > 0) {
+                    await Promise.all(existing.map(async (item) => {
+                        const currentNumber = slotBookingCountMap.get(item.timeType) || 0;
+
+                        if (item.currentNumber !== currentNumber || item.maxNumber !== MAX_NUMBER_SCHEDULE) {
+                            await db.Schedule.update({
+                                currentNumber,
+                                maxNumber: MAX_NUMBER_SCHEDULE
+                            }, {
+                                where: { id: item.id }
+                            });
+                        }
+                    }));
+                }
+                // Insert only slots that do not already exist for this doctor/date/time.
                 let toCreate = schedule.filter(item =>
                     !existing.some(e =>
                         e.timeType === item.timeType &&
@@ -355,6 +391,7 @@ let bulkCreateSchedule = (data) => {
                     )
                 );
 
+                // Do not remove slots that already have a patient booking.
                 let removableSchedules = existing.filter(item =>
                     !selectedTimeTypes.includes(item.timeType) && !bookedTimeTypes.has(item.timeType)
                 );
@@ -398,29 +435,58 @@ let getScheduleByDate = (doctorId, date) => {
             let start = moment(+date).startOf("day").valueOf();
             let end = moment(+date).endOf("day").valueOf();
 
-            let data = await db.Schedule.findAll({
-                where: {
-                    doctorId: doctorId,
-                    date: {
-                        [Op.between]: [start, end],
+            const [data, bookings] = await Promise.all([
+                db.Schedule.findAll({
+                    where: {
+                        doctorId: doctorId,
+                        date: {
+                            [Op.between]: [start, end],
+                        },
                     },
-                },
-                include: [
-                    {
-                        model: db.Allcode,
-                        as: "timeTypeData",
-                        attributes: ["valueEn", "valueVi"],
+                    include: [
+                        {
+                            model: db.Allcode,
+                            as: "timeTypeData",
+                            attributes: ["valueEn", "valueVi"],
+                        },
+                    ],
+                    raw: false,
+                    nest: true,
+                }),
+                db.Booking.findAll({
+                    where: {
+                        doctorId,
+                        date: {
+                            [Op.between]: [start, end],
+                        },
+                        statusId: {
+                            [Op.in]: ["S1", "S2", "S3"],
+                        }
                     },
-                ],
-                raw: false,
-                nest: true,
+                    attributes: ["timeType"],
+                    raw: true,
+                })
+            ]);
+
+            const slotBookingCountMap = new Map();
+            (bookings || []).forEach((item) => {
+                const current = slotBookingCountMap.get(item.timeType) || 0;
+                slotBookingCountMap.set(item.timeType, current + 1);
             });
 
             const now = moment().valueOf();
+            // Double-check past times on the backend so stale frontend state cannot expose them.
             const filteredData = (data || []).filter((item) => {
                 const schedule = item.get ? item.get({ plain: true }) : item;
                 const startTimestamp = getScheduleStartTimestamp(schedule.date, schedule.timeTypeData);
                 return startTimestamp > now;
+            }).map((item) => {
+                const schedule = item.get ? item.get({ plain: true }) : item;
+                return {
+                    ...schedule,
+                    currentNumber: slotBookingCountMap.get(schedule.timeType) || 0,
+                    maxNumber: MAX_NUMBER_SCHEDULE
+                };
             });
 
             resolve({
@@ -470,6 +536,7 @@ let getListPatientForDoctor = (doctorId, date) => {
             let timeTypes = [...new Set(bookings.map(item => item.timeType).filter(Boolean))];
 
             let [patients, timeCodes] = await Promise.all([
+                // Resolve patient identities and time labels together for the doctor dashboard table.
                 db.User.findAll({
                     where: { id: patientIds },
                     attributes: ["id", "email", "firstName", "lastName", "phoneNumber", "address"],
@@ -485,6 +552,7 @@ let getListPatientForDoctor = (doctorId, date) => {
             let patientMap = new Map(patients.map(item => [item.id, item]));
             let timeMap = new Map(timeCodes.map(item => [item.keyMap, item]));
 
+            // Merge booking rows with patient and time labels for the doctor dashboard table.
             let data = bookings.map(item => ({
                 ...item,
                 patientData: patientMap.get(item.patientId) || null,
@@ -708,6 +776,7 @@ let getDoctorMedicalRecords = (doctorId, statusId) => {
             const patientMap = new Map((patients || []).map(item => [String(item.id), item]));
             const timeMap = new Map((timeCodes || []).map(item => [item.keyMap, item]));
 
+            // The doctor page renders upcoming confirmed visits and completed history separately.
             const pendingAppointments = (bookings || [])
                 .filter(item => item.statusId === "S2")
                 .map(item => ({
@@ -762,6 +831,7 @@ let saveDoctorMedicalRecord = (data) => {
             }
 
             await db.History.create({
+                // Persist the doctor's diagnosis/notes before marking the booking as completed.
                 doctorId: data.doctorId,
                 patientId: data.patientId,
                 description: data.description,
@@ -815,6 +885,7 @@ let confirmFinishedBooking = (doctorId, bookingId) => {
             }
 
             if (booking.statusId !== "S2") {
+                // Only confirmed bookings can move to the examined state.
                 return resolve({
                     errCode: 3,
                     errMessage: "Only confirmed bookings can be marked as examined",
@@ -864,6 +935,7 @@ let updateDoctorProfile = (data) => {
             doctor.gender = data.gender || doctor.gender;
 
             if (data.image && data.image.length > 0) {
+                // Support both raw base64 and browser data URLs when the doctor updates their avatar.
                 const imageBase64 = data.image.includes(",")
                     ? data.image.split(",")[1]
                     : data.image;
@@ -893,6 +965,7 @@ let updateDoctorProfile = (data) => {
 
             const plainDoctor = updatedDoctor ? updatedDoctor.get({ plain: true }) : null;
             if (plainDoctor) {
+                // Convert the avatar before returning the updated profile to the frontend.
                 plainDoctor.image = convertImage(plainDoctor.image);
             }
 

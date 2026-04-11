@@ -10,6 +10,7 @@ const getDefaultAuthState = () => ({
 
 const loadPersistedAuth = () => {
     try {
+        // Restore login state after refreshes and OAuth full-page redirects.
         const raw = localStorage.getItem(AUTH_STORAGE_KEY);
         if (!raw) return getDefaultAuthState();
 
@@ -26,6 +27,7 @@ const loadPersistedAuth = () => {
 const persistAuth = (state) => {
     try {
         localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(state));
+        // Remove the old redux-persist key so it cannot overwrite the current auth state.
         localStorage.removeItem(LEGACY_PERSIST_USER_KEY);
     } catch (error) { }
 };
@@ -42,6 +44,7 @@ const initialState = loadPersistedAuth();
 const userReducer = (state = initialState, action) => {
     switch (action.type) {
         case actionTypes.USER_LOGIN_SUCCESS: {
+            // Save the same auth snapshot in redux and local storage on successful login.
             const nextState = {
                 ...state,
                 isLoggedIn: true,

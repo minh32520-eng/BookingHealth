@@ -1,9 +1,9 @@
 const db = require('../models');
-const { Op } = require('sequelize');
 const { normalizeBase64Image } = require('../utils/image');
 
 const getAllClinics = async () => {
     try {
+        // Keep the list query light because homepage cards and admin tables only need summary fields.
         const data = await db.Clininc.findAll({
             attributes: ['id', 'name', 'address', 'description', 'image'],
             order: [['id', 'DESC']],
@@ -44,13 +44,8 @@ const getDetailClinicById = async (id) => {
 
         const doctorClinicInfor = await db.Doctor_Infor.findAll({
             where: {
-                [Op.or]: [
-                    { nameClinic: clinic.name },
-                    {
-                        nameClinic: clinic.name,
-                        addressClinic: clinic.address
-                    }
-                ]
+                // Match by clinic name/address because older doctor info rows were saved without a real clinic id.
+                nameClinic: clinic.name
             },
             attributes: ['doctorId'],
             include: [
@@ -88,6 +83,7 @@ const getDetailClinicById = async (id) => {
                 ? item.specialtyData.get({ plain: true })
                 : item?.specialtyData;
 
+            // Deduplicate specialties because multiple doctors in one clinic can point to the same specialty.
             if (specialty && specialty.id && !relatedSpecialtiesMap.has(specialty.id)) {
                 relatedSpecialtiesMap.set(specialty.id, specialty);
             }
@@ -128,6 +124,7 @@ const createClinic = async (payload) => {
             name: payload.name,
             address: payload.address,
             description: payload.description,
+            // Normalize uploaded base64 so frontend pages can render clinic images consistently later.
             image: normalizeBase64Image(payload.imageBase64),
         });
 

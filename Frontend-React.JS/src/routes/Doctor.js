@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { Redirect, Route, Switch } from 'react-router-dom';
+import DoctorDashboard from '../containers/System/Doctor/DoctorDashboard';
 import ManageSchedule from '../containers/System/Doctor/ManageSchedule';
-import PaymentQr from '../containers/System/Doctor/PaymentQr';
 import DoctorMedicalRecords from '../containers/System/Doctor/DoctorMedicalRecords';
 import DoctorProfile from '../containers/System/Doctor/DoctorProfile';
 import Header from '../containers/Header/Header';
@@ -10,19 +10,20 @@ import Header from '../containers/Header/Header';
 class Doctor extends Component {
 
     render() {
-        const { isLoggedIn } = this.props;
+        const { isLoggedIn, userInfo } = this.props;
+        const isDoctor = userInfo?.roleId === 'R2';
 
         return (
             <React.Fragment>
                 {isLoggedIn && <Header />}
-                <div className="system-container">
+                <div className={isDoctor ? "system-container admin-system-layout doctor-system-layout" : "system-container"}>
                     <div className="system-list">
                         <Switch>
+                            <Route path="/doctor/dashboard" component={DoctorDashboard} />
                             <Route path="/doctor/manage-schedule" component={ManageSchedule} />
                             <Route path="/doctor/medical-records" component={DoctorMedicalRecords} />
                             <Route path="/doctor/profile" component={DoctorProfile} />
-                            <Route path="/doctor/payment-qr" component={PaymentQr} />
-                            <Route component={() => { return (<Redirect to="/doctor/manage-schedule" />) }} />
+                            <Route component={() => { return (<Redirect to="/doctor/dashboard" />) }} />
                         </Switch>
                     </div>
                 </div>
@@ -34,7 +35,8 @@ class Doctor extends Component {
 const mapStateToProps = state => {
     return {
         systemMenuPath: state.app.systemMenuPath,
-        isLoggedIn: state.user.isLoggedIn
+        isLoggedIn: state.user.isLoggedIn,
+        userInfo: state.user.userInfo
     };
 };
 const mapDispatchToProps = dispatch => {

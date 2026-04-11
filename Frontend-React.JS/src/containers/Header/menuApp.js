@@ -82,8 +82,8 @@ export const doctorMenu = [
         name: 'menu.doctor.workspace',
         menus: [
             {
-                name: 'menu.doctor.home',
-                link: '/home'
+                name: 'menu.doctor.dashboard',
+                link: '/doctor/dashboard'
             },
             {
                 name: 'menu.doctor.manage-schedule',
@@ -96,10 +96,6 @@ export const doctorMenu = [
             {
                 name: 'menu.doctor.profile',
                 link: '/doctor/profile'
-            },
-            {
-                name: 'menu.doctor.payment-qr',
-                link: '/doctor/payment-qr'
             }
         ]
     }

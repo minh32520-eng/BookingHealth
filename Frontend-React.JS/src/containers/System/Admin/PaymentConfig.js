@@ -18,6 +18,7 @@ class PaymentConfig extends Component {
     };
 
     componentDidMount() {
+        // Load the latest saved bank/QR settings before the admin edits the form.
         this.loadConfig();
     }
 
@@ -26,6 +27,7 @@ class PaymentConfig extends Component {
         try {
             const res = await getPaymentConfig();
             if (res && res.errCode === 0 && res.data) {
+                // Hydrate the form from the last saved config so the page behaves like an edit screen.
                 this.setState({
                     loading: false,
                     bankCode: res.data.bankCode || '',
@@ -44,6 +46,7 @@ class PaymentConfig extends Component {
     };
 
     handleChange = (field, event) => {
+        // Support both text inputs and the active checkbox with one generic form handler.
         const value = field === 'isActive' ? event.target.checked : event.target.value;
         this.setState({ [field]: value });
     };
@@ -52,6 +55,7 @@ class PaymentConfig extends Component {
         const { intl } = this.props;
         const { bankCode, bankName, accountNumber, accountName, defaultTransferContent, qrProvider, isActive } = this.state;
 
+        // Account number and account name are the minimum fields required to generate usable transfer info.
         if (!accountNumber || !accountName) {
             toast.error(intl.formatMessage({ id: 'admin.payment-config.messages.missing-fields' }));
             return;
@@ -85,10 +89,12 @@ class PaymentConfig extends Component {
 
     buildPreviewQr = () => {
         const { bankCode, accountNumber, accountName, defaultTransferContent, qrProvider } = this.state;
+        // Only VietQR is supported right now, so return an empty preview when the config is incomplete.
         if (qrProvider !== 'vietqr' || !bankCode || !accountNumber || !accountName) {
             return '';
         }
 
+        // Use a fake booking suffix in preview mode so admins can see the final transfer text format.
         return `https://img.vietqr.io/image/${bankCode}-${accountNumber}-compact2.png?amount=500000&addInfo=${encodeURIComponent(`${defaultTransferContent || 'BOOKING'} 123`)}&accountName=${encodeURIComponent(accountName)}`;
     };
 

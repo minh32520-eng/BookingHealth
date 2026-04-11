@@ -11,7 +11,6 @@ import Home from '../routes/Home';
 import Login from './Auth/Login';
 import System from '../routes/System';
 import CustomScrollbars from '../components/CustomScrollbars.js';
-import { CustomToastCloseButton } from '../components/CustomToast';
 import HomePage from './HomePage/HomePage.js';
 import DetailDoctor from './Patient/Doctor/DetailDoctor.js';
 import DetailSpecialty from './Patient/Specialty/DetailSpecialty.js';
@@ -28,6 +27,7 @@ class App extends Component {
     handlePersistorState = () => {
         const { persistor } = this.props;
         let { bootstrapped } = persistor.getState();
+        // Wait until persisted redux state is restored before protected routes read auth data.
         if (bootstrapped) {
             if (this.props.onBeforeLift) {
                 Promise.resolve(this.props.onBeforeLift())
@@ -52,6 +52,7 @@ class App extends Component {
                         <div className="content-container">
                             <CustomScrollbars style={{ height: '100vh', width: '100%' }}>
                                 <Switch>
+                                    {/* Public list/detail pages */}
                                     <Route path="/specialty" exact component={SpecialtyPage} />
                                     <Route path="/clinic" exact component={ClinicPage} />
                                     <Route path="/doctor" exact component={DoctorPage} />
@@ -59,14 +60,13 @@ class App extends Component {
                                     <Route path={path.PATIENT_BOOKING_HISTORY} exact component={userIsPatient(BookingHistory)} />
                                     <Route path={path.HOME} exact component={Home} />
 
+                                    {/* Auth and role-based areas */}
                                     <Route path={path.LOGIN} component={userIsNotAuthenticated(Login)} />
-
                                     <Route path={path.SYSTEM} component={userIsAdmin(System)} />
-
                                     <Route path={'/doctor/'} component={userIsDoctor(Doctor)} />
 
+                                    {/* Main homepage and remaining patient routes */}
                                     <Route path={path.HOMEPAGE} component={HomePage} />
-
                                     <Route path={path.DETAIL_DOCTOR} exact component={DetailDoctor} />
                                     <Route path={path.DETAIL_SPECIALTY} exact component={DetailSpecialty} />
                                     <Route path="/detail-clinic/:id" exact component={DetailClinic} />

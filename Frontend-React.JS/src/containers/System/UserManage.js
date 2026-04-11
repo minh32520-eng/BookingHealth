@@ -19,10 +19,12 @@ class UserManage extends Component {
     }
 
     async componentDidMount() {
+        // Load the backend user snapshot on first render so cards and table use the same dataset.
         await this.getAllUsersFromReact();
     }
 
     getAllUsersFromReact = async () => {
+        // The backend still uses the legacy "ALL" argument to return every user in one call.
         let response = await getAllUsers('ALL');
         if (response && response.errCode === 0) {
             this.setState({
@@ -32,6 +34,7 @@ class UserManage extends Component {
     }
 
     handleAddNewUser = () => {
+        // Keep create mode separate from edit mode so modal state stays simple.
         this.setState({
             isOpenModalUser: true
         });
@@ -51,6 +54,7 @@ class UserManage extends Component {
 
     createNewuser = async (data) => {
         try {
+            // Save the new user, then refetch the list so the UI always matches persisted backend data.
             let response = await createNewUserService(data);
             if (response && response.errCode !== 0) {
                 alert(response.errMessage);
@@ -59,6 +63,7 @@ class UserManage extends Component {
                 this.setState({
                     isOpenModalUser: false
                 });
+                // Reset the create modal after a successful save so old field values do not leak into the next open.
                 emitter.emit('EVENT_CLEAR_MODAL_DATA', { 'id': 'your id' })
             }
         } catch (e) {
@@ -67,6 +72,7 @@ class UserManage extends Component {
     }
 
     handleDeleteUser = async (user) => {
+        // Deleting is destructive, so keep an explicit browser confirm before sending the request.
         if (!window.confirm(`Delete user ${user.email}?`)) {
             return;
         }
@@ -84,6 +90,7 @@ class UserManage extends Component {
     }
 
     handleEditUser = (user) => {
+        // Store the selected row so the edit modal can hydrate itself from one stable object.
         this.setState({
             isOpenModalEditUser: true,
             userEdit: user
@@ -92,6 +99,7 @@ class UserManage extends Component {
 
     doEditUser = async (user) => {
         try {
+            // Reload the whole list after edit instead of manually patching one row in local state.
             let res = await editUserService(user);
             if (res && res.errCode === 0) {
                 this.setState({
@@ -108,6 +116,7 @@ class UserManage extends Component {
 
     render() {
         let arrUsers = this.state.arrUser;
+        // Build quick role counts from the same list already shown in the table.
         const adminCount = arrUsers.filter(item => item.roleId === 'R1').length;
         const doctorCount = arrUsers.filter(item => item.roleId === 'R2').length;
         const patientCount = arrUsers.filter(item => item.roleId === 'R3').length;
@@ -189,6 +198,7 @@ class UserManage extends Component {
                                 </thead>
 
                                 <tbody>
+                                    {/* Render the current user snapshot, or show a clear empty state when the list is empty. */}
                                     {arrUsers && arrUsers.length > 0 ? arrUsers.map((item, index) => (
                                         <tr key={index}>
                                             <td className="email-cell">{item.email}</td>

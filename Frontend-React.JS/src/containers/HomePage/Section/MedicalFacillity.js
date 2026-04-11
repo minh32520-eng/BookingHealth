@@ -1,8 +1,7 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
+﻿import React, { Component } from 'react';
+import { FormattedMessage } from 'react-intl';
 import { withRouter } from 'react-router';
-import Slider from "react-slick";
-import './MedicalFacillity.scss';
+import Slider from 'react-slick';
 import { getAllClinic } from '../../../services/userService';
 import CommonUtils from '../../../utils/CommonUtils';
 
@@ -20,12 +19,9 @@ class MedicalFacillity extends Component {
 
     loadClinics = async () => {
         try {
-            let res = await getAllClinic();
-
+            const res = await getAllClinic();
             if (res && res.errCode === 0) {
-                this.setState({
-                    arrClinics: res.data || []
-                });
+                this.setState({ arrClinics: res.data || [] });
             }
         } catch (error) {
             console.log('Load clinic error:', error);
@@ -33,79 +29,64 @@ class MedicalFacillity extends Component {
     };
 
     handleViewDetailClinic = (clinic) => {
-        if (this.props.history) {
-            this.props.history.push(`/detail-clinic/${clinic.id}`);
-        }
+        this.props.history?.push(`/detail-clinic/${clinic.id}`);
     };
 
     handleViewMore = () => {
-        if (this.props.history) {
-            this.props.history.push('/clinic');
-        }
-    };
-
-    buildImageSrc = (image) => {
-        return CommonUtils.buildImageSrc(image);
+        this.props.history?.push('/clinic');
     };
 
     render() {
-        let { arrClinics } = this.state;
-        let { settings } = this.props;
+        const { arrClinics } = this.state;
+        const { settings } = this.props;
 
         return (
             <div className="section-share section-medical-facility">
                 <div className="section-container">
-
                     <div className="section-header">
                         <span className="title-section">
-                            Cơ sở y tế nổi bật
+                            <FormattedMessage id="homepage.clinic.title" />
                         </span>
 
-                        <button
-                            className="btn-section"
-                            onClick={this.handleViewMore}
-                        >
-                            Xem thêm
+                        <button className="btn-section" onClick={this.handleViewMore}>
+                            <FormattedMessage id="homepage.more-infor" />
                         </button>
                     </div>
 
                     <div className="section-body">
                         {arrClinics && arrClinics.length > 0 ? (
                             <Slider {...settings}>
-                                {arrClinics.map((item, index) => {
-                                    const imageBase64 = this.buildImageSrc(item.image);
-                                    return (
-                                        <div
-                                            className="section-customize"
-                                            key={item.id || index}
-                                            onClick={() =>
-                                                this.handleViewDetailClinic(item)
-                                            }
-                                            >
-                                                <div className="customize-border">
-                                                <div className="bg-image section-medical-facility">
-                                                    <img
-                                                        src={imageBase64 || '/default-clinic.jpg'}
-                                                        alt={item.name || 'clinic'}
-                                                        className="section-image-el"
-                                                    />
-                                                </div>
+                                {arrClinics.map((item, index) => (
+                                    <div
+                                        className="section-customize"
+                                        key={item.id || index}
+                                        onClick={() => this.handleViewDetailClinic(item)}
+                                    >
+                                        <div className="customize-border">
+                                            <div className="bg-image section-medical-facility">
+                                                <img
+                                                    src={CommonUtils.buildImageSrc(item.image) || '/default-clinic.jpg'}
+                                                    alt={item.name || 'clinic'}
+                                                    className="section-image-el"
+                                                />
+                                            </div>
 
-                                                <div className="clinic-name">
+                                            <div className="section-card-content clinic-card-content">
+                                                <div className="section-card-title clinic-name">
                                                     {item.name}
                                                 </div>
 
-                                                <div className="clinic-address">
+                                                <div className="section-card-description clinic-address">
                                                     {item.address}
                                                 </div>
                                             </div>
                                         </div>
-                                    );
-                                })}
+                                    </div>
+                                ))}
                             </Slider>
                         ) : (
                             <div className="no-data">
-                                Chưa có dữ liệu cơ sở y tế
+                                <FormattedMessage id="homepage.clinic.empty" />
                             </div>
                         )}
                     </div>
@@ -115,10 +96,4 @@ class MedicalFacillity extends Component {
     }
 }
 
-const mapStateToProps = state => {
-    return {
-        isLoggedIn: state.user.isLoggedIn
-    };
-};
-
-export default withRouter(connect(mapStateToProps)(MedicalFacillity));
+export default withRouter(MedicalFacillity);

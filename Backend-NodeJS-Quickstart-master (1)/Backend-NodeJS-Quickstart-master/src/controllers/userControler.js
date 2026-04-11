@@ -6,6 +6,7 @@ let handleLogin = async (req, res) => {
         let email = req.body.userEmail;
         let password = req.body.password;
 
+        // Reject empty login payloads early before the service tries to compare password hashes.
         if (!email || !password) {
             return res.status(400).json({
                 errCode: 1,
@@ -15,6 +16,7 @@ let handleLogin = async (req, res) => {
 
         let userData = await userService.handleUserLogin(email, password);
 
+        // Keep the existing response shape because the frontend login flow already depends on userData.user.
         return res.status(200).json({
             errCode: userData.errCode,
             errMessage: userData.errMessage,
@@ -34,6 +36,7 @@ let handleGetAllUsers = async (req, res) => {
     try {
         let id = req.query.id;
 
+        // The legacy API expects an id query, where "ALL" means load every user.
         if (!id) {
             return res.status(400).json({
                 errCode: 1,
@@ -72,6 +75,7 @@ let handleCreateNewUser = async (req, res) => {
 
 let handleRegister = async (req, res) => {
     try {
+        // Register is intentionally thin because validation and OTP checks live in the service layer.
         let message = await userService.registerNewPatient(req.body);
         return res.status(200).json(message);
     } catch (e) {
@@ -84,6 +88,7 @@ let handleRegister = async (req, res) => {
 
 let handleForgotPassword = async (req, res) => {
     try {
+        // Forgot password follows the same thin-controller pattern as register/login.
         let message = await userService.forgotPassword(req.body);
         return res.status(200).json(message);
     } catch (e) {
@@ -96,6 +101,7 @@ let handleForgotPassword = async (req, res) => {
 
 let handleSendEmailOtp = async (req, res) => {
     try {
+        // OTP sending is reused by register and forgot-password flows.
         let message = await userService.sendEmailOtp(req.body);
         return res.status(200).json(message);
     } catch (e) {
@@ -108,6 +114,7 @@ let handleSendEmailOtp = async (req, res) => {
 
 let handleVerifyEmailOtp = async (req, res) => {
     try {
+        // OTP verification returns a token-like result that later flows can trust.
         let message = await userService.verifyEmailOtp(req.body);
         return res.status(200).json(message);
     } catch (e) {
@@ -153,6 +160,7 @@ let handleEditUser = async (req, res) => {
 
 let getAllCode = async (req, res) => {
     try {
+        // Allcode remains a generic lookup endpoint used by many form selects in the app.
         let data = await userService.getAllCodeService(req.query.type);
         return res.status(200).json(data);
     } catch (error) {

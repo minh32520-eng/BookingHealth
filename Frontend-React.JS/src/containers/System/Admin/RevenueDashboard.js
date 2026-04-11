@@ -23,17 +23,20 @@ class RevenueDashboard extends Component {
     };
 
     async componentDidMount() {
+        // Load filter lists first so the selectors are ready before the initial dashboard request runs.
         await this.loadFilterData();
         await this.loadDashboard();
     }
 
     loadFilterData = async () => {
         try {
+            // Doctors and clinics are independent requests, so fetch them in parallel.
             const [doctorRes, clinicRes] = await Promise.all([
                 getAllDoctors(),
                 getAllClinic()
             ]);
 
+            // Support both the legacy plain-array response and the newer { data } response shape.
             const doctors = Array.isArray(doctorRes?.data) ? doctorRes.data : Array.isArray(doctorRes) ? doctorRes : [];
             const clinics = clinicRes?.data || [];
 
@@ -48,6 +51,7 @@ class RevenueDashboard extends Component {
     loadDashboard = async () => {
         this.setState({ loading: true, error: '' });
         try {
+            // Send year + active filters together so the backend returns one consistent snapshot.
             const res = await getRevenueDashboard(this.state.year, {
                 doctorId: this.state.selectedDoctorId,
                 clinicId: this.state.selectedClinicId
@@ -72,18 +76,22 @@ class RevenueDashboard extends Component {
     };
 
     handleYearChange = (event) => {
+        // Reload the whole dashboard whenever the selected year changes.
         this.setState({ year: Number(event.target.value) || new Date().getFullYear() }, this.loadDashboard);
     };
 
     handleFilterChange = (event, field) => {
+        // Reuse one handler because doctor and clinic filters follow the same flow.
         this.setState({ [field]: event.target.value }, this.loadDashboard);
     };
 
     buildBarChartBars = () => {
         const monthly = this.state.stats?.monthlyRevenue || [];
+        // Keep the max at least 1 so the bar chart still renders when every month is 0.
         const maxRevenue = Math.max(...monthly.map((item) => item.revenue), 1);
 
         return monthly.map((item, index) => {
+            // Give tiny non-zero months a minimum height so they do not disappear visually.
             const barHeight = Math.max((item.revenue / maxRevenue) * 240, item.revenue > 0 ? 10 : 0);
             const x = 18 + index * 62;
             const y = 270 - barHeight;
@@ -111,8 +119,10 @@ class RevenueDashboard extends Component {
 
     buildLineChart = () => {
         const monthly = this.state.stats?.monthlyRevenue || [];
+        // Keep the max at least 1 to avoid dividing by 0 when there are no bookings.
         const maxBookings = Math.max(...monthly.map((item) => item.bookings), 1);
 
+        // Precompute all points once so the polyline, dots and labels stay aligned.
         const points = monthly.map((item, index) => {
             const x = 36 + index * 58;
             const y = 250 - ((item.bookings || 0) / maxBookings) * 200;
@@ -140,6 +150,7 @@ class RevenueDashboard extends Component {
     exportExcel = () => {
         const { intl } = this.props;
         const monthly = this.state.stats?.monthlyRevenue || [];
+        // Export a spreadsheet-friendly table that admins can open directly in Excel.
         const header = [
             intl.formatMessage({ id: 'admin.revenue-dashboard.table.month' }),
             intl.formatMessage({ id: 'admin.revenue-dashboard.table.bookings' }),
@@ -151,6 +162,7 @@ class RevenueDashboard extends Component {
             item.revenue
         ]);
         const csv = [header, ...rows].map((row) => row.join(',')).join('\n');
+        // Prefix with BOM so Excel reads Vietnamese text correctly.
         const blob = new Blob(['\ufeff' + csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -165,6 +177,7 @@ class RevenueDashboard extends Component {
     exportPdf = () => {
         const { intl } = this.props;
         const monthly = this.state.stats?.monthlyRevenue || [];
+        // Use a print-friendly popup instead of a PDF library to keep the export flow dependency-free.
         const reportWindow = window.open('', '_blank', 'width=960,height=720');
         if (!reportWindow) return;
 
@@ -220,6 +233,7 @@ class RevenueDashboard extends Component {
         const { intl } = this.props;
         const { loading, error, stats, year, doctors, clinics, selectedDoctorId, selectedClinicId } = this.state;
         const monthly = stats?.monthlyRevenue || [];
+        // Derive the best month in the UI so the backend payload stays compact.
         const bestMonth = monthly.reduce((best, current) => current.revenue > (best?.revenue || 0) ? current : best, monthly[0] || null);
 
         return (

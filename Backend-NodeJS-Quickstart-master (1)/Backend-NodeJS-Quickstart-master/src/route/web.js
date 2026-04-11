@@ -30,6 +30,7 @@ let initWebRoutes = (app) => {
     router.get('/api/get-all-users', userControler.handleGetAllUsers);
     router.post('/api/create-new-user', userControler.handleCreateNewUser)
     router.get('/api/allcode', userControler.getAllCode);
+    // Admin analytics and payment screens read from this admin route group.
     router.get('/api/admin/revenue-dashboard', dashboardController.getRevenueDashboard);
     router.get('/api/admin/bookings', bookingController.getAllBookingsForAdmin);
     router.get('/api/admin/payments', bookingController.getAllPaymentsForAdmin);

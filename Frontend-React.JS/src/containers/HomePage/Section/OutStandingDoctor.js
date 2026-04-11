@@ -1,11 +1,10 @@
-import React, { Component } from 'react';
+﻿import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { FormattedMessage } from 'react-intl';
 import Slider from "react-slick";
 import * as actions from '../../../store/actions';
 import { LANGUAGES } from '../../../utils/constant';
 import { withRouter } from 'react-router';
-import './OutStandingDoctor.scss';
 
 class OutStandingDoctor extends Component {
 
@@ -22,7 +21,6 @@ class OutStandingDoctor extends Component {
     render() {
 
         let { topDoctorsRedux, language } = this.props;
-        console.log("TOP DOCTORS REDUX:", topDoctorsRedux);
         return (
             <div>
                 <div className="section-share section-outstanding-doctor">
@@ -70,8 +68,8 @@ class OutStandingDoctor extends Component {
                                                         />
                                                     </div>
 
-                                                    <div className="position text-center">
-                                                        <div>
+                                                    <div className="section-card-content doctor-card-content">
+                                                        <div className="section-card-title position text-center">
                                                             {language === LANGUAGES.VI
                                                                 ? nameVi
                                                                 : nameEn}
@@ -109,3 +107,7 @@ const mapDispatchToProps = dispatch => {
 export default withRouter(
     connect(mapStateToProps, mapDispatchToProps)(OutStandingDoctor)
 );
+
+
+
+

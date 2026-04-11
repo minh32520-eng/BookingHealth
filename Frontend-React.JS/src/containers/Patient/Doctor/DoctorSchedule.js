@@ -29,8 +29,6 @@ class DoctorSchedule extends Component {
             allDays: allDays,
             selectedDate: allDays[0]?.value || '',
         });
-
-
         if (doctorIdFromParent && doctorIdFromParent !== -1) {
             await this.fetchSchedule(doctorIdFromParent, allDays[0].value);
         }
@@ -38,7 +36,6 @@ class DoctorSchedule extends Component {
 
     async componentDidUpdate(prevProps) {
 
-        // đổi ngôn ngữ
         if (this.props.language !== prevProps.language) {
             let allDays = this.getArrDays(this.props.language);
 
@@ -48,7 +45,6 @@ class DoctorSchedule extends Component {
             });
         }
 
-        // đổi doctor
         if (this.props.doctorIdFromParent !== prevProps.doctorIdFromParent) {
             let allDays = this.getArrDays(this.props.language);
 
@@ -58,17 +54,13 @@ class DoctorSchedule extends Component {
         }
     }
 
-    // 🔥 tách riêng API cho gọn
     fetchSchedule = async (doctorId, date) => {
         try {
             let res = await getScheduleDoctorByDate(doctorId, date);
 
-            console.log("API schedule:", res);
-            console.log("DATE gửi lên:", date);
 
             if (res && res.errCode === 0) {
 
-                // 🔥 remove duplicate nếu có
                 let unique = Array.from(
                     new Map((res.data || []).map(item => [item.id, item])).values()
                 );
@@ -131,7 +123,6 @@ class DoctorSchedule extends Component {
     }
 
     handleOnChangeSelect = async (event) => {
-
         let { doctorIdFromParent } = this.props;
         let date = event.target.value;
 
@@ -145,20 +136,16 @@ class DoctorSchedule extends Component {
     }
 
     handleClickScheduleTime = (time) => {
-
         this.setState({
             isOpenModalBooking: true,
             dataScheduleTimeModal: time
         });
-
     }
 
     closeBookingClose = () => {
-
         this.setState({
             isOpenModalBooking: false
         });
-
     }
 
     reloadCurrentSchedule = async () => {
@@ -196,6 +183,7 @@ class DoctorSchedule extends Component {
             this.parseScheduleStart(schedule?.timeTypeData?.valueVi);
 
         if (!parsed) {
+            // Fall back to the day timestamp if a slot is missing readable time text.
             return moment(Number(schedule?.date)).valueOf();
         }
 
@@ -208,11 +196,23 @@ class DoctorSchedule extends Component {
             .valueOf();
     }
 
-    render() {
+    isScheduleFull = (schedule) => {
+        const currentNumber = Number(schedule?.currentNumber || 0);
+        const maxNumber = Number(schedule?.maxNumber || 3);
+        return currentNumber >= maxNumber;
+    }
 
+    render() {
         let { allDays, allAvailableTime, selectedDate } = this.state;
         let { language } = this.props;
-        const filteredTimes = (allAvailableTime || []).filter((item) => this.getScheduleStartTimestamp(item) > moment().valueOf());
+        // Hide slots that are already in the past even if they still exist in the raw API response.
+        const filteredTimes = (allAvailableTime || []).filter((item) => {
+            if (this.getScheduleStartTimestamp(item) <= moment().valueOf()) {
+                return false;
+            }
+
+            return !this.isScheduleFull(item);
+        });
 
         return (
             <>
@@ -257,6 +257,9 @@ class DoctorSchedule extends Component {
                                                 key={index}
                                                 className={language === LANGUAGES.VI ? 'btn-vie' : 'btn-eng'}
                                                 onClick={() => this.handleClickScheduleTime(item)}
+                                                title={language === LANGUAGES.VI
+                                                    ? `Con ${Math.max((item.maxNumber || 3) - (item.currentNumber || 0), 0)} cho`
+                                                    : `${Math.max((item.maxNumber || 3) - (item.currentNumber || 0), 0)} spots left`}
                                             >
                                                 {timeDisplay}
                                             </button>

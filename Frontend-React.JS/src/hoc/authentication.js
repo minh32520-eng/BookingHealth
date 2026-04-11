@@ -5,10 +5,11 @@ import { USER_ROLE } from "../utils/constant";
 const locationHelper = locationHelperBuilder({});
 
 const getHomeByRole = (state) => {
+    // Send each role back to its own workspace when it opens a forbidden route directly.
     const roleId = state.user?.userInfo?.roleId;
 
     if (roleId === USER_ROLE.ADMIN) return '/system/user-manage';
-    if (roleId === USER_ROLE.DOCTOR) return '/doctor/manage-schedule';
+    if (roleId === USER_ROLE.DOCTOR) return '/doctor/dashboard';
     return '/home';
 };
 
@@ -30,6 +31,7 @@ export const userIsAdmin = connectedRouterRedirect({
     authenticatedSelector: state =>
         state.user.isLoggedIn && state.user.userInfo?.roleId === USER_ROLE.ADMIN,
     wrapperDisplayName: 'UserIsAdmin',
+    // Logged-in users go back to their role home instead of landing on a broken page.
     redirectPath: state => state.user.isLoggedIn ? getHomeByRole(state) : '/login',
     allowRedirectBack: false
 });

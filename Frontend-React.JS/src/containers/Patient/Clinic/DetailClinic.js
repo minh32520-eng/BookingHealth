@@ -20,10 +20,12 @@ class DetailClinic extends Component {
     }
 
     getClinicId = () => {
+        // Keep route parsing in one place because several methods need the active clinic id.
         return this.props.match?.params?.id;
     }
 
     buildClinicImage = (image) => {
+        // Reuse the shared image helper so clinic images work for both raw base64 and full data URLs.
         return CommonUtils.buildImageSrc(image);
     }
 
@@ -53,6 +55,7 @@ class DetailClinic extends Component {
         try {
             const res = await getDetailClinicById(id);
             if (res && res.errCode === 0 && res.data) {
+                // Store the whole clinic payload because this page renders description, doctors and related specialties.
                 this.setState({
                     loading: false,
                     errMessage: '',
@@ -98,6 +101,7 @@ class DetailClinic extends Component {
 
         return doctors.map((item, index) => {
             const doctor = item?.doctorData;
+            // Some clinic-doctor links may miss optional doctor fields, so build the display name defensively.
             const doctorName = [doctor?.firstName, doctor?.lastName].filter(Boolean).join(' ').trim();
 
             return (

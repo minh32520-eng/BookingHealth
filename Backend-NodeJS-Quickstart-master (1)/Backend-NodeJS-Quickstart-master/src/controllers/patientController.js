@@ -1,5 +1,6 @@
 import patientService from '../services/patientServices';
 
+// Booking request body already contains all patient-entered form fields and the chosen slot metadata.
 let postBookAppointment = async (req, res) => {
     try {
         let infor = await patientService.postBookAppointment(req.body);
@@ -14,6 +15,7 @@ let postBookAppointment = async (req, res) => {
         })
     }
 }
+// This verify flow activates a pending booking after the patient clicks the email confirmation link.
 let postVerifyBookAppointment = async (req, res) => {
     try {
         // Gọi service để xử lý dữ liệu xác nhận đặt lịch hẹn, truyền dữ liệu từ body request
@@ -44,6 +46,7 @@ let getBookingHistoryByPatient = async (req, res) => {
         });
     }
 }
+// The payment URL service needs both the request body and the client IP for VNPAY.
 let createVnpayPaymentUrl = async (req, res) => {
     try {
         let infor = await patientService.createVnpayPaymentUrl(req.body, req.ip || req.connection?.remoteAddress);
@@ -57,6 +60,7 @@ let createVnpayPaymentUrl = async (req, res) => {
     }
 }
 
+// Browser returns from VNPAY here, then backend redirects the user back to the frontend result page.
 let handleVnpayReturn = async (req, res) => {
     try {
         let result = await patientService.handleVnpayReturn(req.query);
@@ -68,6 +72,7 @@ let handleVnpayReturn = async (req, res) => {
     }
 }
 
+// IPN is the server-to-server confirmation path that finalizes payment status independently from the browser.
 let handleVnpayIpn = async (req, res) => {
     try {
         let result = await patientService.handleVnpayIpn(req.query);

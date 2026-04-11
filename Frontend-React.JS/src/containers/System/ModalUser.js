@@ -21,6 +21,7 @@ class ModalUser extends Component {
         this.listenToEmiiter();
     }
     listenToEmiiter() {
+        // Reuse one modal instance and clear its form from the parent via a small event bus.
         emitter.on('EVENT_CLEAR_MODAL_DATA', () => {
             this.setState({
                 email: '',
@@ -44,6 +45,7 @@ class ModalUser extends Component {
     }
 
     handleOnchangeInput = (event, id) => {
+        // Use the field name as the state key so one handler can update the whole form.
         this.setState({
             [id]: event.target.value
         });
@@ -53,6 +55,7 @@ class ModalUser extends Component {
         let isValid = true;
         let arrInput = ['email', 'password', 'firstName', 'lastName', 'address'];
 
+        // Stop at the first missing required field to keep the old alert-based UX simple.
         for (let i = 0; i < arrInput.length; i++) {
             if (!this.state[arrInput[i]]) {
                 isValid = false;

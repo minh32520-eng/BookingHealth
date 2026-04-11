@@ -24,6 +24,7 @@ const verifyEmailOtpApi = (data) => {
 };
 
 const getRevenueDashboard = (year, filters = {}) => {
+    // Build query params manually so empty doctor/clinic filters are not sent to the backend.
     const params = new URLSearchParams();
     params.append('year', year);
     if (filters.doctorId) params.append('doctorId', filters.doctorId);
@@ -32,12 +33,14 @@ const getRevenueDashboard = (year, filters = {}) => {
 };
 
 const getAdminBookings = (statusId = '') => {
+    // Keep the admin booking endpoint flexible so the UI can filter by booking status without extra routes.
     const params = new URLSearchParams();
     if (statusId) params.append('statusId', statusId);
     return axios.get(`/api/admin/bookings?${params.toString()}`);
 };
 
 const getAdminPayments = (paymentStatus = '') => {
+    // Payment management uses a dedicated status filter because payment flow is separate from booking flow.
     const params = new URLSearchParams();
     if (paymentStatus) params.append('paymentStatus', paymentStatus);
     return axios.get(`/api/admin/payments?${params.toString()}`);

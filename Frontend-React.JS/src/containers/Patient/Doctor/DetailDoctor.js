@@ -20,6 +20,7 @@ class DetailDoctor extends Component {
     async componentDidMount() {
         if (this.props.match && this.props.match.params && this.props.match.params.id) {
 
+            // Read the doctor id from the route so this page can be opened directly by URL.
             let id = this.props.match.params.id;
 
             this.setState({
@@ -29,6 +30,7 @@ class DetailDoctor extends Component {
             let res = await getDetailInforDoctor(id);
 
             if (res && res.errCode === 0) {
+                // Keep the whole response because the child schedule/info blocks read different parts of it.
                 this.setState({
                     detailDoctor: res.data,
                 })
@@ -41,6 +43,7 @@ class DetailDoctor extends Component {
         const currentId = this.props.match?.params?.id;
 
         if (currentId && currentId !== prevId) {
+            // Reload the page data when the route changes to another doctor without a full remount.
             this.componentDidMount();
         }
     }
@@ -51,6 +54,7 @@ class DetailDoctor extends Component {
 
         let imageBase64 = '';
         if (detailDoctor && detailDoctor.image) {
+            // Doctor images still come back as base64 from the API, so convert them to a browser-safe src here.
             imageBase64 = `data:image/jpeg;base64,${detailDoctor.image}`;
         }
 

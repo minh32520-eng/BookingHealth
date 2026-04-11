@@ -10,7 +10,9 @@
         "check-health": "General health check",
         "support": "Support",
         "welcome": "Welcome",
-        "login": "Log in"
+        "login": "Log in",
+        "booking-history": "Booking history",
+        "logout": "Log out"
     },
     "banner": {
         "title1": "MEDICAL PLATFORM",
@@ -46,7 +48,7 @@
         "doctor": {
             "manage-schedule": "Manage Doctor's schedule",
             "workspace": "Doctor workspace",
-            "home": "Homepage",
+            "dashboard": "Dashboard",
             "payment-qr": "Payment QR",
             "medical-records": "Medical records",
             "profile": "My profile"
@@ -68,7 +70,28 @@
     },
     "homepage": {
         "outstanding-doctor": "Last week's featured doctor",
-        "more-infor": "More Infor"
+        "more-infor": "See more",
+        "loading": "Loading...",
+        "back-home": "Back home",
+        "specialty": {
+            "title": "Medical specialty",
+            "empty": "No specialties available yet."
+        },
+        "clinic": {
+            "title": "Featured health facilities",
+            "empty": "No clinic data available."
+        },
+        "handbook": {
+            "title": "Handbook",
+            "empty": "No handbook articles available."
+        },
+        "about": {
+            "title": "Media about BookingCare",
+            "description": "BookingCare connects patients with specialties, clinics, and doctors in a simple, practical way. This section introduces the platform and how it supports patients in finding the right care faster."
+        },
+        "footer": {
+            "link": "More information, please visit my YouTube channel."
+        }
     },
     "manage-schedule": {
         "title": "Manage doctor's examination plan",
@@ -419,6 +442,23 @@
         }
     },
     "doctor": {
+        "dashboard": {
+            "eyebrow": "Doctor overview",
+            "title": "Today's dashboard",
+            "subtitle": "Quickly review how many patients booked you today and see the appointment time ranges you need to handle.",
+            "today": "Today",
+            "loading": "Loading today's bookings...",
+            "empty": "There are no booked appointments for today.",
+            "patient-fallback": "Patient",
+            "schedule-title": "Today's booked appointments",
+            "schedule-subtitle": "These are the patients who already booked with you today, grouped by appointment time.",
+            "stats": {
+                "total": "Booked patients",
+                "pending": "Pending",
+                "confirmed": "Confirmed",
+                "examined": "Examined"
+            }
+        },
         "manage-schedule": {
             "subtitle": "Review your clinic information, open available slots, and track patients who booked you for each day.",
             "cards": {

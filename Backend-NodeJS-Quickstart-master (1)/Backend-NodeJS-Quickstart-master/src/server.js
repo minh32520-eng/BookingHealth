@@ -12,12 +12,14 @@ import passport from 'passport';
 import configurePassport from './config/passport-config.js';
 dotenv.config();
 
+// Register OAuth strategies before auth routes are mounted.
 configurePassport();
 
 let app = express();
 app.use(cookieParser(process.env.SESSION_SECRET || 'session-secret-dev'));
 app.use(
     session({
+        // OAuth redirects rely on this server-side session to keep the auth handshake alive.
         secret: process.env.SESSION_SECRET || 'session-secret-dev',
         resave: false,
         saveUninitialized: false,
@@ -31,7 +33,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// app.use(cors({ origin: true }));
+// This project currently uses a fixed local frontend origin, so CORS is set manually.
 app.use(function (req, res, next) {
     // Website you wish to allow to connect
     res.setHeader('Access-Control-Allow-Origin', "http://localhost:3000");
@@ -56,6 +58,7 @@ app.use(function (req, res, next) {
 // app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+// Route order matters: auth routes need passport/session first, then normal API routes.
 viewEngine(app);
 initAuthRoutes(app);
 initWebRoutes(app);

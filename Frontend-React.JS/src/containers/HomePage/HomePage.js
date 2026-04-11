@@ -13,6 +13,7 @@ import HomeFooter from './HomeFooter';
 class HomePage extends Component {
 
     scrollToHash = () => {
+        // Support deep links like /home#specialty-section after the sections are mounted.
         const hash = this.props.location && this.props.location.hash;
         if (!hash || hash.length < 2) return;
         const id = hash.replace('#', '');
@@ -30,11 +31,13 @@ class HomePage extends Component {
         const prevHash = prevProps.location && prevProps.location.hash;
         const nextHash = this.props.location && this.props.location.hash;
         if (nextHash !== prevHash) {
+            // Re-run the scroll when only the hash changes inside the same page.
             this.scrollToHash();
         }
     }
 
     render() {
+        // All home sliders share the same base settings so the sections behave consistently.
         let settings = {
             infinite: false,
             dots: false,

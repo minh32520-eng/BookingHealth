@@ -17,6 +17,7 @@ class DoctorExtrainfor extends Component {
     }
 
     componentDidMount() {
+        // Load the extra clinic/payment block only after the parent page provides a valid doctor id.
         if (this.props.doctorIdFromParent) {
             this.fetchExtraInfor(this.props.doctorIdFromParent);
         }
@@ -24,6 +25,7 @@ class DoctorExtrainfor extends Component {
 
     componentDidUpdate(prevProps) {
         if (this.props.doctorIdFromParent !== prevProps.doctorIdFromParent) {
+            // Reset the displayed extra info when the page switches to another doctor.
 
             // FIX: check tồn tại
             if (this.props.doctorIdFromParent) {
@@ -44,6 +46,7 @@ class DoctorExtrainfor extends Component {
             let res = await getExtraInforDoctorById(doctorId);
 
             if (res && res.errCode === 0) {
+                // Keep the full extra info object because different UI states read different fields from it.
                 this.setState({
                     extraInfor: res.data || {}
                 })
@@ -54,6 +57,7 @@ class DoctorExtrainfor extends Component {
     }
 
     showHideDetailInfor = (status) => {
+        // Toggle between the compact price preview and the full payment detail block.
         this.setState({
             isShowDetailInfor: status
         })

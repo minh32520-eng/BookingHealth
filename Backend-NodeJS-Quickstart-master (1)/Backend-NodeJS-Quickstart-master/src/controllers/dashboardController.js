@@ -2,6 +2,7 @@ import dashboardService from '../services/dashboardServices';
 
 let getRevenueDashboard = async (req, res) => {
     try {
+        // Keep the controller thin and forward query filters directly into the service layer.
         let response = await dashboardService.getRevenueDashboard(req.query.year, {
             doctorId: req.query.doctorId,
             clinicId: req.query.clinicId

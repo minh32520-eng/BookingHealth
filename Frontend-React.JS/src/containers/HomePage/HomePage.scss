@@ -1,37 +1,44 @@
 .slick-prev {
-    left: -10px !important;
-    border: 2px solid #d7d7d7 !important;
+    left: -18px !important;
+    border: 1.5px solid #bfe7ef !important;
     z-index: 1000 !important;
-    height: 48px !important;
-    background: #fff !important;
-    width: 44px !important;
+    height: 56px !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    width: 56px !important;
+    border-radius: 18px !important;
+    box-shadow: 0 18px 36px rgba(53, 116, 135, 0.16) !important;
 
     &:hover {
-        background: #eceaea !important;
+        background: #fff !important;
+        border-color: #8bd1df !important;
+        box-shadow: 0 22px 40px rgba(53, 116, 135, 0.22) !important;
     }
 }
 
 .slick-prev:before,
 .slick-next:before {
     font-family: FontAwesome !important;
-    color: red !important;
+    color: #4f9db1 !important;
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
 }
 
 .slick-next {
-    right: -10px !important;
+    right: -18px !important;
     z-index: 1000 !important;
-    height: 48px !important;
-    width: 44px !important;
-    background: #fff !important;
-    border: 2px solid #d7d7d7 !important;
+    height: 56px !important;
+    width: 56px !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 1.5px solid #bfe7ef !important;
+    border-radius: 18px !important;
+    box-shadow: 0 18px 36px rgba(53, 116, 135, 0.16) !important;
 
     &:hover {
-        background: #eceaea !important;
+        background: #fff !important;
+        border-color: #8bd1df !important;
+        box-shadow: 0 22px 40px rgba(53, 116, 135, 0.22) !important;
     }
-}
-
-.slick-disabed {
-    display: none !important;
 }
 
 .section-share {
@@ -51,26 +58,30 @@
 
     .section-body {
         .section-customize {
-            padding: 8px 10px 16px;
+            padding: 10px 12px 18px;
             cursor: pointer;
+            height: 100%;
 
             .customize-border {
                 background: #fff;
-                border-radius: 16px;
+                border-radius: 28px;
                 overflow: hidden;
-                box-shadow: 0 10px 24px rgba(17, 38, 146, 0.08);
+                box-shadow: 0 16px 36px rgba(17, 38, 146, 0.1);
                 transition: transform 0.2s ease, box-shadow 0.2s ease;
-                min-height: 250px;
+                min-height: 390px;
+                display: flex;
+                flex-direction: column;
+                height: 100%;
 
                 &:hover {
-                    transform: translateY(-4px);
-                    box-shadow: 0 16px 30px rgba(17, 38, 146, 0.14);
+                    transform: translateY(-6px);
+                    box-shadow: 0 24px 42px rgba(17, 38, 146, 0.15);
                 }
             }
 
             .bg-image {
                 width: 100%;
-                height: 170px;
+                height: 210px;
                 overflow: hidden;
                 background-position: center center;
                 background-repeat: no-repeat;
@@ -95,16 +106,48 @@
                     width: 120px;
                     height: 120px;
                     border-radius: 50%;
-                    margin: 24px auto 14px;
+                    margin: 28px auto 12px;
                     border: 6px solid #f3f8fb;
                 }
+            }
+
+            .section-card-content {
+                flex: 1 1 auto;
+                display: flex;
+                flex-direction: column;
+                padding: 18px 18px 22px;
+                background: #fff;
+                min-height: 148px;
+            }
+
+            .section-card-title {
+                margin: 0;
+                font-size: 20px;
+                font-weight: 700;
+                line-height: 1.35;
+                color: #1f2d3d;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                -webkit-line-clamp: 3;
+            }
+
+            .section-card-description {
+                margin-top: 10px;
+                font-size: 16px;
+                line-height: 1.7;
+                color: #5c6f82;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                -webkit-line-clamp: 4;
             }
         }
     }
 }
 
 .section-share {
-    min-height: 390px;
+    min-height: 470px;
 }
 
 .section-container {
@@ -144,24 +187,39 @@
 
 .section-specialty {
     .specialty-card-bg {
-        min-height: 250px;
+        min-height: 390px;
+    }
+
+    .specialty-card-content {
+        justify-content: center;
+    }
+
+    .specialty-card-title {
+        text-align: left;
     }
 }
 
 .section-medical-facility {
     .clinic-name {
-        padding: 14px 16px 6px;
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 700;
         color: #1f2d3d;
         line-height: 1.35;
+        -webkit-line-clamp: 2;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .clinic-address {
-        padding: 0 16px 18px;
         font-size: 16px;
-        line-height: 1.5;
+        line-height: 1.7;
         color: #5c6f82;
+        margin-top: 10px;
+        -webkit-line-clamp: 2;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 }
 
@@ -171,7 +229,7 @@
     }
 
     .customize-border {
-        min-height: 250px;
+        min-height: 390px;
         padding: 0 18px 22px;
         text-align: center;
     }
@@ -182,28 +240,37 @@
     }
 
     .position {
-        font-size: 16px;
-        font-weight: 600;
+        font-size: 20px;
+        font-weight: 700;
         line-height: 1.45;
         color: #1f2d3d;
         padding: 0 8px;
+        -webkit-line-clamp: 3;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .doctor-card-content {
+        justify-content: center;
     }
 }
 
 .section-handbook {
+    .customize-border {
+        min-height: 390px;
+    }
+
     .handbook-name {
-        padding: 14px 16px 8px;
-        font-size: 18px;
-        font-weight: 700;
-        line-height: 1.35;
-        color: #1f2d3d;
+        -webkit-line-clamp: 2;
     }
 
     .handbook-content {
-        padding: 0 16px 18px;
-        font-size: 15px;
-        line-height: 1.55;
-        color: #5c6f82;
+        -webkit-line-clamp: 4;
+    }
+
+    .handbook-card-content {
+        justify-content: flex-start;
     }
 }
 
@@ -244,5 +311,96 @@
                 padding: 15px;
             }
         }
+    }
+}
+
+@media (max-width: 1200px) {
+    .section-container {
+        margin: 0 60px;
+    }
+}
+
+@media (max-width: 992px) {
+    .slick-prev {
+        left: -12px !important;
+    }
+
+    .slick-next {
+        right: -12px !important;
+    }
+
+    .section-container {
+        margin: 0 32px;
+    }
+
+    .section-share {
+        min-height: 430px;
+
+        .section-body {
+            .section-customize {
+                .customize-border {
+                    min-height: 350px;
+                }
+
+                .bg-image {
+                    height: 180px;
+                }
+
+                .section-card-title {
+                    font-size: 18px;
+                }
+
+                .section-card-description {
+                    font-size: 15px;
+                    line-height: 1.6;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .slick-prev,
+    .slick-next {
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 14px !important;
+    }
+
+    .section-container {
+        margin: 0 18px;
+    }
+
+    .section-share {
+        .section-body {
+            .section-customize {
+                padding: 8px 8px 16px;
+
+                .customize-border {
+                    min-height: 320px;
+                    border-radius: 22px;
+                }
+
+                .bg-image {
+                    height: 160px;
+                }
+
+                .section-card-content {
+                    padding: 16px 16px 20px;
+                }
+
+                .section-card-title {
+                    font-size: 17px;
+                }
+
+                .section-card-description {
+                    font-size: 14px;
+                }
+            }
+        }
+    }
+
+    .section-about {
+        margin: 0 18px;
     }
 }

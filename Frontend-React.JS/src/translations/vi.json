@@ -1,4 +1,4 @@
-{
+﻿{
     "homeheader": {
         "speciality": "Chuyên khoa",
         "searchdoctor": "Tìm bác sĩ theo chuyên khoa",
@@ -10,7 +10,9 @@
         "check-health": "Khám sức khỏe tổng quát",
         "support": "Hỗ trợ",
         "welcome": "Xin chào",
-        "login": "Đăng nhập"
+        "login": "Đăng nhập",
+        "booking-history": "Lịch sử đặt khám",
+        "logout": "Đăng xuất"
     },
     "banner": {
         "title1": "NỀN TẢNG Y TẾ",
@@ -46,10 +48,10 @@
         "doctor": {
             "manage-schedule": "Quản lý lịch bác sĩ",
             "workspace": "Khu bác sĩ",
-            "home": "Trang chủ",
             "payment-qr": "QR thanh toán",
             "medical-records": "Hồ sơ khám bệnh",
-            "profile": "Thông tin cá nhân"
+            "profile": "Thông tin cá nhân",
+            "dashboard": "Bảng điều khiển"
         }
     },
     "manage-user": {
@@ -68,7 +70,28 @@
     },
     "homepage": {
         "outstanding-doctor": "Bác sĩ nổi bật tuần qua",
-        "more-infor": "Xem thêm"
+        "more-infor": "Xem thêm",
+        "loading": "Đang tải...",
+        "back-home": "Về trang chủ",
+        "specialty": {
+            "title": "Chuyên khoa khám bệnh",
+            "empty": "Chưa có dữ liệu chuyên khoa."
+        },
+        "clinic": {
+            "title": "Cơ sở y tế nổi bật",
+            "empty": "Chưa có dữ liệu cơ sở y tế."
+        },
+        "handbook": {
+            "title": "Cẩm nang",
+            "empty": "Chưa có dữ liệu cẩm nang."
+        },
+        "about": {
+            "title": "Truyền thông nói về BookingCare",
+            "description": "BookingCare giúp người dùng tìm chuyên khoa, phòng khám và bác sĩ phù hợp nhanh hơn. Phần này giới thiệu ngắn gọn về nền tảng và cách hệ thống hỗ trợ người bệnh tiếp cận dịch vụ y tế thuận tiện hơn."
+        },
+        "footer": {
+            "link": "Thông tin thêm, vui lòng ghé kênh YouTube của tôi."
+        }
     },
     "manage-schedule": {
         "title": "Quản lý lịch khám của bác sĩ",
@@ -526,6 +549,23 @@
                 "missing-fields": "Vui lòng nhập đầy đủ các trường bắt buộc.",
                 "save-success": "Cập nhật thông tin thành công.",
                 "save-failed": "Cập nhật thông tin thất bại."
+            }
+        },
+        "dashboard": {
+            "eyebrow": "Tổng quan bác sĩ",
+            "title": "Bảng điều khiển hôm nay",
+            "subtitle": "Xem nhanh hôm nay có bao nhiêu bệnh nhân đã đặt lịch và các ca khám đang diễn ra trong khung giờ nào.",
+            "today": "Hôm nay",
+            "loading": "Đang tải lịch đặt hôm nay...",
+            "empty": "Hôm nay chưa có bệnh nhân đặt lịch.",
+            "patient-fallback": "Bệnh nhân",
+            "schedule-title": "Các ca đã đặt trong hôm nay",
+            "schedule-subtitle": "Danh sách này cho biết bệnh nhân nào đã đặt lịch với bạn hôm nay và khung giờ tương ứng.",
+            "stats": {
+                "total": "Bệnh nhân đã đặt",
+                "pending": "Chờ xác nhận",
+                "confirmed": "Đã xác nhận",
+                "examined": "Đã khám"
             }
         }
     }

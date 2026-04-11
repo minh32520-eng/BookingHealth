@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
+﻿import React, { Component } from 'react';
+import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router-dom';
-import './Specialty.scss';
 import Slider from 'react-slick';
+import './Specialty.scss';
 import { getAllSpecialty } from '../../../services/userService';
 import { path } from '../../../utils';
 import CommonUtils from '../../../utils/CommonUtils';
@@ -30,80 +30,76 @@ class Specialty extends Component {
                 this.setState({
                     listSpecialty: [],
                     loading: false,
-                    loadError: 'Không tải được danh sách chuyên khoa'
+                    loadError: 'Unable to load specialties'
                 });
             }
         } catch (e) {
             this.setState({
                 listSpecialty: [],
                 loading: false,
-                loadError: 'Lỗi kết nối máy chủ'
+                loadError: 'Server connection error'
             });
         }
     }
 
-    buildImageSrc = (image) => {
-        return CommonUtils.buildImageSrc(image);
-    };
-
     render() {
         const { listSpecialty, loading, loadError } = this.state;
+        const { settings } = this.props;
 
         return (
             <div className="section-share section-specialty">
                 <div className="section-container">
                     <div className="section-header">
                         <span className="title-section">
-                            Chuyên khoa khám bệnh
+                            <FormattedMessage id="homepage.specialty.title" />
                         </span>
                         <Link to={path.HOMEPAGE} className="btn-section">
-                            Về trang chủ
+                            <FormattedMessage id="homepage.back-home" />
                         </Link>
                     </div>
+
                     <div className="section-body specialty-slider-wrap">
                         {loadError && (
-                            <div className="specialty-load-message">
-                                {loadError}
-                            </div>
+                            <div className="specialty-load-message">{loadError}</div>
                         )}
+
                         {loading && (
                             <div className="specialty-load-message">
-                                Đang tải...
+                                <FormattedMessage id="homepage.loading" />
                             </div>
                         )}
-                        {!loading &&
-                            listSpecialty.length > 0 && (
-                                <Slider {...this.props.settings}>
-                                    {listSpecialty.map((item) => (
-                                        <div key={item.id} className="section-customize">
-                                            <Link
-                                                to={path.DETAIL_SPECIALTY.replace(
-                                                    ':id',
-                                                    item.id
-                                                )}
-                                                className="specialty-card-link"
-                                            >
-                                                <div
-                                                    className="bg-image section-specialty specialty-card-bg"
-                                                >
+
+                        {!loading && listSpecialty.length > 0 && (
+                            <Slider {...settings}>
+                                {listSpecialty.map((item) => (
+                                    <div key={item.id} className="section-customize">
+                                        <Link
+                                            to={path.DETAIL_SPECIALTY.replace(':id', item.id)}
+                                            className="specialty-card-link"
+                                        >
+                                            <div className="customize-border specialty-card-bg">
+                                                <div className="bg-image section-specialty">
                                                     <img
-                                                        src={this.buildImageSrc(item.image) || '/default-specialty.jpg'}
+                                                        src={CommonUtils.buildImageSrc(item.image) || '/default-specialty.jpg'}
                                                         alt={item.name || 'specialty'}
                                                         className="section-image-el"
                                                     />
-                                                    <div className="specialty-card-title">
+                                                </div>
+                                                <div className="section-card-content specialty-card-content">
+                                                    <div className="section-card-title specialty-card-title">
                                                         {item.name}
                                                     </div>
                                                 </div>
-                                            </Link>
-                                        </div>
-                                    ))}
-                                </Slider>
-                            )}
+                                            </div>
+                                        </Link>
+                                    </div>
+                                ))}
+                            </Slider>
+                        )}
+
                         {!loading && listSpecialty.length === 0 && !loadError && (
                             <div className="specialty-load-message">
-                                Chưa có dữ liệu chuyên khoa. Vui lòng chạy seeder
-                                hoặc thêm từ trang quản trị.
+                                <FormattedMessage id="homepage.specialty.empty" />
                             </div>
                         )}
                     </div>
@@ -113,15 +109,4 @@ class Specialty extends Component {
     }
 }
 
-const mapStateToProps = (state) => {
-    return {
-        isLoggedIn: state.user.isLoggedIn,
-        language: state.app.language
-    };
-};
-
-const mapDispatchToProps = () => {
-    return {};
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Specialty);
+export default Specialty;

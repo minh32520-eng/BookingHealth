@@ -17,6 +17,7 @@ class ManageClinic extends Component {
     };
 
     componentDidMount() {
+        // Load the current clinic list once so the admin can edit or delete existing rows immediately.
         this.loadClinics();
     }
 
@@ -32,22 +33,26 @@ class ManageClinic extends Component {
     };
 
     handleOnChangeInput = (e, key) => {
+        // Reuse one handler because every text field just writes back to local component state.
         this.setState({ [key]: e.target.value });
     };
 
     handleOnchangeImage = async (event) => {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
+        // Convert uploads to base64 because the backend expects image data in the request payload.
         const base64 = await CommonUtils.getBase64(file);
         this.setState({ imageBase64: base64 });
     };
 
     normalizeImageSrc = (value) => {
+        // Support both freshly uploaded data URLs and older raw base64 values from the database.
         if (!value) return '';
         return value.startsWith('data:image') ? value : `data:image/jpeg;base64,${value}`;
     };
 
     resetForm = () => {
+        // Clear edit mode and form fields after save/cancel so the admin can create a new clinic cleanly.
         this.setState({
             editingClinicId: null,
             name: '',
@@ -59,6 +64,7 @@ class ManageClinic extends Component {
 
     handleSave = async () => {
         const { editingClinicId, name, address, description, imageBase64 } = this.state;
+        // Use one shared payload for both create and update to keep the form flow simple.
         const payload = { id: editingClinicId, name, address, description, imageBase64 };
         const res = editingClinicId
             ? await editClinic(payload)
@@ -78,6 +84,7 @@ class ManageClinic extends Component {
     };
 
     handleEditClinic = (clinic) => {
+        // Hydrate the form from the selected row so the same UI can be reused for editing.
         this.setState({
             editingClinicId: clinic.id,
             name: clinic.name || '',
@@ -110,6 +117,7 @@ class ManageClinic extends Component {
         const { imageBase64 } = this.state;
         if (!imageBase64) return null;
 
+        // Preview the currently selected image before the admin saves the clinic.
         const src = this.normalizeImageSrc(imageBase64);
 
         return (

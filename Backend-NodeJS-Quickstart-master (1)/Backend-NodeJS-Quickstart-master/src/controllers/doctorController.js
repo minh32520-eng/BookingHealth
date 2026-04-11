@@ -5,6 +5,7 @@ let getTopDoctorHome = async (req, res) => {
     let limit = req.query.limit ? Number(req.query.limit) : 10;
 
     try {
+        // Keep the controller thin and forward the parsed limit directly into the service layer.
         let response = await doctorService.getTopDoctorHome(limit);
         return res.status(200).json(response);
 
@@ -83,6 +84,7 @@ let bulkCreateSchedule = async (req, res) => {
 // ================== GET SCHEDULE ==================
 let getScheduleByDate = async (req, res) => {
     try {
+        // Route query params stay as strings here; the service is responsible for normalizing them.
         let infor = await doctorService.getScheduleByDate(
             req.query.doctorId,
             req.query.date
@@ -131,6 +133,7 @@ let getProfileDoctorById = async (req, res) => {
 
 let getListPatientForDoctor = async (req, res) => {
     try {
+        // Doctor dashboard reads patient list by doctorId + date from query params.
         let infor = await doctorService.getListPatientForDoctor(
             req.query.doctorId,
             req.query.date
@@ -190,6 +193,7 @@ let postDoctorMedicalRecord = async (req, res) => {
 
 let putConfirmFinishedBooking = async (req, res) => {
     try {
+        // Doctors can only complete bookings that belong to their own account in the service layer.
         let response = await doctorService.confirmFinishedBooking(req.body.doctorId, req.body.bookingId);
         return res.status(200).json(response);
     } catch (e) {
@@ -203,6 +207,7 @@ let putConfirmFinishedBooking = async (req, res) => {
 
 let putDoctorProfile = async (req, res) => {
     try {
+        // Profile updates are passed straight through because validation lives in the service layer.
         let response = await doctorService.updateDoctorProfile(req.body);
         return res.status(200).json(response);
     } catch (e) {

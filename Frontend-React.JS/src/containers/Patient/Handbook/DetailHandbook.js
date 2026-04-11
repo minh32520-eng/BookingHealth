@@ -20,6 +20,7 @@ class DetailHandBook extends Component {
 
     async componentDidMount() {
         if (this.props.match && this.props.match.params.id) {
+            // Load the handbook article from the route id when the page first opens.
             let id = this.props.match.params.id;
 
             let res = await getDetailHandbookById(id);
@@ -33,6 +34,7 @@ class DetailHandBook extends Component {
     }
 
     buildImageSrc = (image) => {
+        // Handbook images may be stored either as raw base64 or as a ready-to-use data URL.
         if (!image) return '';
         return image.startsWith('data:image') ? image : `data:image/jpeg;base64,${image}`;
     }
@@ -41,6 +43,7 @@ class DetailHandBook extends Component {
         let { dataDetail } = this.state;
         const { intl } = this.props;
 
+        // Prepare a safe image src before render so the JSX only decides whether the image block should appear.
         let imageBase64 = this.buildImageSrc(dataDetail?.image);
 
         return (

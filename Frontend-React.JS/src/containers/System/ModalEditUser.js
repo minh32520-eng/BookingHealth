@@ -18,6 +18,7 @@ class ModalUser extends Component {
         this.listenToEmiiter();
     }
     listenToEmiiter() {
+        // Reuse the shared emitter so parent screens can reset modal data without extra prop callbacks.
         emitter.on('EVENT_CLEAR_MODAL_DATA', () => {
             this.setState({
                 email: '',
@@ -30,6 +31,7 @@ class ModalUser extends Component {
     }// bus event 
     componentDidMount() {
         let user = this.props.currentUser;
+        // Fill the edit form once from the row selected in the parent table.
         if (user && !_.isEmpty(user)) {
             this.setState({
                 id: user.id,
@@ -48,6 +50,7 @@ class ModalUser extends Component {
     }
 
     handleOnchangeInput = (event, id) => {
+        // A single generic handler works because each input id matches one state field.
         this.setState({
             [id]: event.target.value
         });
@@ -57,6 +60,7 @@ class ModalUser extends Component {
         let isValid = true;
         let arrInput = ['email', 'firstName', 'lastName', 'address'];
 
+        // Stop on the first missing field so the alert stays specific.
         for (let i = 0; i < arrInput.length; i++) {
             if (!this.state[arrInput[i]]) {
                 isValid = false;
@@ -67,6 +71,7 @@ class ModalUser extends Component {
         return isValid;
     }
 
+    // The parent owns the real API update, so this modal only validates and forwards the edited snapshot.
     handleSaveUser = () => {
         let isValid = this.checkValidateInput();
         if (isValid) {
@@ -100,6 +105,7 @@ class ModalUser extends Component {
                                 onChange={(event) => this.handleOnchangeInput(event, 'email')
 
                                 }
+                                // Email is read-only in edit mode because this modal only updates profile fields.
                                 disabled
                             />
                         </div>
@@ -111,6 +117,7 @@ class ModalUser extends Component {
                                 value={this.state.password}
 
                                 onChange={(event) => this.handleOnchangeInput(event, 'password')}
+                                // Password stays locked here to avoid accidental credential changes from the profile modal.
                                 disabled
                             />
                         </div>

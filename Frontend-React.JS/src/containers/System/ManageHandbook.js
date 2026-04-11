@@ -16,6 +16,7 @@ class ManageHandbook extends Component {
     };
 
     componentDidMount() {
+        // Load the handbook list once so create/edit/delete can happen on the same screen.
         this.loadHandbooks();
     }
 
@@ -31,22 +32,26 @@ class ManageHandbook extends Component {
     };
 
     handleOnChangeInput = (e, key) => {
+        // Reuse one handler because every plain input maps directly into local state.
         this.setState({ [key]: e.target.value });
     };
 
     handleOnchangeImage = async (event) => {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
+        // Convert uploads to base64 because the backend handbook API stores image data directly.
         const base64 = await CommonUtils.getBase64(file);
         this.setState({ imageBase64: base64 });
     };
 
     normalizeImageSrc = (value) => {
+        // Support both freshly uploaded data URLs and older raw base64 values from the database.
         if (!value) return '';
         return value.startsWith('data:image') ? value : `data:image/jpeg;base64,${value}`;
     };
 
     resetForm = () => {
+        // Clear edit mode and field values after save/cancel so the next create starts clean.
         this.setState({
             editingHandbookId: null,
             title: '',
@@ -57,6 +62,7 @@ class ManageHandbook extends Component {
 
     handleSave = async () => {
         const { editingHandbookId, title, content, imageBase64 } = this.state;
+        // Use one shared payload for both create and update to keep the form flow straightforward.
         const payload = { id: editingHandbookId, title, content, imageBase64 };
         const res = editingHandbookId
             ? await editHandbook(payload)
@@ -76,6 +82,7 @@ class ManageHandbook extends Component {
     };
 
     handleEditHandbook = (handbook) => {
+        // Refill the form from the selected row so the same screen handles editing.
         this.setState({
             editingHandbookId: handbook.id,
             title: handbook.title || '',
@@ -107,6 +114,7 @@ class ManageHandbook extends Component {
         const src = this.normalizeImageSrc(this.state.imageBase64);
         if (!src) return null;
 
+        // Preview the selected handbook image before saving it.
         return (
             <div className="mh-preview">
                 <img src={src} alt="handbook preview" />
