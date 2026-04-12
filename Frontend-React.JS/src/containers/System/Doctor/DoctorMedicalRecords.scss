@@ -136,6 +136,44 @@
     cursor: not-allowed;
 }
 
+.prescription-upload {
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 16px;
+    border: 1px dashed #9ccfda;
+    border-radius: 16px;
+    background: #fbfeff;
+    color: #1b5267;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+
+    input {
+        display: none;
+    }
+
+    span {
+        display: block;
+        width: 100%;
+        font-weight: 600;
+        line-height: 1.5;
+        word-break: break-word;
+    }
+
+    &:hover {
+        border-color: #49bfc7;
+        background: #f4fcfe;
+    }
+
+    &.disabled {
+        background: #f1f6f8;
+        border-color: #d8e6eb;
+        color: #6f8391;
+        cursor: not-allowed;
+    }
+}
+
 .booking-summary-card {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -166,10 +204,16 @@
 }
 
 .save-record-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
     min-width: 180px;
+    min-height: 48px;
     border-radius: 999px !important;
     padding: 11px 18px !important;
     font-weight: 700 !important;
+    line-height: 1.2 !important;
+    text-align: center;
 }
 
 .record-empty-note {

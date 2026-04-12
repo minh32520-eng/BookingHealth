@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import moment from 'moment';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { getAdminPayments } from '../../../services/userService';
+import { BookingUtils, LANGUAGES } from '../../../utils';
 import './ManagePayment.scss';
 
 const PAYMENT_STATUS_OPTIONS = [
@@ -56,41 +56,38 @@ class ManagePayment extends Component {
     };
 
     getDoctorName = (payment) => {
-        const doctor = payment?.doctorData;
-        return `${doctor?.lastName || ''} ${doctor?.firstName || ''}`.trim() || '--';
+        return BookingUtils.getUserDisplayName(payment?.doctorData, LANGUAGES.VI);
     };
 
     getPatientName = (payment) => {
-        const patient = payment?.patientData;
-        return `${patient?.lastName || ''} ${patient?.firstName || ''}`.trim() || patient?.email || '--';
+        return BookingUtils.getUserDisplayName(payment?.patientData, LANGUAGES.VI);
     };
 
     getPaymentStatusLabel = (status) => {
-        // Keep UI labels derived from the raw payment status so table and QR cards stay consistent.
-        if (status === 'pending') return this.props.intl.formatMessage({ id: 'admin.manage-payment.filters.pending' });
-        if (status === 'paid') return this.props.intl.formatMessage({ id: 'admin.manage-payment.filters.paid' });
-        if (status === 'failed') return this.props.intl.formatMessage({ id: 'admin.manage-payment.filters.failed' });
-        return status || '--';
+        return BookingUtils.getPaymentStatusLabel(status, {
+            intl: this.props.intl,
+            pendingId: 'admin.manage-payment.filters.pending',
+            paidId: 'admin.manage-payment.filters.paid',
+            failedId: 'admin.manage-payment.filters.failed'
+        });
     };
 
     formatAmount = (amount) => {
-        const value = Number(amount || 0);
-        return new Intl.NumberFormat(this.props.language === 'vi' ? 'vi-VN' : 'en-US', {
-            style: 'currency',
-            currency: 'VND',
-            maximumFractionDigits: 0
-        }).format(value);
+        return BookingUtils.formatCurrency(
+            amount,
+            this.props.language === 'vi' ? LANGUAGES.VI : LANGUAGES.EN
+        );
     };
 
     formatDate = (date) => {
-        if (!date) return '--';
-        return moment(Number(date)).format('DD/MM/YYYY');
+        return BookingUtils.formatDate(date);
     };
 
     getTimeLabel = (payment) => {
-        const data = payment?.timeTypeData;
-        if (!data) return '--';
-        return this.props.language === 'vi' ? data.valueVi : data.valueEn;
+        return BookingUtils.getTimeLabel(
+            payment?.timeTypeData,
+            this.props.language === 'vi' ? LANGUAGES.VI : LANGUAGES.EN
+        );
     };
 
     render() {

@@ -1,12 +1,12 @@
 require('dotenv').config();
 import nodemailer from 'nodemailer';
 
-let sendSimpleEmail = async (dataSend) => {
+const createTransporter = () => {
     if (!process.env.EMAIL_APP || !process.env.EMAIL_APP_PASSWORD) {
         throw new Error('Email service is not configured');
     }
 
-    let transporter = nodemailer.createTransport({
+    return nodemailer.createTransport({
         host: 'smtp.gmail.com',
         port: 587,
         secure: false,
@@ -15,40 +15,56 @@ let sendSimpleEmail = async (dataSend) => {
             pass: process.env.EMAIL_APP_PASSWORD,
         },
     });
+};
 
-    let info = await transporter.sendMail({
+const sendEmail = async ({ to, subject, html, attachments = [] }) => {
+    let transporter = createTransporter();
+
+    return transporter.sendMail({
         from: `"BookingCare" <${process.env.EMAIL_APP}>`,
+        to,
+        subject,
+        html,
+        attachments,
+    });
+};
+
+let sendSimpleEmail = async (dataSend) => {
+    return sendEmail({
         to: dataSend.reciverEmail,
         subject: 'Thong tin dat lich kham benh',
         html: getBodyHTMLEmail(dataSend),
     });
-
-    return info;
 }
 
 let sendOtpEmail = async (dataSend) => {
-    if (!process.env.EMAIL_APP || !process.env.EMAIL_APP_PASSWORD) {
-        throw new Error('Email service is not configured');
-    }
-
-    let transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.EMAIL_APP,
-            pass: process.env.EMAIL_APP_PASSWORD,
-        },
-    });
-
-    let info = await transporter.sendMail({
-        from: `"BookingCare" <${process.env.EMAIL_APP}>`,
+    return sendEmail({
         to: dataSend.reciverEmail,
         subject: 'Ma OTP xac minh email',
         html: getBodyHTMLOtpEmail(dataSend),
     });
+}
 
-    return info;
+let sendRemedyEmail = async (dataSend) => {
+    if (!dataSend?.attachment?.content || !dataSend?.attachment?.filename) {
+        throw new Error('Prescription attachment is missing');
+    }
+
+    return sendEmail({
+        to: dataSend.reciverEmail,
+        subject: dataSend.language === 'vi'
+            ? 'Don thuoc sau khi kham benh'
+            : 'Your prescription after appointment',
+        html: getBodyHTMLRemedyEmail(dataSend),
+        attachments: [
+            {
+                filename: dataSend.attachment.filename,
+                content: dataSend.attachment.content,
+                encoding: 'base64',
+                contentType: dataSend.attachment.contentType || 'application/octet-stream',
+            }
+        ]
+    });
 }
 
 let getBodyHTMLEmail = (dataSend) => {
@@ -120,7 +136,39 @@ let getBodyHTMLOtpEmail = (dataSend) => {
     `;
 }
 
+let getBodyHTMLRemedyEmail = (dataSend) => {
+    if (dataSend.language === 'vi') {
+        return `
+            <div style="font-family: Arial, sans-serif; color: #163247; line-height: 1.6;">
+                <h3>Xin chao ${dataSend.patientName || 'ban'}!</h3>
+                <p>Bac si da hoan tat buoi kham cua ban tren he thong BookingCare.</p>
+                <p>Thong tin lich kham:</p>
+                <div><b>Bac si:</b> ${dataSend.doctorName || '--'}</div>
+                <div><b>Thoi gian:</b> ${dataSend.time || '--'}</div>
+                <p>Don thuoc/tep huong dan dieu tri duoc dinh kem trong email nay.</p>
+                <p>Mo tep dinh kem de xem chi tiet va vui long lien he phong kham neu can duoc ho tro them.</p>
+                <div>Xin cam on!</div>
+            </div>
+        `;
+    }
+
+    return `
+        <div style="font-family: Arial, sans-serif; color: #163247; line-height: 1.6;">
+            <h3>Dear ${dataSend.patientName || 'patient'}!</h3>
+            <p>Your doctor has completed the appointment on BookingCare.</p>
+            <p>Appointment information:</p>
+            <div><b>Doctor:</b> ${dataSend.doctorName || '--'}</div>
+            <div><b>Time:</b> ${dataSend.time || '--'}</div>
+            <p>Your prescription or treatment instructions are attached to this email.</p>
+            <p>Please open the attachment for details and contact the clinic if you need further support.</p>
+            <div>Thank you.</div>
+        </div>
+    `;
+}
+
 module.exports = {
+    sendEmail,
     sendSimpleEmail,
-    sendOtpEmail
+    sendOtpEmail,
+    sendRemedyEmail
 }

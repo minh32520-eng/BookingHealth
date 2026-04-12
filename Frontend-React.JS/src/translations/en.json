@@ -501,6 +501,8 @@
             "messages": {
                 "invalid-doctor": "A doctor account is required.",
                 "invalid-date": "Invalid date.",
+                "invalid-past-date": "Doctors can only open schedules from the current date onward.",
+                "invalid-past-time": "Doctors can only select time slots from the current time onward.",
                 "save-success": "Schedule saved successfully.",
                 "save-failed": "Unable to save schedule.",
                 "complete-success": "Appointment marked as examined successfully.",
@@ -514,13 +516,16 @@
             "loading": "Loading medical records...",
             "form": {
                 "title": "Create examination record",
-                "subtitle": "Select a confirmed booking, add examination notes, and mark the appointment as completed.",
+                "subtitle": "Select a confirmed booking, add examination notes, upload the prescription file, and mark the appointment as completed.",
                 "booking": "Booking to examine",
                 "choose-booking": "Choose a confirmed booking",
                 "patient": "Patient",
                 "time": "Appointment time",
                 "description": "Examination notes",
                 "description-placeholder": "Enter diagnosis, prescription notes, follow-up advice, or important clinical findings.",
+                "prescription-file": "Prescription file",
+                "choose-prescription-file": "Choose the prescription file to email",
+                "prescription-file-note": "This file will be emailed to the patient after the medical record is saved.",
                 "save": "Save medical record",
                 "no-pending": "There are no confirmed bookings waiting for examination records."
             },
@@ -542,8 +547,10 @@
                 "load-error": "Unable to load medical records.",
                 "select-booking": "Please choose a booking to save the examination record.",
                 "missing-description": "Please enter examination notes before saving.",
+                "missing-prescription-file": "Please upload the prescription file before saving the medical record.",
                 "save-success": "Medical record saved successfully.",
-                "save-failed": "Failed to save medical record."
+                "save-failed": "Failed to save medical record.",
+                "email-warning": "The medical record was saved, but the prescription email could not be sent."
             }
         },
         "profile": {

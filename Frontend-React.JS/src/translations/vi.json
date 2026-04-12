@@ -484,6 +484,8 @@
             "messages": {
                 "invalid-doctor": "Cần đăng nhập bằng tài khoản bác sĩ.",
                 "invalid-date": "Ngày không hợp lệ.",
+                "invalid-past-date": "Bác sĩ chỉ có thể mở lịch từ ngày hiện tại trở đi.",
+                "invalid-past-time": "Bác sĩ chỉ có thể chọn khung giờ từ thời điểm hiện tại trở đi.",
                 "save-success": "Lưu lịch khám thành công.",
                 "save-failed": "Không thể lưu lịch khám.",
                 "complete-success": "Cập nhật đã khám xong thành công.",
@@ -497,13 +499,16 @@
             "loading": "Đang tải hồ sơ khám bệnh...",
             "form": {
                 "title": "Tạo hồ sơ khám",
-                "subtitle": "Chọn lịch đã xác nhận, ghi thông tin khám và đánh dấu lịch hẹn đã hoàn thành.",
+                "subtitle": "Chọn lịch đã xác nhận, ghi thông tin khám, tải file đơn thuốc và đánh dấu lịch hẹn đã hoàn thành.",
                 "booking": "Lịch cần khám",
                 "choose-booking": "Chọn lịch đã xác nhận",
                 "patient": "Bệnh nhân",
                 "time": "Thời gian khám",
                 "description": "Nội dung hồ sơ",
                 "description-placeholder": "Nhập chẩn đoán, hướng dẫn điều trị, đơn thuốc hoặc các ghi chú quan trọng sau khi khám.",
+                "prescription-file": "File đơn thuốc",
+                "choose-prescription-file": "Chọn file đơn thuốc để gửi qua email",
+                "prescription-file-note": "Hệ thống sẽ gửi file này qua email cho bệnh nhân sau khi lưu hồ sơ khám.",
                 "save": "Lưu hồ sơ khám",
                 "no-pending": "Hiện không có lịch đã xác nhận nào đang chờ lưu hồ sơ."
             },
@@ -525,8 +530,10 @@
                 "load-error": "Không tải được hồ sơ khám bệnh.",
                 "select-booking": "Vui lòng chọn lịch khám trước khi lưu hồ sơ.",
                 "missing-description": "Vui lòng nhập nội dung khám bệnh trước khi lưu.",
+                "missing-prescription-file": "Vui lòng tải file đơn thuốc trước khi lưu hồ sơ.",
                 "save-success": "Lưu hồ sơ khám thành công.",
-                "save-failed": "Lưu hồ sơ khám thất bại."
+                "save-failed": "Lưu hồ sơ khám thất bại.",
+                "email-warning": "Hồ sơ đã được lưu nhưng chưa gửi được email đơn thuốc cho bệnh nhân."
             }
         },
         "profile": {

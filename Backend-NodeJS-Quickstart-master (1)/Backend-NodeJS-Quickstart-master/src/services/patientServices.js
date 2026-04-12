@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import moment from 'moment';
 import { Op } from 'sequelize';
+const { getScheduleStartTimestamp: getBookingStartTimestamp } = require('../utils/schedule');
 
 const VNPAY_PAYMENT_URL = process.env.VNPAY_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
 const VNPAY_RETURN_URL = process.env.VNPAY_RETURN_URL || 'http://localhost:6969/api/vnpay-return';
@@ -59,43 +60,6 @@ const sanitizeVnpText = (value) => {
         .replace(/[^a-zA-Z0-9\s]/g, ' ')
         .replace(/\s+/g, ' ')
         .trim();
-};
-
-const parseScheduleStart = (value = '') => {
-    // Parse both "08:00" and "8:00 AM" style values coming from allcode labels.
-    const normalized = String(value).trim().toUpperCase();
-    const match = normalized.match(/(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/);
-
-    if (!match) {
-        return null;
-    }
-
-    let hours = Number(match[1]);
-    const minutes = Number(match[2]);
-    const meridiem = match[3];
-
-    if (meridiem === 'AM' && hours === 12) hours = 0;
-    if (meridiem === 'PM' && hours < 12) hours += 12;
-
-    return { hours, minutes };
-};
-
-const getBookingStartTimestamp = (dateValue, timeCode) => {
-    const parsed =
-        parseScheduleStart(timeCode?.valueEn) ||
-        parseScheduleStart(timeCode?.valueVi);
-
-    if (!parsed) {
-        return moment(Number(dateValue)).valueOf();
-    }
-
-    return moment(Number(dateValue))
-        .startOf('day')
-        .hour(parsed.hours)
-        .minute(parsed.minutes)
-        .second(0)
-        .millisecond(0)
-        .valueOf();
 };
 
 const getFrontendPaymentResultUrl = (status, bookingId, responseCode = '') => {

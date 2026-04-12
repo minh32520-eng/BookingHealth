@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import './DoctorSchedule.scss';
 import moment from 'moment';
 import 'moment/locale/vi';
-import { LANGUAGES } from '../../../utils';
+import { CommonUtils, LANGUAGES } from '../../../utils';
 import { getScheduleDoctorByDate } from '../../../services/userService';
 import { FormattedMessage } from 'react-intl';
 import BookingModal from './Modal/BookingModal';
@@ -159,41 +159,8 @@ class DoctorSchedule extends Component {
         await this.fetchSchedule(doctorIdFromParent, selectedDate);
     }
 
-    parseScheduleStart = (value = '') => {
-        const normalized = String(value).trim().toUpperCase();
-        const match = normalized.match(/(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/);
-
-        if (!match) {
-            return null;
-        }
-
-        let hours = Number(match[1]);
-        const minutes = Number(match[2]);
-        const meridiem = match[3];
-
-        if (meridiem === 'AM' && hours === 12) hours = 0;
-        if (meridiem === 'PM' && hours < 12) hours += 12;
-
-        return { hours, minutes };
-    }
-
     getScheduleStartTimestamp = (schedule) => {
-        const parsed =
-            this.parseScheduleStart(schedule?.timeTypeData?.valueEn) ||
-            this.parseScheduleStart(schedule?.timeTypeData?.valueVi);
-
-        if (!parsed) {
-            // Fall back to the day timestamp if a slot is missing readable time text.
-            return moment(Number(schedule?.date)).valueOf();
-        }
-
-        return moment(Number(schedule?.date))
-            .startOf('day')
-            .hour(parsed.hours)
-            .minute(parsed.minutes)
-            .second(0)
-            .millisecond(0)
-            .valueOf();
+        return CommonUtils.getScheduleStartTimestamp(schedule?.date, schedule?.timeTypeData);
     }
 
     isScheduleFull = (schedule) => {

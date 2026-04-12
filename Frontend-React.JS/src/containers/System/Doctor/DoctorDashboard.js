@@ -2,7 +2,7 @@
 import { connect } from 'react-redux';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import moment from 'moment';
-import { LANGUAGES, USER_ROLE } from '../../../utils';
+import { BookingUtils, LANGUAGES, USER_ROLE } from '../../../utils';
 import { getListPatientForDoctor } from '../../../services/userService';
 import './DoctorDashboard.scss';
 
@@ -54,10 +54,7 @@ class DoctorDashboard extends Component {
     };
 
     getTimeLabel = (booking) => {
-        const { language } = this.props;
-        return language === LANGUAGES.VI
-            ? booking.timeTypeDataPatient?.valueVi || booking.timeType
-            : booking.timeTypeDataPatient?.valueEn || booking.timeType;
+        return BookingUtils.getTimeLabel(booking?.timeTypeDataPatient, this.props.language, booking?.timeType || '--');
     };
 
     renderBookingRows = () => {
@@ -75,8 +72,11 @@ class DoctorDashboard extends Component {
             .sort((a, b) => String(a.timeType).localeCompare(String(b.timeType)))
             .map((booking) => {
                 const patient = booking.patientData || {};
-                const fullName = [patient.lastName, patient.firstName].filter(Boolean).join(' ').trim()
-                    || this.props.intl.formatMessage({ id: 'doctor.dashboard.patient-fallback' });
+                const fullName = BookingUtils.getUserDisplayName(
+                    patient,
+                    this.props.language,
+                    this.props.intl.formatMessage({ id: 'doctor.dashboard.patient-fallback' })
+                );
 
                 return (
                     <div className="doctor-dashboard-booking-item" key={booking.id}>

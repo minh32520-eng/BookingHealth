@@ -1,56 +1,14 @@
 import db from "../models/index";
 import moment from "moment";
 import { Op } from "sequelize";
+import emailService from "./email.Service";
+const { parseBase64Attachment } = require("../utils/file");
+const { convertBufferToBase64 } = require("../utils/image");
+const { getScheduleStartTimestamp } = require("../utils/schedule");
+const { buildUserDisplayName } = require("../utils/user");
 require("dotenv").config();
 
 const MAX_NUMBER_SCHEDULE = 3;
-
-// ================== HELPER: SAFE IMAGE ==================
-const convertImage = (image) => {
-    // Normalize image storage output because MySQL may return image blobs as Buffers.
-    if (image && Buffer.isBuffer(image)) {
-        return image.toString("base64");
-    }
-    return image || "";
-};
-
-const parseScheduleStart = (value = "") => {
-    // Parse both "08:00" and "8:00 AM" formats from allcode time labels.
-    const normalized = String(value).trim().toUpperCase();
-    const match = normalized.match(/(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/);
-
-    if (!match) {
-        return null;
-    }
-
-    let hours = Number(match[1]);
-    const minutes = Number(match[2]);
-    const meridiem = match[3];
-
-    if (meridiem === "AM" && hours === 12) hours = 0;
-    if (meridiem === "PM" && hours < 12) hours += 12;
-
-    return { hours, minutes };
-};
-
-const getScheduleStartTimestamp = (dateValue, timeTypeData) => {
-    const parsed =
-        parseScheduleStart(timeTypeData?.valueEn) ||
-        parseScheduleStart(timeTypeData?.valueVi);
-
-    if (!parsed) {
-        // Fall back to the day timestamp if the readable time label is missing.
-        return moment(Number(dateValue)).valueOf();
-    }
-
-    return moment(Number(dateValue))
-        .startOf("day")
-        .hour(parsed.hours)
-        .minute(parsed.minutes)
-        .second(0)
-        .millisecond(0)
-        .valueOf();
-};
 
 // ================== GET TOP DOCTOR ==================
 let getTopDoctorHome = (limitInput) => {
@@ -82,7 +40,7 @@ let getTopDoctorHome = (limitInput) => {
             // Convert image buffers once so homepage cards can use a plain base64 string.
             users = users.map((item) => {
                 let doctor = item.get({ plain: true });
-                doctor.image = convertImage(doctor.image);
+                doctor.image = convertBufferToBase64(doctor.image);
                 return doctor;
             });
 
@@ -145,7 +103,7 @@ let getAllDoctors = () => {
             doctors = doctors.map((doctor) => {
                 // Convert doctor images once so admin and patient pages can render them directly.
                 let item = doctor.get({ plain: true });
-                item.image = convertImage(item.image);
+                item.image = convertBufferToBase64(item.image);
                 return item;
             });
 
@@ -301,7 +259,7 @@ let getDetailDoctorById = (inputId) => {
 
                 if (data) {
                     data = data.get({ plain: true });
-                    data.image = convertImage(data.image);
+                    data.image = convertBufferToBase64(data.image);
                 }
 
                 if (!data) data = {};
@@ -330,6 +288,24 @@ let bulkCreateSchedule = (data) => {
             } else {
                 let schedule = data.arrSchedule;
                 let selectedTimeTypes = schedule.map(item => item.timeType);
+                const selectedTimeCodes = await db.Allcode.findAll({
+                    where: { keyMap: selectedTimeTypes },
+                    attributes: ["keyMap", "valueEn", "valueVi"],
+                    raw: true,
+                });
+                const timeCodeMap = new Map(selectedTimeCodes.map(item => [item.keyMap, item]));
+                const now = moment().valueOf();
+                const hasPastSchedule = schedule.some((item) => {
+                    const startTimestamp = getScheduleStartTimestamp(item.date, timeCodeMap.get(item.timeType));
+                    return startTimestamp <= now;
+                });
+
+                if (hasPastSchedule || moment(Number(data.formatedDate)).startOf("day").valueOf() < moment().startOf("day").valueOf()) {
+                    return resolve({
+                        errCode: 1,
+                        errMessage: "Cannot create schedules in the past",
+                    });
+                }
 
                 if (schedule && schedule.length > 0) {
                     schedule = schedule.map((item) => ({
@@ -701,7 +677,7 @@ let getProfileDoctorById = (doctorId) => {
             }
 
             let profile = data.get({ plain: true });
-            profile.image = convertImage(profile.image);
+            profile.image = convertBufferToBase64(profile.image);
 
             resolve({
                 errCode: 0,
@@ -807,7 +783,7 @@ let getDoctorMedicalRecords = (doctorId, statusId) => {
 let saveDoctorMedicalRecord = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!data.doctorId || !data.patientId || !data.bookingId || !data.description) {
+            if (!data.doctorId || !data.patientId || !data.bookingId || !data.description || !data.file || !data.fileName) {
                 return resolve({
                     errCode: 1,
                     errMessage: "Missing required parameter!",
@@ -830,16 +806,81 @@ let saveDoctorMedicalRecord = (data) => {
                 });
             }
 
+            const [patient, doctor, timeCode] = await Promise.all([
+                db.User.findOne({
+                    where: { id: data.patientId },
+                    attributes: ["id", "email", "firstName", "lastName"],
+                    raw: true,
+                }),
+                db.User.findOne({
+                    where: { id: data.doctorId },
+                    attributes: ["id", "email", "firstName", "lastName"],
+                    raw: true,
+                }),
+                db.Allcode.findOne({
+                    where: { keyMap: booking.timeType },
+                    attributes: ["keyMap", "valueEn", "valueVi"],
+                    raw: true,
+                })
+            ]);
+
+            if (!patient?.email) {
+                return resolve({
+                    errCode: 3,
+                    errMessage: "Patient email not found",
+                });
+            }
+
+            const attachment = parseBase64Attachment(data.file);
+            if (!attachment?.content) {
+                return resolve({
+                    errCode: 4,
+                    errMessage: "Prescription file is invalid",
+                });
+            }
+
             await db.History.create({
                 // Persist the doctor's diagnosis/notes before marking the booking as completed.
                 doctorId: data.doctorId,
                 patientId: data.patientId,
                 description: data.description,
-                files: data.files || "",
+                files: JSON.stringify({
+                    fileName: data.fileName,
+                    contentType: attachment.contentType || data.fileType || "application/octet-stream",
+                }),
             });
 
             booking.statusId = "S3";
             await booking.save();
+
+            try {
+                const timeLabel = data.language === "vi"
+                    ? timeCode?.valueVi || booking.timeType
+                    : timeCode?.valueEn || booking.timeType;
+                const dateLabel = data.language === "vi"
+                    ? moment(Number(booking.date)).format("DD/MM/YYYY")
+                    : moment(Number(booking.date)).format("MM/DD/YYYY");
+
+                await emailService.sendRemedyEmail({
+                    language: data.language || "vi",
+                    reciverEmail: patient.email,
+                    patientName: buildUserDisplayName(patient, data.language),
+                    doctorName: buildUserDisplayName(doctor, data.language),
+                    time: `${timeLabel} - ${dateLabel}`,
+                    attachment: {
+                        filename: data.fileName,
+                        content: attachment.content,
+                        contentType: data.fileType || attachment.contentType,
+                    }
+                });
+            } catch (emailError) {
+                console.log("EMAIL remedy error:", emailError);
+                return resolve({
+                    errCode: 0,
+                    errMessage: "Save medical record succeed",
+                    warningMessage: "Prescription email could not be sent",
+                });
+            }
 
             resolve({
                 errCode: 0,
@@ -966,7 +1007,7 @@ let updateDoctorProfile = (data) => {
             const plainDoctor = updatedDoctor ? updatedDoctor.get({ plain: true }) : null;
             if (plainDoctor) {
                 // Convert the avatar before returning the updated profile to the frontend.
-                plainDoctor.image = convertImage(plainDoctor.image);
+                plainDoctor.image = convertBufferToBase64(plainDoctor.image);
             }
 
             resolve({

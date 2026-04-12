@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 class CommonUtils {
     static buildImageSrc(image) {
         if (!image || typeof image !== 'string') return '';
@@ -62,6 +64,42 @@ class CommonUtils {
             reader.onload = () => resolve(reader.result);
             reader.onerror = error => reject(error);
         });
+    }
+
+    static parseScheduleStart(value = '') {
+        const normalized = String(value).trim().toUpperCase();
+        const match = normalized.match(/(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/);
+
+        if (!match) {
+            return null;
+        }
+
+        let hours = Number(match[1]);
+        const minutes = Number(match[2]);
+        const meridiem = match[3];
+
+        if (meridiem === 'AM' && hours === 12) hours = 0;
+        if (meridiem === 'PM' && hours < 12) hours += 12;
+
+        return { hours, minutes };
+    }
+
+    static getScheduleStartTimestamp(dateValue, timeData = {}) {
+        const parsed =
+            CommonUtils.parseScheduleStart(timeData?.valueEn) ||
+            CommonUtils.parseScheduleStart(timeData?.valueVi);
+
+        if (!parsed) {
+            return moment(Number(dateValue)).valueOf();
+        }
+
+        return moment(Number(dateValue))
+            .startOf('day')
+            .hour(parsed.hours)
+            .minute(parsed.minutes)
+            .second(0)
+            .millisecond(0)
+            .valueOf();
     }
 }
 

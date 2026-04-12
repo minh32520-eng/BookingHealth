@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import moment from 'moment';
 import { toast } from 'react-toastify';
-import { LANGUAGES, USER_ROLE } from '../../../utils';
+import { BookingUtils, CommonUtils, USER_ROLE } from '../../../utils';
 import { getDoctorMedicalRecords, saveDoctorMedicalRecord } from '../../../services/userService';
 import './DoctorMedicalRecords.scss';
 
@@ -15,7 +15,10 @@ class DoctorMedicalRecords extends Component {
         pendingAppointments: [],
         historyRecords: [],
         selectedBookingId: '',
-        description: ''
+        description: '',
+        prescriptionFile: '',
+        prescriptionFileName: '',
+        prescriptionFileType: ''
     };
 
     componentDidMount() {
@@ -51,7 +54,10 @@ class DoctorMedicalRecords extends Component {
                     pendingAppointments,
                     historyRecords: res.data?.historyRecords || [],
                     selectedBookingId: pendingAppointments[0]?.id ? String(pendingAppointments[0].id) : '',
-                    description: pendingAppointments.length ? this.state.description : ''
+                    description: pendingAppointments.length ? this.state.description : '',
+                    prescriptionFile: pendingAppointments.length ? this.state.prescriptionFile : '',
+                    prescriptionFileName: pendingAppointments.length ? this.state.prescriptionFileName : '',
+                    prescriptionFileType: pendingAppointments.length ? this.state.prescriptionFileType : ''
                 });
                 return;
             }
@@ -70,7 +76,10 @@ class DoctorMedicalRecords extends Component {
 
     handleChangeBooking = (event) => {
         this.setState({
-            selectedBookingId: event.target.value
+            selectedBookingId: event.target.value,
+            prescriptionFile: '',
+            prescriptionFileName: '',
+            prescriptionFileType: ''
         });
     }
 
@@ -80,42 +89,66 @@ class DoctorMedicalRecords extends Component {
         });
     }
 
+    handleChangePrescriptionFile = async (event) => {
+        const file = event.target.files && event.target.files[0];
+
+        if (!file) {
+            this.setState({
+                prescriptionFile: '',
+                prescriptionFileName: '',
+                prescriptionFileType: ''
+            });
+            return;
+        }
+
+        const base64 = await CommonUtils.getBase64(file);
+        this.setState({
+            prescriptionFile: base64,
+            prescriptionFileName: file.name,
+            prescriptionFileType: file.type || 'application/octet-stream'
+        });
+    }
+
     getSelectedBooking = () => {
         const { pendingAppointments, selectedBookingId } = this.state;
         return pendingAppointments.find(item => String(item.id) === String(selectedBookingId));
     }
 
     getPatientName = (patient) => {
-        if (!patient) return '--';
-        if (this.props.language === LANGUAGES.VI) {
-            return `${patient.lastName || ''} ${patient.firstName || ''}`.trim() || patient.email || '--';
-        }
-        return `${patient.firstName || ''} ${patient.lastName || ''}`.trim() || patient.email || '--';
+        return BookingUtils.getUserDisplayName(patient, this.props.language);
     }
 
     getTimeLabel = (booking) => {
-        const timeType = booking?.timeTypeData;
-        if (!timeType) return booking?.timeType || '--';
-        return this.props.language === LANGUAGES.VI ? timeType.valueVi : timeType.valueEn;
+        return BookingUtils.getTimeLabel(booking?.timeTypeData, this.props.language, booking?.timeType || '--');
     }
 
     formatDate = (date) => {
-        if (!date) return '--';
-        return moment(Number(date)).format('DD/MM/YYYY');
+        return BookingUtils.formatDate(date);
     }
 
     handleSaveRecord = async () => {
         const doctorId = this.getDoctorId();
         const selectedBooking = this.getSelectedBooking();
-        const description = this.state.description.trim();
+        const {
+            description,
+            prescriptionFile,
+            prescriptionFileName,
+            prescriptionFileType
+        } = this.state;
+        const trimmedDescription = description.trim();
 
         if (!doctorId || !selectedBooking) {
             toast.error(this.props.intl.formatMessage({ id: 'doctor.medical-records.messages.select-booking' }));
             return;
         }
 
-        if (!description) {
+        if (!trimmedDescription) {
             toast.error(this.props.intl.formatMessage({ id: 'doctor.medical-records.messages.missing-description' }));
+            return;
+        }
+
+        if (!prescriptionFile || !prescriptionFileName) {
+            toast.error(this.props.intl.formatMessage({ id: 'doctor.medical-records.messages.missing-prescription-file' }));
             return;
         }
 
@@ -125,12 +158,24 @@ class DoctorMedicalRecords extends Component {
                 doctorId,
                 patientId: selectedBooking.patientId,
                 bookingId: selectedBooking.id,
-                description
+                description: trimmedDescription,
+                file: prescriptionFile,
+                fileName: prescriptionFileName,
+                fileType: prescriptionFileType,
+                language: this.props.language
             });
 
             if (res && res.errCode === 0) {
                 toast.success(this.props.intl.formatMessage({ id: 'doctor.medical-records.messages.save-success' }));
-                this.setState({ description: '' });
+                if (res.warningMessage) {
+                    toast.warn(this.props.intl.formatMessage({ id: 'doctor.medical-records.messages.email-warning' }));
+                }
+                this.setState({
+                    description: '',
+                    prescriptionFile: '',
+                    prescriptionFileName: '',
+                    prescriptionFileType: ''
+                });
                 await this.loadData();
             } else {
                 toast.error(res?.errMessage || this.props.intl.formatMessage({ id: 'doctor.medical-records.messages.save-failed' }));
@@ -172,7 +217,7 @@ class DoctorMedicalRecords extends Component {
             <tr key={item.id}>
                 <td>{this.getPatientName(item.patientData)}</td>
                 <td>{item.patientData?.phoneNumber || '--'}</td>
-                <td>{moment(item.createdAt).format('DD/MM/YYYY HH:mm')}</td>
+                <td>{BookingUtils.formatDateTime(item.createdAt)}</td>
                 <td className="record-description">{item.description || '--'}</td>
             </tr>
         ));
@@ -240,6 +285,26 @@ class DoctorMedicalRecords extends Component {
                                             disabled={!pendingAppointments.length}
                                             placeholder={this.props.intl.formatMessage({ id: 'doctor.medical-records.form.description-placeholder' })}
                                         />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label><FormattedMessage id="doctor.medical-records.form.prescription-file" /></label>
+                                        <label className={`prescription-upload ${!pendingAppointments.length ? 'disabled' : ''}`}>
+                                            <input
+                                                key={`${selectedBookingId}-${this.state.prescriptionFileName || 'empty'}`}
+                                                type="file"
+                                                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                                                onChange={this.handleChangePrescriptionFile}
+                                                disabled={!pendingAppointments.length}
+                                            />
+                                            <span>
+                                                {this.state.prescriptionFileName
+                                                    || this.props.intl.formatMessage({ id: 'doctor.medical-records.form.choose-prescription-file' })}
+                                            </span>
+                                        </label>
+                                        <div className="record-empty-note">
+                                            <FormattedMessage id="doctor.medical-records.form.prescription-file-note" />
+                                        </div>
                                     </div>
 
                                     <button

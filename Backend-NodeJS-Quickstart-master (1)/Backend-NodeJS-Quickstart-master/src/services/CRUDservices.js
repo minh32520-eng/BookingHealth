@@ -57,34 +57,6 @@ const getUserInfoById = async (userId) => {
     });
 };
 
-// const updateUserData = (data) => {
-//     return new Promise(async (resolve, reject) => {
-//         try {
-//             let user = await db.User.findOne({
-//                 where: { id: data.id }
-//             });
-
-//             if (!user) {
-//                 return resolve(null);
-//             }
-
-//             user.firstName = data.firstName;
-//             user.lastName = data.lastName;
-//             user.address = data.address;
-
-//             await user.save();
-
-//             let allUsers = await db.User.findAll({
-//                 raw: true
-//             });
-
-//             resolve(allUsers);
-
-//         } catch (e) {
-//             reject(e);
-//         }
-//     });
-// };
 const updateUserData = async (data) => {
     const phone =
         data.phonenumber ?? data.phoneNumber ?? '';

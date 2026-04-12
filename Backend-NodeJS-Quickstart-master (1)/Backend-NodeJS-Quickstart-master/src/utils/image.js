@@ -9,6 +9,14 @@ const normalizeBase64Image = (value) => {
     return trimmed;
 };
 
+const convertBufferToBase64 = (value) => {
+    if (value && Buffer.isBuffer(value)) {
+        return value.toString('base64');
+    }
+    return value || '';
+};
+
 module.exports = {
-    normalizeBase64Image
+    normalizeBase64Image,
+    convertBufferToBase64
 };

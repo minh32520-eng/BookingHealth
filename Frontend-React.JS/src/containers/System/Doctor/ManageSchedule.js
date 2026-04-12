@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import './ManageSchedule.scss';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import * as actions from "../../../store/actions";
-import { LANGUAGES, USER_ROLE } from '../../../utils';
+import { BookingUtils, CommonUtils, LANGUAGES, USER_ROLE } from '../../../utils';
 import DatePicker from '../../../components/Input/DatePicker';
 import moment from 'moment';
 import { toast } from 'react-toastify';
@@ -130,9 +130,26 @@ class ManageSchedule extends Component {
         })
     }
 
+    getScheduleStartTimestamp = (dateValue, schedule) => {
+        return CommonUtils.getScheduleStartTimestamp(dateValue, schedule);
+    }
+
+    isPastSchedule = (schedule, dateValue = this.state.currentDate) => {
+        if (!dateValue) {
+            return false;
+        }
+
+        return this.getScheduleStartTimestamp(dateValue, schedule) <= moment().valueOf();
+    }
+
     handleClickBtnTime = (time) => {
 
         let { rangeTime } = this.state;
+
+        if (this.isPastSchedule(time)) {
+            toast.error(this.props.intl.formatMessage({ id: 'doctor.manage-schedule.messages.invalid-past-time' }));
+            return;
+        }
 
         if (rangeTime && rangeTime.length > 0) {
             rangeTime = rangeTime.map(item => {
@@ -168,11 +185,31 @@ class ManageSchedule extends Component {
         }
 
         let formatedDate = new Date(currentDate).getTime();
+        const todayStart = moment().startOf('day').valueOf();
+
+        if (formatedDate < todayStart) {
+            toast.error(this.props.intl.formatMessage({ id: 'doctor.manage-schedule.messages.invalid-past-date' }));
+            return;
+        }
 
         if (rangeTime && rangeTime.length > 0) {
 
             // Only selected slots should be sent back to the bulk save API.
             let selectedTime = rangeTime.filter(item => item.isSelected === true);
+            const invalidSelectedTime = selectedTime.filter(item => this.isPastSchedule(item, currentDate));
+
+            if (invalidSelectedTime.length > 0) {
+                toast.error(this.props.intl.formatMessage({ id: 'doctor.manage-schedule.messages.invalid-past-time' }));
+                this.setState({
+                    rangeTime: rangeTime.map(item => ({
+                        ...item,
+                        isSelected: invalidSelectedTime.some(invalidItem => invalidItem.id === item.id)
+                            ? false
+                            : item.isSelected
+                    }))
+                });
+                return;
+            }
 
             if (selectedTime && selectedTime.length > 0) {
 
@@ -249,17 +286,18 @@ class ManageSchedule extends Component {
         return patientBookings.map((item, index) => {
             const patient = item.patientData || {};
             // Build a readable fallback name because some legacy patient records may miss one side of the name.
-            const fullName = [patient.lastName, patient.firstName].filter(Boolean).join(' ').trim()
-                || this.props.intl.formatMessage({ id: 'doctor.manage-schedule.table.patient-fallback' });
-            const timeLabel = language === LANGUAGES.VI
-                ? item.timeTypeDataPatient?.valueVi
-                : item.timeTypeDataPatient?.valueEn;
+            const fullName = BookingUtils.getUserDisplayName(
+                patient,
+                language,
+                this.props.intl.formatMessage({ id: 'doctor.manage-schedule.table.patient-fallback' })
+            );
+            const timeLabel = BookingUtils.getTimeLabel(item.timeTypeDataPatient, language, item.timeType || '--');
             // Booking status drives both the badge label and the action column state.
-            const statusLabel = item.statusId === 'S3'
-                ? this.props.intl.formatMessage({ id: 'doctor.manage-schedule.status.examined' })
-                : item.statusId === 'S2'
-                    ? this.props.intl.formatMessage({ id: 'doctor.manage-schedule.status.confirmed' })
-                    : this.props.intl.formatMessage({ id: 'doctor.manage-schedule.status.pending' });
+            const statusLabel = BookingUtils.getBookingStatusLabel(item.statusId, this.props.intl, {
+                pendingId: 'doctor.manage-schedule.status.pending',
+                confirmedId: 'doctor.manage-schedule.status.confirmed',
+                examinedId: 'doctor.manage-schedule.status.examined'
+            });
 
             return (
                 <tr key={`${item.patientId}-${item.timeType}-${index}`}>
@@ -315,7 +353,7 @@ class ManageSchedule extends Component {
 
         let { rangeTime, doctorExtraInfo, currentDate } = this.state;
         let { language, userInfo } = this.props;
-        let yesterday = new Date(new Date().setDate(new Date().getDate() - 1))
+        const minDate = moment().startOf('day').toDate();
         const doctorName = [userInfo?.lastName, userInfo?.firstName].filter(Boolean).join(' ').trim();
         const selectedDateLabel = currentDate ? moment(currentDate).format('DD/MM/YYYY') : '--';
 
@@ -374,7 +412,7 @@ class ManageSchedule extends Component {
                                     onChange={this.handleOnchangeDatePicker}
                                     className="form-control"
                                     value={this.state.currentDate}
-                                    minDate={yesterday}
+                                    minDate={minDate}
                                 />
                             </div>
                         </div>
@@ -382,6 +420,7 @@ class ManageSchedule extends Component {
                         <div className="pick-hour-container">
                             {rangeTime && rangeTime.length > 0 &&
                                 rangeTime.map((item, index) => {
+                                    const isPastSlot = this.isPastSchedule(item, currentDate);
 
                                     return (
                                         <button
@@ -390,6 +429,7 @@ class ManageSchedule extends Component {
                                                 ? "btn btn-schedule active"
                                                 : "btn btn-schedule"}
                                             onClick={() => this.handleClickBtnTime(item)}
+                                            disabled={isPastSlot}
                                         >
                                             {language === LANGUAGES.VI ? item.valueVi : item.valueEn}
                                         </button>

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import moment from 'moment';
 import { FormattedMessage, injectIntl } from 'react-intl';
 import { getAdminBookings } from '../../../services/userService';
+import { BookingUtils, LANGUAGES } from '../../../utils';
 import './ManageBooking.scss';
 
 const STATUS_OPTIONS = [
@@ -55,49 +55,37 @@ class ManageBooking extends Component {
     };
 
     getBookingStatusLabel = (statusId) => {
-        // Booking status and payment status are different concepts, so keep their labels separate.
-        if (statusId === 'S1') return this.props.intl.formatMessage({ id: 'admin.manage-booking.status.pending-confirm' });
-        if (statusId === 'S2') return this.props.intl.formatMessage({ id: 'admin.manage-booking.status.confirmed' });
-        if (statusId === 'S3') return this.props.intl.formatMessage({ id: 'admin.manage-booking.status.examined' });
-        return statusId || '--';
+        return BookingUtils.getBookingStatusLabel(statusId, this.props.intl);
     };
 
     getPaymentStatusLabel = (paymentStatus) => {
-        // Default to pending when paymentStatus is missing because unpaid is the safest interpretation.
-        if (paymentStatus === 'paid') return this.props.intl.formatMessage({ id: 'admin.manage-booking.payment.paid' });
-        if (paymentStatus === 'failed') return this.props.intl.formatMessage({ id: 'admin.manage-booking.payment.failed' });
-        return this.props.intl.formatMessage({ id: 'admin.manage-booking.payment.pending' });
+        return BookingUtils.getPaymentStatusLabel(paymentStatus, { intl: this.props.intl });
     };
 
     getDoctorName = (booking) => {
-        const doctor = booking?.doctorData;
-        return `${doctor?.lastName || ''} ${doctor?.firstName || ''}`.trim() || '--';
+        return BookingUtils.getUserDisplayName(booking?.doctorData, LANGUAGES.VI);
     };
 
     getPatientName = (booking) => {
-        const patient = booking?.patientData;
-        return `${patient?.lastName || ''} ${patient?.firstName || ''}`.trim() || patient?.email || '--';
+        return BookingUtils.getUserDisplayName(booking?.patientData, LANGUAGES.VI);
     };
 
     formatDate = (date) => {
-        if (!date) return '--';
-        return moment(Number(date)).format('DD/MM/YYYY');
+        return BookingUtils.formatDate(date);
     };
 
     getTimeLabel = (booking) => {
-        const data = booking?.timeTypeData;
-        if (!data) return '--';
-        return this.props.language === 'vi' ? data.valueVi : data.valueEn;
+        return BookingUtils.getTimeLabel(
+            booking?.timeTypeData,
+            this.props.language === 'vi' ? LANGUAGES.VI : LANGUAGES.EN
+        );
     };
 
     formatAmount = (amount) => {
-        // Format every amount from the current language so the table stays readable for VI and EN admins.
-        const value = Number(amount || 0);
-        return new Intl.NumberFormat(this.props.language === 'vi' ? 'vi-VN' : 'en-US', {
-            style: 'currency',
-            currency: 'VND',
-            maximumFractionDigits: 0
-        }).format(value);
+        return BookingUtils.formatCurrency(
+            amount,
+            this.props.language === 'vi' ? LANGUAGES.VI : LANGUAGES.EN
+        );
     };
 
     render() {

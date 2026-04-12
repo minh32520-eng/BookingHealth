@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
-import moment from 'moment';
 import { toast } from 'react-toastify';
 import HomeHeader from '../../HomePage/HomeHeader';
-import { LANGUAGES, path } from '../../../utils';
+import { BookingUtils, path } from '../../../utils';
 import { createVnpayPayment, getBookingHistoryByPatient } from '../../../services/userService';
 import './BookingHistory.scss';
 
@@ -69,37 +68,23 @@ class BookingHistory extends Component {
     };
 
     getDoctorName = (booking) => {
-        const doctor = booking?.doctorData;
-        if (!doctor) return '--';
-        if (this.props.language === LANGUAGES.VI) {
-            return `${doctor.lastName || ''} ${doctor.firstName || ''}`.trim();
-        }
-        return `${doctor.firstName || ''} ${doctor.lastName || ''}`.trim();
+        return BookingUtils.getUserDisplayName(booking?.doctorData, this.props.language);
     };
 
     getTimeLabel = (booking) => {
-        if (!booking?.timeTypeData) return '--';
-        return this.props.language === LANGUAGES.VI
-            ? booking.timeTypeData.valueVi
-            : booking.timeTypeData.valueEn;
+        return BookingUtils.getTimeLabel(booking?.timeTypeData, this.props.language);
     };
 
     getStatusLabel = (booking) => {
-        if (!booking?.statusData) return booking?.statusId || '--';
-        return this.props.language === LANGUAGES.VI
-            ? booking.statusData.valueVi
-            : booking.statusData.valueEn;
+        return BookingUtils.getLocalizedValue(booking?.statusData, this.props.language, booking?.statusId || '--');
     };
 
     getPaymentStatusLabel = (booking) => {
-        if (booking?.paymentStatus === 'paid') return 'Da thanh toan';
-        if (booking?.paymentStatus === 'failed') return 'Thanh toan that bai';
-        return 'Chua thanh toan';
+        return BookingUtils.getPaymentStatusLabel(booking?.paymentStatus, { language: this.props.language });
     };
 
     formatDate = (date) => {
-        if (!date) return '--';
-        return moment(Number(date)).format('DD/MM/YYYY');
+        return BookingUtils.formatDate(date);
     };
 
     handlePayWithVnpay = async (bookingId) => {
