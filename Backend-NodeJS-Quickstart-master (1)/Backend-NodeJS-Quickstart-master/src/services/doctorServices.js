@@ -10,6 +10,18 @@ require("dotenv").config();
 
 const MAX_NUMBER_SCHEDULE = 3;
 
+// ================== PRIVATE HELPERS ==================
+const imageBase64ToBuffer = (imageBase64) => {
+    if (!imageBase64 || !imageBase64.length) return null;
+    // Strip data URL prefix if present (browser upload format)
+    const cleanBase64 = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
+    return Buffer.from(cleanBase64, 'base64');
+};
+</xai:function_call >
+
+<xai:function_call name="edit_file">
+<parameter name="path">Backend-NodeJS-Quickstart-master (1)/Backend-NodeJS-Quickstart-master/src/services/doctorServices.js
+
 // ================== GET TOP DOCTOR ==================
 let getTopDoctorHome = (limitInput) => {
     return new Promise(async (resolve, reject) => {
@@ -193,21 +205,15 @@ let saveDetailInforDoctor = (inputData) => {
                 });
             }
 
-            // ===== SAVE IMAGE =====
+            // Use private helper for image update
             if (inputData.image && inputData.image.length > 0) {
-                let doctor = await db.User.findOne({
-                    where: { id: inputData.doctorId },
-                    raw: false
-                });
-
-                if (doctor) {
-                    // Strip the data URL prefix if the admin uploaded the image from a browser file input.
-                    let imageBase64 = inputData.image.includes(',')
-                        ? inputData.image.split(',')[1]
-                        : inputData.image;
-
-                    doctor.image = Buffer.from(imageBase64, 'base64');
-                    await doctor.save();
+                const imageBuffer = imageBase64ToBuffer(inputData.image);
+                if (imageBuffer) {
+                    const doctor = await db.User.findOne({ where: { id: inputData.doctorId }, raw: false });
+                    if (doctor) {
+                        doctor.image = imageBuffer;
+                        await doctor.save();
+                    }
                 }
             }
 
@@ -216,6 +222,7 @@ let saveDetailInforDoctor = (inputData) => {
                 errMessage: "Save successfully",
             });
 
+
         } catch (e) {
             console.log("ERROR saveDetailInforDoctor:", e);
             reject(e);
@@ -223,58 +230,83 @@ let saveDetailInforDoctor = (inputData) => {
     });
 };
 
-// ================== GET DETAIL ==================
-let getDetailDoctorById = (inputId) => {
+// ================== PRIVATE HELPERS ==================
+const getDoctorProfile = (inputId, options = {}) => {
     return new Promise(async (resolve, reject) => {
         try {
             if (!inputId) {
-                resolve({
+                return resolve({
                     errCode: 1,
                     errMessage: "Missing required parameter!",
                 });
-            } else {
-                let data = await db.User.findOne({
-                    where: { id: inputId },
-                    attributes: {
-                        exclude: ["password"],
-                    },
+            }
+
+            const baseInclude = [
+                {
+                    model: db.Allcode,
+                    as: "positionData",
+                    attributes: ["valueEn", "valueVi"],
+                },
+                {
+                    model: db.Markdown,
+                    attributes: ["description", "contentHTML", "contentMarkdown"],
+                }
+            ];
+
+            let include = baseInclude;
+            if (options.includeClinic !== false) {
+                include.push({
+                    model: db.Doctor_Infor,
                     include: [
                         {
-                            model: db.Markdown,
-                            attributes: ["description", "contentHTML", "contentMarkdown"],
-                        },
-                        {
                             model: db.Allcode,
-                            as: "positionData",
+                            as: "priceTypeData",
                             attributes: ["valueEn", "valueVi"],
                         },
                         {
-                            model: db.Doctor_Infor,
-                            attributes: { exclude: ['id', 'doctorId'] },
-                        }
+                            model: db.Allcode,
+                            as: "provinceTypeData", 
+                            attributes: ["valueEn", "valueVi"],
+                        },
+                        {
+                            model: db.Allcode,
+                            as: "paymentTypeData",
+                            attributes: ["valueEn", "valueVi"],
+                        },
                     ],
-                    raw: false,
-                    nest: true,
-                });
-
-                if (data) {
-                    data = data.get({ plain: true });
-                    data.image = convertBufferToBase64(data.image);
-                }
-
-                if (!data) data = {};
-
-                resolve({
-                    errCode: 0,
-                    data: data,
                 });
             }
+
+            let data = await db.User.findOne({
+                where: { id: inputId },
+                attributes: { exclude: ["password"] },
+                include,
+                raw: false,
+                nest: true,
+            });
+
+            if (!data) {
+                return resolve({ errCode: 0, data: {} });
+            }
+
+            let profile = data.get({ plain: true });
+            profile.image = convertBufferToBase64(profile.image);
+
+            resolve({
+                errCode: 0,
+                data: profile,
+            });
         } catch (e) {
-            console.log("ERROR getDetailDoctorById:", e);
+            console.log("ERROR getDoctorProfile:", e);
             reject(e);
         }
     });
 };
+
+// ================== GET DETAIL ==================
+let getDetailDoctorById = (inputId) => getDoctorProfile(inputId, { includeClinic: false });
+
+
 
 // ================== SCHEDULE ==================
 let bulkCreateSchedule = (data) => {
@@ -575,7 +607,7 @@ let deleteDoctorInfor = (doctorId) => {
     });
 };
 
-let getExraInforDoctorById = (doctorId) => {
+let getExtraInforDoctorById = (doctorId) => {
     return new Promise(async (resolve, reject) => {
         try {
             if (!doctorId) {
@@ -613,82 +645,14 @@ let getExraInforDoctorById = (doctorId) => {
                 data: data ? data.get({ plain: true }) : {},
             });
         } catch (e) {
-            console.log("ERROR getExraInforDoctorById:", e);
+            console.log("ERROR getExtraInforDoctorById:", e);
             reject(e);
         }
     });
 };
 
-let getProfileDoctorById = (doctorId) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            if (!doctorId) {
-                return resolve({
-                    errCode: 1,
-                    errMessage: "Missing required parameter!",
-                });
-            }
-
-            let data = await db.User.findOne({
-                where: { id: doctorId },
-                attributes: {
-                    exclude: ["password"],
-                },
-                include: [
-                    {
-                        model: db.Markdown,
-                        attributes: ["description", "contentHTML", "contentMarkdown"],
-                    },
-                    {
-                        model: db.Allcode,
-                        as: "positionData",
-                        attributes: ["valueEn", "valueVi"],
-                    },
-                    {
-                        model: db.Doctor_Infor,
-                        include: [
-                            {
-                                model: db.Allcode,
-                                as: "priceTypeData",
-                                attributes: ["valueEn", "valueVi"],
-                            },
-                            {
-                                model: db.Allcode,
-                                as: "provinceTypeData",
-                                attributes: ["valueEn", "valueVi"],
-                            },
-                            {
-                                model: db.Allcode,
-                                as: "paymentTypeData",
-                                attributes: ["valueEn", "valueVi"],
-                            },
-                        ],
-                    },
-                ],
-                raw: false,
-                nest: true,
-            });
-
-            if (!data) {
-                return resolve({
-                    errCode: 0,
-                    data: {},
-                });
-            }
-
-            let profile = data.get({ plain: true });
-            profile.image = convertBufferToBase64(profile.image);
-
-            resolve({
-                errCode: 0,
-                data: profile,
-            });
-        } catch (e) {
-            console.log("ERROR getProfileDoctorById:", e);
-            reject(e);
-        }
-    });
-};
+// Optimized to use shared helper - reduces duplication
+let getProfileDoctorById = (doctorId) => getDoctorProfile(doctorId, { includeClinic: true });
 
 let getDoctorMedicalRecords = (doctorId, statusId) => {
     return new Promise(async (resolve, reject) => {
@@ -1031,7 +995,7 @@ module.exports = {
     bulkCreateSchedule,
     getScheduleByDate,
     getListPatientForDoctor,
-    getExraInforDoctorById,
+    getExtraInforDoctorById,
     getProfileDoctorById,
     deleteDoctorInfor,
     getDoctorMedicalRecords,

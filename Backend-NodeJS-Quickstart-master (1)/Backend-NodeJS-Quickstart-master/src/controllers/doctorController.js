@@ -102,9 +102,9 @@ let getScheduleByDate = async (req, res) => {
 }
 
 // ================== EXTRA INFO ==================
-let getExraInforDoctorById = async (req, res) => {
+let getExtraInforDoctorById = async (req, res) => {
     try {
-        let infor = await doctorService.getExraInforDoctorById(req.query.doctorId);
+        let infor = await doctorService.getExtraInforDoctorById(req.query.doctorId);
         return res.status(200).json(infor)
 
     } catch (e) {
@@ -227,7 +227,7 @@ module.exports = {
     bulkCreateSchedule,
     getScheduleByDate,
     getListPatientForDoctor,
-    getExraInforDoctorById,
+    getExtraInforDoctorById,
     getProfileDoctorById,
     deleteDoctorInfor,
     getDoctorMedicalRecords,
